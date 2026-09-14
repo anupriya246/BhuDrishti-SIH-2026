@@ -385,13 +385,13 @@ footer strong{color:#fff}
     </div>
     <div class="stat-card" style="--c1:#1a7a6e;--c2:#1a6fa0">
       <div class="stat-icon-wrap">📡</div>
-      <div class="stat-num">8</div>
+      <div class="stat-num" id="mesh-nodes-online-count">0</div>
       <div class="stat-label">Mesh Nodes Online</div>
       <div class="stat-delta delta-up">↑ 3 relay nodes active</div>
     </div>
     <div class="stat-card" style="--c1:#4a5a22;--c2:#6b7c3a">
       <div class="stat-icon-wrap">🛣</div>
-      <div class="stat-num">2</div>
+      <div class="stat-num" id="roads-blocked-count">2</div>
       <div class="stat-label">Roads Blocked</div>
       <div class="stat-delta delta-dn">Reroutes calculated</div>
     </div>
@@ -678,6 +678,18 @@ async function loadRealStats() {
     const stats = await response.json();
 
     console.log('Real ML stats loaded:', stats);
+    const reportsResponse = await fetch('http://localhost:3001/api/field-reports');
+    const reportsData = await reportsResponse.json();
+
+    const blockedRoads = (reportsData.reports || []).filter(
+      report => report.report_type === 'blocked_road'
+    ).length;
+
+    const roadsBlockedCount = document.getElementById('roads-blocked-count');
+
+    if (roadsBlockedCount) {
+      roadsBlockedCount.textContent = blockedRoads;
+    }
 
     const nums = document.querySelectorAll('.stat-num');
 
@@ -1222,10 +1234,11 @@ function drawCanvas(){
   const W=cv.offsetWidth,H=cv.offsetHeight;cv.width=W;cv.height=H
   const ctx=cv.getContext('2d')
   const nodes=[
-    {x:.15,y:.2,s:'online'},{x:.45,y:.12,s:'relay'},{x:.75,y:.25,s:'online'},
-    {x:.25,y:.5,s:'relay'},{x:.55,y:.45,s:'online'},{x:.82,y:.55,s:'offline'},
-    {x:.35,y:.78,s:'online'},{x:.65,y:.75,s:'relay'},{x:.88,y:.82,s:'online'},
+  {x:.15,y:.2,s:'online'},{x:.45,y:.12,s:'relay'},{x:.75,y:.25,s:'online'},
+  {x:.25,y:.5,s:'relay'},{x:.55,y:.45,s:'online'},{x:.82,y:.55,s:'offline'},
+  {x:.35,y:.78,s:'online'},{x:.65,y:.75,s:'relay'},{x:.88,y:.82,s:'online'},
   ]
+  
   const edges=[[0,1],[1,2],[0,3],[1,3],[1,4],[2,4],[3,6],[4,7],[7,8],[4,5],[2,5]]
   const sc={online:'#2d7a3a',relay:'#c07a10',offline:'#b83020'}
   function draw(){
@@ -1276,24 +1289,158 @@ function sendMesh(){
 }
 
 /* ══ FIELD REPORTS ══ */
-function initReports(){
-  const ti={crack:'🪨',blocked_road:'🚧',landslide_occurred:'🏔️',flooding:'🌊',infrastructure_damage:'🏗️',other:'📌'}
-  const tn={crack:'Crack Observed',blocked_road:'Road Blocked',landslide_occurred:'Landslide',flooding:'Flooding',infrastructure_damage:'Infrastructure Damage',other:'Other'}
-  const sc={high:'#b83020',medium:'#c07a10',low:'#2d7a3a'}
-  document.getElementById('rep-grid').innerHTML=REPORTS.map(r=>`
-    <div class="rep-card" style="border-left:4px solid ${sc[r.sev]||'#c0541a'}">
-      <div class="rc-hdr">
-        <span class="rc-icon">${ti[r.type]||'📌'}</span>
-        <div><div class="rc-dist">${r.d}</div><div style="font-size:.7rem;color:var(--muted);font-weight:600">${tn[r.type]||r.type}</div></div>
-        <span class="rc-time">${r.time}</span>
+async function initReports() {
+  const grid = document.getElementById('rep-grid');
+
+  if (!grid) return;
+
+  try {
+    grid.innerHTML = `
+      <div style="padding:1rem;color:var(--muted)">
+        Loading field reports...
       </div>
-      <div class="rc-desc">${r.desc}</div>
-      <div class="rc-foot">
-        <span class="sev-pill" style="background:${sc[r.sev]||'#c0541a'}">${r.sev.toUpperCase()}</span>
-        <span class="rep-reporter">👤 ${r.rep}</span>
-        ${r.v?'<span class="verified">✓ Verified</span>':'<span style="font-size:.68rem;color:#c07a10;font-weight:700">⏳ Pending</span>'}
+    `;
+
+    const response = await fetch('http://localhost:3001/api/field-reports');
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || `HTTP ${response.status}`);
+    }
+
+    const reports = data.reports || [];
+
+    if (reports.length === 0) {
+      grid.innerHTML = `
+        <div style="padding:1rem;color:var(--muted)">
+          No field reports submitted yet.
+        </div>
+      `;
+      return;
+    }
+
+    const ti = {
+      crack: '🪨',
+      blocked_road: '🚧',
+      landslide_occurred: '🏔️',
+      flooding: '🌊',
+      infrastructure_damage: '🏗️',
+      other: '📌'
+    };
+
+    const tn = {
+      crack: 'Crack Observed',
+      blocked_road: 'Road Blocked',
+      landslide_occurred: 'Landslide',
+      flooding: 'Flooding',
+      infrastructure_damage: 'Infrastructure Damage',
+      other: 'Other'
+    };
+
+    const sc = {
+      high: '#b83020',
+      medium: '#c07a10',
+      low: '#2d7a3a'
+    };
+
+    grid.innerHTML = reports.map(r => `
+      <div class="rep-card" style="border-left:4px solid ${sc[r.severity] || '#c0541a'}">
+        <div class="rc-hdr">
+          <span class="rc-icon">${ti[r.report_type] || '📌'}</span>
+
+          <div>
+            <div class="rc-dist">${r.district || 'Location not specified'}</div>
+            <div style="font-size:.7rem;color:var(--muted);font-weight:600">
+              ${tn[r.report_type] || r.report_type}
+            </div>
+          </div>
+
+          <span class="rc-time">
+            ${new Date(r.created_at).toLocaleString()}
+          </span>
+        </div>
+
+        <div class="rc-desc">
+          ${r.description || 'No description provided.'}
+        </div>
+
+        <div class="rc-foot">
+          <span class="sev-pill" style="background:${sc[r.severity] || '#c0541a'}">
+            ${(r.severity || 'unknown').toUpperCase()}
+          </span>
+          <span class="rep-reporter">
+            👤 ${r.reporter_name || 'Citizen'}
+          </span>
+
+          ${
+            r.verified
+              ? '<span class="verified">✓ Verified</span>'
+              : '<span style="font-size:.68rem;color:#c07a10;font-weight:700">⏳ Pending</span>'
+          }
+
+          <button
+            onclick="deleteFieldReport('${r.id}')"
+            style="
+              margin-left:auto;
+              border:0;
+              background:#fee2e2;
+              color:#b91c1c;
+              padding:.35rem .6rem;
+              border-radius:6px;
+              cursor:pointer;
+              font-size:.7rem;
+              font-weight:700;
+            "
+          >
+            🗑 Delete
+          </button>
+          
+
+          
+        </div>
       </div>
-    </div>`).join('')
+    `).join('');
+
+  } catch (error) {
+    console.error('Failed to load field reports:', error);
+
+    grid.innerHTML = `
+      <div style="padding:1rem;color:#b91c1c;background:#fee2e2;border-radius:8px">
+        ✗ Failed to load field reports.
+      </div>
+    `;
+  }
+}
+async function deleteFieldReport(id) {
+  const confirmed = confirm(
+    'Are you sure you want to delete this field report?'
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(
+      `http://localhost:3001/api/field-reports/${id}`,
+      {
+        method: 'DELETE'
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || `HTTP ${response.status}`);
+    }
+
+    alert('Field report deleted successfully.');
+
+    // Refresh reports from database
+    await initReports();
+
+  } catch (error) {
+    console.error('Failed to delete field report:', error);
+    alert(`Failed to delete report: ${error.message}`);
+  }
 }
 function showReportForm(){
   const grid = document.getElementById('rep-grid');
@@ -1383,7 +1530,7 @@ async function submitFieldReport() {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        location,
+        district: location,
         report_type: type,
         severity,
         description
@@ -1417,11 +1564,29 @@ async function submitFieldReport() {
 function refreshAll(){
   document.querySelectorAll('.stat-num').forEach(el=>{el.style.animation='none';void el.offsetWidth;el.style.animation='fsld .4s ease'})
 }
+function loadMeshStats() {
+  const nodes = [
+    {x:.15,y:.2,s:'online'},
+    {x:.45,y:.12,s:'relay'},
+    {x:.75,y:.25,s:'online'},
+    {x:.25,y:.5,s:'relay'},
+    {x:.55,y:.45,s:'online'},
+    {x:.82,y:.55,s:'offline'},
+    {x:.35,y:.78,s:'online'},
+    {x:.65,y:.75,s:'relay'},
+    {x:.88,y:.82,s:'online'},
+  ];
+
+  const onlineNodes = nodes.filter(node => node.s === 'online').length;
+
+  document.getElementById('mesh-nodes-online-count').textContent = onlineNodes;
+}
 
 /* ══ INIT ══ */
 window.onload = async () => {
   await loadRealRiskData();
   await loadRealStats();
+  loadMeshStats();
  
 
   runPrediction();

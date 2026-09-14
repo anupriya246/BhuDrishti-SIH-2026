@@ -54,7 +54,7 @@ router.post('/',  async (req, res) => {
 })
 
 // ── List reports ──────────────────────────────────────────────────────────────
-router.get('/', requireAuth, async (req, res) => {
+router.get('/',  async (req, res) => {
   const {
     district, report_type, severity,
     verified, limit = 50, offset = 0,
@@ -73,7 +73,7 @@ router.get('/', requireAuth, async (req, res) => {
   }
 
   // Citizens see only their own reports
-  if (req.user.role === 'citizen') {
+  if (req.user?.role === 'citizen') {
     conditions.push(`fr.user_id = $${p++}`)
     params.push(req.user.id)
   }
@@ -103,7 +103,7 @@ router.get('/', requireAuth, async (req, res) => {
 })
 
 // ── Single report ─────────────────────────────────────────────────────────────
-router.get('/:id', requireAuth, async (req, res) => {
+router.get('/:id',requireAuth, async (req, res) => {
   try {
     const { rows } = await query(
       `SELECT fr.*, u.name AS reporter_name FROM field_reports fr
@@ -141,5 +141,28 @@ router.patch(
     }
   }
 )
+// ── Delete report ─────────────────────────────────────────────────────────────
+router.delete('/:id', async (req, res) => {
+  try {
+    const { rows } = await query(
+      `DELETE FROM field_reports
+       WHERE id = $1
+       RETURNING id`,
+      [req.params.id]
+    )
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Report not found.' })
+    }
+
+    return res.json({
+      message: 'Report deleted successfully.',
+      id: rows[0].id
+    })
+  } catch (err) {
+    console.error('[field-reports/delete]', err.message)
+    return res.status(500).json({ error: 'Could not delete report.' })
+  }
+})
 
 export default router
