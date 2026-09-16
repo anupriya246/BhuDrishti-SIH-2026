@@ -678,7 +678,7 @@ async function loadRealStats() {
     const stats = await response.json();
 
     console.log('Real ML stats loaded:', stats);
-    const reportsResponse = await fetch('http://localhost:3001/api/field-reports');
+    const reportsResponse = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/field-reports');
     const reportsData = await reportsResponse.json();
 
     const blockedRoads = (reportsData.reports || []).filter(
@@ -941,7 +941,7 @@ async function runPrediction(){
   }
 
   try {
-    const resp=await fetch('http://localhost:5000/predict',{
+    const resp=await fetch('https://bhudrishti-ml.onrender.com/predict',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     })
@@ -1301,7 +1301,7 @@ async function initReports() {
       </div>
     `;
 
-    const response = await fetch('http://localhost:3001/api/field-reports');
+    const response = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/field-reports');
     const data = await response.json();
 
     if (!response.ok) {
@@ -1420,7 +1420,7 @@ async function deleteFieldReport(id) {
 
   try {
     const response = await fetch(
-      `http://localhost:3001/api/field-reports/${id}`,
+      `https://bhudrishti-backend-9mrh.onrender.com/api/field-reports/${id}`,
       {
         method: 'DELETE'
       }
@@ -1523,7 +1523,7 @@ async function submitFieldReport() {
     `;
 
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/field-reports', {
+    const response = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/field-reports', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
