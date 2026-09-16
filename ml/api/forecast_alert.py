@@ -27,7 +27,12 @@ def fetch_hourly_rainfall(lat: float, lon: float) -> list[dict]:
         "forecast_days":         1,
         "timezone":              "Asia/Kolkata",
     }
-    resp = requests.get(OPEN_METEO_URL, params=params, timeout=30)
+    resp = requests.get(
+        OPEN_METEO_URL,
+        params=params,
+        timeout=30,
+        headers={"User-Agent": "BhuDrishti-SIH-2026/1.0"}
+    )
     resp.raise_for_status()
     data = resp.json()["hourly"]
 

@@ -10,19 +10,29 @@ dotenv.config()
 
 const { Pool } = pg
 
-const pool = new Pool({
-  host: process.env.PG_HOST,
-  port: process.env.PG_PORT,
-  database: process.env.PG_DATABASE,
-  user: process.env.PG_USER,
-  password: process.env.PG_PASSWORD,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-  ssl: process.env.NODE_ENV === 'production'
-  ? { rejectUnauthorized: false }
-  : false,
-})
+const isProduction = process.env.NODE_ENV === 'production'
+
+const poolConfig = isProduction && process.env.DATABASE_URL
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+      ssl: { rejectUnauthorized: false },
+    }
+  : {
+      host: process.env.PG_HOST,
+      port: process.env.PG_PORT,
+      database: process.env.PG_DATABASE,
+      user: process.env.PG_USER,
+      password: process.env.PG_PASSWORD,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+      ssl: false,
+    }
+
+const pool = new Pool(poolConfig)
 
 // Verify connection on startup
 pool.connect((err, client, release) => {
@@ -30,8 +40,10 @@ pool.connect((err, client, release) => {
     console.error('❌  PostgreSQL connection error:', err.message)
     return
   }
+
   client.query('SELECT NOW()', (err2, result) => {
     release()
+
     if (err2) {
       console.error('❌  PostgreSQL query error:', err2.message)
     } else {
@@ -46,11 +58,14 @@ pool.connect((err, client, release) => {
  */
 export async function query(text, params) {
   const start = Date.now()
+
   try {
     const res = await pool.query(text, params)
+
     if (process.env.NODE_ENV === 'development') {
       console.log(`[pg] ${Date.now() - start}ms — ${text.substring(0, 80)}`)
     }
+
     return res
   } catch (err) {
     console.error('[pg] Query error:', err.message, '\nSQL:', text)
