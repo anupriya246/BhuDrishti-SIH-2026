@@ -7,9 +7,12 @@ and runs the ML model against each hour to find the earliest risk threshold brea
 import requests
 import pandas as pd
 from datetime import datetime
+import time
 
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
+CACHE={}
+CACHE_TTL=300  #5minutes
 
 RISK_ORDER = {"low": 0, "moderate": 1, "high": 2, "critical": 3}
 
@@ -20,6 +23,11 @@ def fetch_hourly_rainfall(lat: float, lon: float) -> list[dict]:
     and soil moisture data for a given lat/lon in NER.
     Returns a list of dicts: [{time, precipitation, soil_moisture}, ...]
     """
+    cache_key = (round(lat, 3), round(lon, 3))
+    cached = CACHE.get(cache_key)
+
+    if cached and time.time() - cached["time"] < CACHE_TTL:
+        return cached["data"]
     params = {
         "latitude":              lat,
         "longitude":             lon,
@@ -43,6 +51,11 @@ def fetch_hourly_rainfall(lat: float, lon: float) -> list[dict]:
             "precipitation": data["precipitation"][i] or 0.0,
             "soil_moisture": data["soil_moisture_0_to_1cm"][i] or 0.3,
         })
+    CACHE[cache_key] = {
+    "time": time.time(),
+    "data": hourly
+    }
+    
     return hourly
 
 
