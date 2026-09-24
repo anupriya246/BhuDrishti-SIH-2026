@@ -35,14 +35,25 @@ def fetch_hourly_rainfall(lat: float, lon: float) -> list[dict]:
         "forecast_days":         1,
         "timezone":              "Asia/Kolkata",
     }
-    resp = requests.get(
-        OPEN_METEO_URL,
-        params=params,
-        timeout=30,
-        headers={"User-Agent": "BhuDrishti-SIH-2026/1.0"}
-    )
-    resp.raise_for_status()
-    data = resp.json()["hourly"]
+    for attempt in range(3):
+        resp = requests.get(
+            OPEN_METEO_URL,
+            params=params,
+            timeout=30,
+            headers={"User-Agent": "BhuDrishti-SIH-2026/1.0"}
+        )
+
+        if resp.status_code == 429:
+            time.sleep(2 ** attempt)
+            continue
+
+        resp.raise_for_status()
+        data = resp.json()["hourly"]
+        break
+    else:
+        if cached:
+            return cached["data"]
+        raise RuntimeError("Open-Meteo rate limit exceeded. Please try again later.")
 
     hourly = []
     for i, t in enumerate(data["time"]):
