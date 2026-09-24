@@ -12,7 +12,7 @@ import time
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 CACHE={}
-CACHE_TTL=300  #5minutes
+CACHE_TTL=1800  #30minutes
 
 RISK_ORDER = {"low": 0, "moderate": 1, "high": 2, "critical": 3}
 
