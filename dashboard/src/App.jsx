@@ -9,8 +9,9 @@ import MapView        from './components/MapView'
 import RiskDashboard  from './components/RiskDashboard'
 import PredictForm    from './components/PredictForm'
 import ForecastPanel  from './components/ForecastPanel'
+import ReroutingPanel from './components/ReroutingPanel'
 
-const TABS = ['Overview', 'AI Risk Assessment', 'Forecast']
+const TABS = ['Overview', 'AI Risk Assessment', 'Forecast', 'Rerouting']
 const REFRESH_INTERVAL = 60_000
 
 export default function App() {
@@ -94,6 +95,7 @@ export default function App() {
             {tab === 'Overview'           && '⬡ '}
             {tab === 'AI Risk Assessment' && '🤖 '}
             {tab === 'Forecast'           && '⏱ '}
+            {tab === 'Rerouting'          && '🛣️ '}
             {tab}
           </button>
         ))}
@@ -124,6 +126,7 @@ export default function App() {
 
         {activeTab === 'AI Risk Assessment' && <PredictForm />}
         {activeTab === 'Forecast'           && <ForecastPanel />}
+        {activeTab === 'Rerouting'          && <ReroutingPanel regions={regions} />}
       </main>
 
       {/* ── Footer ── */}

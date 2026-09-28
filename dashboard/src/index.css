@@ -633,3 +633,7 @@ a { color: var(--terra); }
   .footer  { flex-direction: column; gap: 0.25rem; }
   .map-wrapper { height: 280px; }
 }
+
+/* ── Rerouting Panel ────────────────────────────────────── */
+.reroute-card { background: linear-gradient(145deg, #fff8ec, #fff0d8); border-color: #e8c890; }
+.reroute-card .card__title { color: #7a3820; }
