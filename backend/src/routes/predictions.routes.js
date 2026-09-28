@@ -131,17 +131,23 @@ router.get('/', requireAuth, async (req, res) => {
 // ── Stats for dashboard ───────────────────────────────────────────────────────
 router.get('/stats', requireAuth, async (req, res) => {
   try {
-    const { rows } = await query(`
-      SELECT
-        COUNT(*)                                          AS total,
-        COUNT(*) FILTER (WHERE risk_category = 'Low')      AS low_count,
-        COUNT(*) FILTER (WHERE risk_category = 'Moderate') AS moderate_count,
-        COUNT(*) FILTER (WHERE risk_category = 'High')     AS high_count,
-        COUNT(*) FILTER (WHERE risk_category = 'Critical') AS critical_count,
-        COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours') AS last_24h
-      FROM predictions
-    `)
-    return res.json(rows[0])
+    const [predStats, alertStats] = await Promise.all([
+      query(`
+        SELECT
+          COUNT(*)                                          AS total,
+          COUNT(*) FILTER (WHERE risk_category = 'Low')      AS low_count,
+          COUNT(*) FILTER (WHERE risk_category = 'Moderate') AS moderate_count,
+          COUNT(*) FILTER (WHERE risk_category = 'High')     AS high_count,
+          COUNT(*) FILTER (WHERE risk_category = 'Critical') AS critical_count,
+          COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours') AS last_24h
+        FROM predictions
+      `),
+      query(`SELECT COUNT(*) AS active_alerts FROM alerts WHERE status = 'active'`),
+    ])
+    return res.json({
+      ...predStats.rows[0],
+      active_alerts: parseInt(alertStats.rows[0].active_alerts) || 0,
+    })
   } catch (err) {
     console.error('[predictions/stats]', err.message)
     return res.status(500).json({ error: 'Could not fetch stats.' })

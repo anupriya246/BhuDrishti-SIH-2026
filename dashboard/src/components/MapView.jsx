@@ -1,29 +1,34 @@
 /**
- * BhuDrishti — MapView
- * Light CartoDB tiles, earthy risk colours
+ * MapView — Leaflet map showing NER districts as colour-coded circle markers.
+ * Clicking a marker shows a popup with risk details.
+ * Uses react-leaflet v4.
  */
 import React from 'react'
 import { MapContainer, TileLayer, CircleMarker, Popup, ZoomControl } from 'react-leaflet'
 
+// NER bounding box centre
 const NER_CENTER = [25.5, 92.5]
 const ZOOM = 6
 
 const RISK_COLORS = {
-  Low:      '#1a7a32',
-  Moderate: '#b86000',
-  High:     '#a02818',
-  Critical: '#6020a8',
+  Low:      '#2ecc71',
+  Moderate: '#f39c12',
+  High:     '#e74c3c',
+  Critical: '#8e44ad',
 }
 
 const RISK_RADIUS = {
-  Low: 9, Moderate: 13, High: 17, Critical: 22,
+  Low:      10,
+  Moderate: 13,
+  High:     16,
+  Critical: 20,
 }
 
 export default function MapView({ regions, onSelectRegion }) {
   return (
     <div className="card map-card">
       <h2 className="card__title">
-        <span aria-hidden="true">🗺️</span> NER Live Risk Map
+        <span aria-hidden="true">🗺️</span> NER Landslide Risk Map
       </h2>
       <div className="map-wrapper">
         <MapContainer
@@ -35,25 +40,37 @@ export default function MapView({ regions, onSelectRegion }) {
         >
           <ZoomControl position="bottomright" />
           <TileLayer
-            attribution='&copy; <a href="https://carto.com">CartoDB</a>'
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+
           {(regions || []).map((region) => {
-            const color  = RISK_COLORS[region.risk_category] || '#888'
+            const color  = RISK_COLORS[region.risk_category] || '#aaa'
             const radius = RISK_RADIUS[region.risk_category] || 10
+
             return (
               <CircleMarker
                 key={region.name}
                 center={[region.lat, region.lon]}
                 radius={radius}
-                pathOptions={{ fillColor: color, fillOpacity: 0.88, color: '#fff', weight: 2 }}
-                eventHandlers={{ click: () => onSelectRegion && onSelectRegion(region) }}
+                pathOptions={{
+                  fillColor:   color,
+                  fillOpacity: 0.85,
+                  color:       '#fff',
+                  weight:      2,
+                }}
+                eventHandlers={{
+                  click: () => onSelectRegion && onSelectRegion(region),
+                }}
                 aria-label={`${region.name}: ${region.risk_category} risk`}
               >
                 <Popup>
                   <div className="map-popup">
                     <strong>{region.name}</strong>
-                    <div className="map-popup__badge" style={{ background: color }}>
+                    <div
+                      className="map-popup__badge"
+                      style={{ background: color }}
+                    >
                       {region.risk_category}
                     </div>
                     <table className="map-popup__table">
@@ -70,10 +87,16 @@ export default function MapView({ regions, onSelectRegion }) {
           })}
         </MapContainer>
       </div>
+
+      {/* Legend */}
       <div className="map-legend" role="list" aria-label="Risk level legend">
         {Object.entries(RISK_COLORS).map(([label, color]) => (
           <div key={label} className="map-legend__item" role="listitem">
-            <span className="map-legend__dot" style={{ background: color, color }} aria-hidden="true" />
+            <span
+              className="map-legend__dot"
+              style={{ background: color }}
+              aria-hidden="true"
+            />
             {label}
           </div>
         ))}

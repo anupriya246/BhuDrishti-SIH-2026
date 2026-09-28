@@ -1,27 +1,32 @@
 /**
  * BhuDrishti Dashboard — Root Component
- * Tabs: Overview (map + stats) | AI Risk Assessment | Forecast
+ * Tabs: Overview (map + stats) | Predict | Forecast
  */
 import React, { useState, useEffect, useCallback } from 'react'
-import { fetchStats, fetchRegionRisks } from './services/api'
+import { fetchStats, fetchRegionRisks, logout } from './services/api'
+import AuthPage       from './components/AuthPage'
 import AlertBanner    from './components/AlertBanner'
 import MapView        from './components/MapView'
 import RiskDashboard  from './components/RiskDashboard'
 import PredictForm    from './components/PredictForm'
 import ForecastPanel  from './components/ForecastPanel'
-import ReroutingPanel from './components/ReroutingPanel'
 
-const TABS = ['Overview', 'AI Risk Assessment', 'Forecast', 'Rerouting']
-const REFRESH_INTERVAL = 60_000
+const TABS = ['Overview', 'Predict Risk', 'Forecast']
+const REFRESH_INTERVAL = 60_000 // 1 minute
+
+function hasToken() {
+  return !!localStorage.getItem('bhudrishti_token')
+}
 
 export default function App() {
-  const [activeTab,      setActiveTab]      = useState('Overview')
-  const [stats,          setStats]          = useState(null)
-  const [regions,        setRegions]        = useState([])
-  const [selectedRegion, setSelectedRegion] = useState(null)
-  const [loading,        setLoading]        = useState(true)
-  const [lastUpdated,    setLastUpdated]     = useState(null)
-  const [apiOnline,      setApiOnline]       = useState(null)
+  const [authed,          setAuthed]          = useState(hasToken)
+  const [activeTab,       setActiveTab]       = useState('Overview')
+  const [stats,           setStats]           = useState(null)
+  const [regions,         setRegions]         = useState([])
+  const [selectedRegion,  setSelectedRegion]  = useState(null)
+  const [loading,         setLoading]         = useState(true)
+  const [lastUpdated,     setLastUpdated]      = useState(null)
+  const [apiOnline,       setApiOnline]        = useState(null)
 
   const loadData = useCallback(async () => {
     try {
@@ -38,35 +43,50 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    if (!authed) return
     loadData()
     const id = setInterval(loadData, REFRESH_INTERVAL)
     return () => clearInterval(id)
-  }, [loadData])
+  }, [authed, loadData])
+
+  function handleAuth() {
+    setAuthed(true)
+    setLoading(true)
+  }
+
+  function handleLogout() {
+    logout()
+    setAuthed(false)
+    setStats(null)
+    setRegions([])
+    setLoading(true)
+    setApiOnline(null)
+  }
+
+  // Show login/register screen if not authenticated
+  if (!authed) {
+    return <AuthPage onAuth={handleAuth} />
+  }
 
   return (
     <div className="app">
-      {/* ── Header ── */}
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="header" role="banner">
         <div className="header__brand">
-          {/* BhuDrishti icon — mountain with eye (भू=earth, दृष्टि=vision) */}
-          <div className="header__logo" aria-hidden="true" />
+          <span className="header__logo" aria-hidden="true">🏔️</span>
           <div>
             <h1 className="header__title">BhuDrishti</h1>
-            <p className="header__subtitle">AI-Based Landslide Early Warning — North-East India · SIH 2026</p>
+            <p className="header__subtitle">AI-Based Landslide Early Warning — North-East India</p>
           </div>
         </div>
 
         <div className="header__meta">
           <span
-            className={`status-dot ${
-              apiOnline === true  ? 'status-dot--online'  :
-              apiOnline === false ? 'status-dot--offline' : ''
-            }`}
+            className={`status-dot ${apiOnline === true ? 'status-dot--online' : apiOnline === false ? 'status-dot--offline' : ''}`}
             aria-label={apiOnline ? 'API online' : 'API offline'}
           />
           <span className="header__api-status">
-            {apiOnline === true  ? '● API Online'   :
-             apiOnline === false ? '● API Offline'  : 'Connecting…'}
+            {apiOnline === true ? 'API Online' : apiOnline === false ? 'API Offline' : 'Connecting…'}
           </span>
           {lastUpdated && (
             <span className="header__updated">
@@ -74,15 +94,18 @@ export default function App() {
             </span>
           )}
           <button className="btn btn--ghost" onClick={loadData} aria-label="Refresh data">
-            ↻ Refresh
+            🔄 Refresh
+          </button>
+          <button className="btn btn--ghost" onClick={handleLogout} aria-label="Sign out">
+            Sign Out
           </button>
         </div>
       </header>
 
-      {/* ── Alert Banner ── */}
+      {/* ── Alert Banner ───────────────────────────────────────────────── */}
       <AlertBanner regions={regions} />
 
-      {/* ── Tabs ── */}
+      {/* ── Navigation Tabs ────────────────────────────────────────────── */}
       <nav className="tabs" role="tablist" aria-label="Dashboard sections">
         {TABS.map((tab) => (
           <button
@@ -92,21 +115,20 @@ export default function App() {
             className={`tabs__btn ${activeTab === tab ? 'tabs__btn--active' : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === 'Overview'           && '⬡ '}
-            {tab === 'AI Risk Assessment' && '🤖 '}
-            {tab === 'Forecast'           && '⏱ '}
-            {tab === 'Rerouting'          && '🛣️ '}
+            {tab === 'Overview'      && '📊 '}
+            {tab === 'Predict Risk'  && '🔍 '}
+            {tab === 'Forecast'      && '⏱️ '}
             {tab}
           </button>
         ))}
       </nav>
 
-      {/* ── Main ── */}
+      {/* ── Main Content ───────────────────────────────────────────────── */}
       <main className="main" role="main">
         {loading && (
           <div className="loading" aria-live="polite" aria-busy="true">
             <div className="spinner" aria-hidden="true" />
-            Loading BhuDrishti data…
+            Loading data…
           </div>
         )}
 
@@ -124,15 +146,14 @@ export default function App() {
           </>
         )}
 
-        {activeTab === 'AI Risk Assessment' && <PredictForm />}
-        {activeTab === 'Forecast'           && <ForecastPanel />}
-        {activeTab === 'Rerouting'          && <ReroutingPanel regions={regions} />}
+        {activeTab === 'Predict Risk' && <PredictForm />}
+        {activeTab === 'Forecast'     && <ForecastPanel />}
       </main>
 
-      {/* ── Footer ── */}
+      {/* ── Footer ─────────────────────────────────────────────────────── */}
       <footer className="footer" role="contentinfo">
-        <span><strong>BhuDrishti</strong> — Team InnoVision · Smart India Hackathon 2026 · IGDTUW</span>
-        <span>Stack: Python · scikit-learn · Flask · Node.js · Express · <strong>PostgreSQL</strong> · React · Leaflet · Chart.js</span>
+        <span>BhuDrishti — InnoVision | Smart India Hackathon 2026</span>
+        <span>Data: IMD · USGS · Open-Meteo · Mendeley Landslide Dataset</span>
       </footer>
     </div>
   )

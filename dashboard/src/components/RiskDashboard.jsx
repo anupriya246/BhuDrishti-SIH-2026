@@ -1,6 +1,6 @@
 /**
- * BhuDrishti — RiskDashboard
- * Stat cards (vivid coloured) + bar chart + doughnut + region detail
+ * RiskDashboard — stat cards + bar chart showing zone distribution.
+ * Uses Chart.js via react-chartjs-2.
  */
 import React from 'react'
 import {
@@ -11,26 +11,22 @@ import {
 } from 'chart.js'
 import { Bar, Doughnut } from 'react-chartjs-2'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend)
+ChartJS.register(
+  CategoryScale, LinearScale,
+  BarElement, ArcElement,
+  Title, Tooltip, Legend
+)
 
 const RISK_COLORS = {
-  Low:      '#1a7a32',
-  Moderate: '#b86000',
-  High:     '#a02818',
-  Critical: '#6020a8',
+  Low:      '#2ecc71',
+  Moderate: '#f39c12',
+  High:     '#e74c3c',
+  Critical: '#8e44ad',
 }
 
-// Each stat card gets a vivid gradient background
-const STAT_CARD_STYLES = {
-  monitored: { background: 'linear-gradient(145deg,#1060b0,#1a90d8)', boxShadow: '0 6px 24px #1060b040' },
-  alerts:    { background: 'linear-gradient(145deg,#c07010,#e09020)', boxShadow: '0 6px 24px #c0701040' },
-  high:      { background: 'linear-gradient(145deg,#a02818,#d04030)', boxShadow: '0 6px 24px #a0281840' },
-  critical:  { background: 'linear-gradient(145deg,#5a1898,#8030c8)', boxShadow: '0 6px 24px #5a189840' },
-}
-
-function StatCard({ label, value, icon, styleKey }) {
+function StatCard({ label, value, icon, color }) {
   return (
-    <div className="stat-card" style={STAT_CARD_STYLES[styleKey]}>
+    <div className="stat-card" style={{ borderTop: `4px solid ${color}` }}>
       <div className="stat-card__icon" aria-hidden="true">{icon}</div>
       <div className="stat-card__value">{value}</div>
       <div className="stat-card__label">{label}</div>
@@ -39,50 +35,64 @@ function StatCard({ label, value, icon, styleKey }) {
 }
 
 export default function RiskDashboard({ stats, regions, selectedRegion }) {
+  // Count zones per category
   const counts = { Low: 0, Moderate: 0, High: 0, Critical: 0 }
   ;(regions || []).forEach((r) => { counts[r.risk_category] = (counts[r.risk_category] || 0) + 1 })
 
+  // Bar chart — rainfall by district
   const barData = {
-    labels: (regions || []).map((r) => r.name),
-    datasets: [{
-      label: 'Rainfall (mm)',
-      data: (regions || []).map((r) => r.rainfall_mm),
-      backgroundColor: (regions || []).map((r) => RISK_COLORS[r.risk_category] + 'cc'),
-      borderColor:     (regions || []).map((r) => RISK_COLORS[r.risk_category]),
-      borderWidth: 2,
-      borderRadius: 6,
-    }],
+    labels:   (regions || []).map((r) => r.name),
+    datasets: [
+      {
+        label:           'Rainfall (mm)',
+        data:            (regions || []).map((r) => r.rainfall_mm),
+        backgroundColor: (regions || []).map((r) => RISK_COLORS[r.risk_category] + 'cc'),
+        borderColor:     (regions || []).map((r) => RISK_COLORS[r.risk_category]),
+        borderWidth:     1,
+        borderRadius:    4,
+      },
+    ],
   }
 
   const barOptions = {
     responsive: true,
     plugins: {
       legend: { display: false },
-      title: { display: true, text: 'Rainfall by District (mm)', color: '#3a0870', font: { size: 13, weight: '700' } },
+      title: {
+        display: true,
+        text:    'Rainfall by District (mm)',
+        color:   '#e2e8f0',
+        font:    { size: 14 },
+      },
       tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} mm` } },
     },
     scales: {
-      x: { ticks: { color: '#5a3890', maxRotation: 40, font: { size: 10 } }, grid: { color: '#e8d8f8' } },
-      y: { ticks: { color: '#5a3890', font: { size: 10 } },                  grid: { color: '#e8d8f8' } },
+      x: { ticks: { color: '#94a3b8', maxRotation: 45 }, grid: { color: '#334155' } },
+      y: { ticks: { color: '#94a3b8' },                  grid: { color: '#334155' } },
     },
   }
 
+  // Doughnut — risk distribution
   const doughnutData = {
-    labels: Object.keys(counts),
+    labels:   Object.keys(counts),
     datasets: [{
-      data: Object.values(counts),
+      data:            Object.values(counts),
       backgroundColor: Object.keys(counts).map((k) => RISK_COLORS[k] + 'cc'),
       borderColor:     Object.keys(counts).map((k) => RISK_COLORS[k]),
-      borderWidth: 3,
+      borderWidth:     2,
     }],
   }
 
   const doughnutOptions = {
     responsive: true,
-    cutout: '62%',
     plugins: {
-      legend: { position: 'bottom', labels: { color: '#3a0870', font: { size: 10 }, padding: 12 } },
-      title: { display: true, text: 'Risk Zone Distribution', color: '#3a0870', font: { size: 13, weight: '700' } },
+      legend: { position: 'bottom', labels: { color: '#e2e8f0' } },
+      title: {
+        display: true,
+        text:    'Risk Zone Distribution',
+        color:   '#e2e8f0',
+        font:    { size: 14 },
+      },
     },
   }
 
@@ -90,10 +100,10 @@ export default function RiskDashboard({ stats, regions, selectedRegion }) {
     <div className="risk-dashboard">
       {/* Stat cards */}
       <div className="stat-cards" role="list" aria-label="Summary statistics">
-        <StatCard label="Monitored Zones" value={stats?.total_monitored_zones ?? '—'} icon="📍" styleKey="monitored" />
-        <StatCard label="Active Alerts"   value={stats?.active_alerts ?? '—'}          icon="🔔" styleKey="alerts"    />
-        <StatCard label="High Risk Zones" value={counts.High}                           icon="⚠️"  styleKey="high"      />
-        <StatCard label="Critical Zones"  value={counts.Critical}                       icon="🚨" styleKey="critical"  />
+        <StatCard label="Monitored Zones"  value={stats?.total_monitored_zones ?? '—'} icon="📍" color="#3b82f6" />
+        <StatCard label="Active Alerts"    value={stats?.active_alerts ?? '—'}          icon="🔔" color="#f59e0b" />
+        <StatCard label="High Risk Zones"  value={counts.High}                          icon="⚠️"  color="#ef4444" />
+        <StatCard label="Critical Zones"   value={counts.Critical}                      icon="🚨" color="#8e44ad" />
       </div>
 
       {/* Charts */}
@@ -101,8 +111,35 @@ export default function RiskDashboard({ stats, regions, selectedRegion }) {
         <div className="card chart-card">
           <Bar data={barData} options={barOptions} aria-label="Rainfall bar chart" />
         </div>
-        <div className="card chart-card">
-          <Doughnut data={doughnutData} options={doughnutOptions} aria-label="Risk distribution chart" />
+        <div className="card chart-card chart-card--small">
+          <Doughnut data={doughnutData} options={doughnutOptions} aria-label="Risk distribution doughnut chart" />
+
+          {/* Top Risk Districts */}
+          <div className="top-districts" aria-label="Top risk districts">
+            <h4 className="top-districts__title">⚠️ Top Risk Districts</h4>
+            <ul className="top-districts__list">
+              {[...( regions || [])]
+                .sort((a, b) => b.risk_label - a.risk_label || b.rainfall_mm - a.rainfall_mm)
+                .slice(0, 5)
+                .map((r) => (
+                  <li key={r.name} className="top-districts__item">
+                    <span
+                      className="top-districts__dot"
+                      style={{ background: RISK_COLORS[r.risk_category] }}
+                      aria-hidden="true"
+                    />
+                    <span className="top-districts__name">{r.name}</span>
+                    <span
+                      className="top-districts__badge"
+                      style={{ color: RISK_COLORS[r.risk_category] }}
+                    >
+                      {r.risk_category}
+                    </span>
+                    <span className="top-districts__rain">🌧 {r.rainfall_mm} mm</span>
+                  </li>
+                ))}
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -110,7 +147,7 @@ export default function RiskDashboard({ stats, regions, selectedRegion }) {
       {selectedRegion && (
         <div
           className="card region-detail"
-          style={{ borderLeft: `4px solid ${RISK_COLORS[selectedRegion.risk_category]}`, background: 'linear-gradient(145deg,#fff8e8,#fff0c8)', borderColor: '#e8c870' }}
+          style={{ borderLeft: `4px solid ${RISK_COLORS[selectedRegion.risk_category]}` }}
           aria-live="polite"
         >
           <h3>{selectedRegion.name} — Details</h3>
@@ -120,9 +157,9 @@ export default function RiskDashboard({ stats, regions, selectedRegion }) {
                 {selectedRegion.risk_category}
               </strong>
             </div>
-            <div><span>Rainfall</span>    <strong>{selectedRegion.rainfall_mm} mm</strong></div>
-            <div><span>Avg Slope</span>   <strong>{selectedRegion.slope_avg}°</strong></div>
-            <div><span>Coordinates</span> <strong>{selectedRegion.lat.toFixed(3)}, {selectedRegion.lon.toFixed(3)}</strong></div>
+            <div><span>Rainfall</span>      <strong>{selectedRegion.rainfall_mm} mm</strong></div>
+            <div><span>Avg Slope</span>     <strong>{selectedRegion.slope_avg}°</strong></div>
+            <div><span>Coordinates</span>   <strong>{selectedRegion.lat.toFixed(3)}, {selectedRegion.lon.toFixed(3)}</strong></div>
           </div>
         </div>
       )}

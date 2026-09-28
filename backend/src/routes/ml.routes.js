@@ -82,7 +82,7 @@ router.post('/predict', requireAuth, async (req, res) => {
 })
 
 // ── Forecast ──────────────────────────────────────────────────────────────────
-router.post('/forecast', requireAuth, async (req, res) => {
+router.post('/forecast',  async (req, res) => {
   try {
     const { data } = await axios.post(`${ML_URL}/forecast`, req.body, { timeout: 20000 })
     return res.json(data)
@@ -100,6 +100,16 @@ router.post('/forecast', requireAuth, async (req, res) => {
 router.get('/region-risks', async (req, res) => {
   try {
     const { data } = await axios.get(`${ML_URL}/region-risks`, { timeout: 8000 })
+    return res.json(data)
+  } catch {
+    return res.status(503).json({ error: 'ML service unavailable.' })
+  }
+})
+
+// ── Stats (proxy) ─────────────────────────────────────────────────────────────
+router.get('/stats', async (req, res) => {
+  try {
+    const { data } = await axios.get(`${ML_URL}/stats`, { timeout: 5000 })
     return res.json(data)
   } catch {
     return res.status(503).json({ error: 'ML service unavailable.' })

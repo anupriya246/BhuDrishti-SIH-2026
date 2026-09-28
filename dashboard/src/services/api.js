@@ -1,6 +1,6 @@
 /**
- * BhuSanket API Service
- * All calls go through Vite's proxy (/api → http://localhost:5000)
+ * BhuDrishti API Service
+ * All calls go through Vite's proxy (/api → http://localhost:3001)
  * so the browser never hits CORS issues during development.
  */
 
@@ -8,7 +8,7 @@ import axios from 'axios'
 
 // All requests go to the Node.js/Express backend (port 3001).
 // Vite proxies /api → http://localhost:3001 during development.
-// The Node backend then proxies ML calls to Flask (port 5000) internally.
+// The Node backend then proxies ML calls to Flask internally.
 const client = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
@@ -17,7 +17,7 @@ const client = axios.create({
 
 // Attach JWT token to every request if present
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('bhusanket_token')
+  const token = localStorage.getItem('bhudrishti_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -25,18 +25,18 @@ client.interceptors.request.use((config) => {
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export async function login(email, password) {
   const { data } = await client.post('/auth/login', { email, password })
-  if (data.token) localStorage.setItem('bhusanket_token', data.token)
+  if (data.token) localStorage.setItem('bhudrishti_token', data.token)
   return data
 }
 
 export async function register(name, email, password, role, district, phone) {
   const { data } = await client.post('/auth/register', { name, email, password, role, district, phone })
-  if (data.token) localStorage.setItem('bhusanket_token', data.token)
+  if (data.token) localStorage.setItem('bhudrishti_token', data.token)
   return data
 }
 
 export function logout() {
-  localStorage.removeItem('bhusanket_token')
+  localStorage.removeItem('bhudrishti_token')
 }
 
 export async function fetchMe() {
@@ -83,9 +83,25 @@ export async function fetchForecast(lat, lon, staticFeatures, alertThreshold = '
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
+// Merges Node DB counts (per-category totals) with Flask's monitored zones count
+// so all 4 stat cards in RiskDashboard show real values.
 export async function fetchStats() {
-  const { data } = await client.get('/predictions/stats')
-  return data
+  const [{ data: dbStats }, { data: mlStats }] = await Promise.all([
+    client.get('/predictions/stats'),
+    client.get('/ml/stats'),
+  ])
+  return {
+    // From Flask — fixed count of monitored NER districts
+    total_monitored_zones: mlStats.total_monitored_zones,
+    // From Node DB — live counts from PostgreSQL
+    active_alerts:  dbStats.active_alerts ?? mlStats.active_alerts,
+    high_count:     parseInt(dbStats.high_count)     || 0,
+    critical_count: parseInt(dbStats.critical_count) || 0,
+    moderate_count: parseInt(dbStats.moderate_count) || 0,
+    low_count:      parseInt(dbStats.low_count)      || 0,
+    total:          parseInt(dbStats.total)          || 0,
+    last_24h:       parseInt(dbStats.last_24h)       || 0,
+  }
 }
 
 // ── Alerts ────────────────────────────────────────────────────────────────────

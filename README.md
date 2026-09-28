@@ -115,8 +115,8 @@ curl -X POST http://localhost:5000/forecast \
 | Frontend   | React 18 · Vite                         |
 | Map        | Leaflet · react-leaflet                 |
 | Charts     | Chart.js · react-chartjs-2              |
-| Backend    | Node.js + Express (separate repo)       |
-| Database   | MongoDB                                 |
+| Backend    | Node.js · Express · JWT · bcrypt        |
+| Database   | PostgreSQL                              |
 
 ---
 

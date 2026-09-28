@@ -24,6 +24,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from forecast_alert import predict_lead_time_alert
+from datetime import datetime, timezone
 
 # ── App setup ──────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -60,6 +61,27 @@ NER_DISTRICTS = [
     {"name": "Silchar",      "lat": 24.8333, "lon": 92.7789},
     {"name": "Jorhat",       "lat": 26.7509, "lon": 94.2037},
 ]
+color_map = {
+        'Low':      '#2ecc71',
+        'Moderate': '#f39c12',
+        'High':     '#e74c3c',
+        'Critical': '#8e44ad',
+    }
+
+DISTRICT_PROFILES = [
+        {"name": "Tawang",      "lat": 27.5859, "lon": 91.8598, "slope": 48, "elevation": 3048, "curvature": 2.2, "aspect": 210, "precipitation": 178, "ndvi": 0.45, "soil_moisture": 0.55, "soil_type": 2, "lulc": 0, "dist_road": 800,  "dist_fault": 6000},
+        {"name": "Itanagar",    "lat": 27.0844, "lon": 93.6053, "slope": 32, "elevation": 350,  "curvature": 1.4, "aspect": 185, "precipitation": 98,  "ndvi": 0.55, "soil_moisture": 0.45, "soil_type": 1, "lulc": 3, "dist_road": 200,  "dist_fault": 9000},
+        {"name": "Dibrugarh",   "lat": 27.4728, "lon": 94.9120, "slope": 12, "elevation": 108,  "curvature": 0.5, "aspect": 90,  "precipitation": 45,  "ndvi": 0.65, "soil_moisture": 0.35, "soil_type": 1, "lulc": 1, "dist_road": 150,  "dist_fault": 14000},
+        {"name": "Cherrapunji", "lat": 25.2500, "lon": 91.7333, "slope": 54, "elevation": 1313, "curvature": 3.1, "aspect": 225, "precipitation": 312, "ndvi": 0.20, "soil_moisture": 0.72, "soil_type": 2, "lulc": 1, "dist_road": 400,  "dist_fault": 3000},
+        {"name": "Shillong",    "lat": 25.5788, "lon": 91.8933, "slope": 28, "elevation": 1496, "curvature": 1.2, "aspect": 170, "precipitation": 87,  "ndvi": 0.50, "soil_moisture": 0.42, "soil_type": 1, "lulc": 3, "dist_road": 100,  "dist_fault": 7500},
+        {"name": "Imphal",      "lat": 24.8170, "lon": 93.9368, "slope": 25, "elevation": 786,  "curvature": 1.0, "aspect": 160, "precipitation": 74,  "ndvi": 0.55, "soil_moisture": 0.40, "soil_type": 1, "lulc": 1, "dist_road": 180,  "dist_fault": 10000},
+        {"name": "Kohima",      "lat": 25.6700, "lon": 94.1100, "slope": 41, "elevation": 1444, "curvature": 2.0, "aspect": 200, "precipitation": 145, "ndvi": 0.40, "soil_moisture": 0.58, "soil_type": 2, "lulc": 0, "dist_road": 350,  "dist_fault": 5000},
+        {"name": "Aizawl",      "lat": 23.7271, "lon": 92.7176, "slope": 36, "elevation": 1132, "curvature": 1.8, "aspect": 195, "precipitation": 92,  "ndvi": 0.42, "soil_moisture": 0.50, "soil_type": 2, "lulc": 0, "dist_road": 300,  "dist_fault": 6500},
+        {"name": "Agartala",    "lat": 23.8315, "lon": 91.2868, "slope": 9,  "elevation": 15,   "curvature": 0.3, "aspect": 95,  "precipitation": 38,  "ndvi": 0.60, "soil_moisture": 0.30, "soil_type": 0, "lulc": 1, "dist_road": 80,   "dist_fault": 18000},
+        {"name": "Gangtok",     "lat": 27.3389, "lon": 88.6065, "slope": 45, "elevation": 1650, "curvature": 2.5, "aspect": 215, "precipitation": 134, "ndvi": 0.38, "soil_moisture": 0.60, "soil_type": 2, "lulc": 0, "dist_road": 500,  "dist_fault": 4000},
+        {"name": "Silchar",     "lat": 24.8333, "lon": 92.7789, "slope": 14, "elevation": 23,   "curvature": 0.6, "aspect": 100, "precipitation": 42,  "ndvi": 0.58, "soil_moisture": 0.33, "soil_type": 0, "lulc": 1, "dist_road": 120,  "dist_fault": 16000},
+        {"name": "Jorhat",      "lat": 26.7509, "lon": 94.2037, "slope": 18, "elevation": 87,   "curvature": 0.7, "aspect": 105, "precipitation": 68,  "ndvi": 0.62, "soil_moisture": 0.38, "soil_type": 1, "lulc": 1, "dist_road": 160,  "dist_fault": 12000},
+    ]
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -180,43 +202,154 @@ def forecast():
 @app.route('/region-risks', methods=['GET'])
 def region_risks():
     """
-    Returns mock risk data for all NER districts.
-    In production this would run the model for each district using
-    real-time sensor + IMD rainfall data.
+    Returns risk data for all NER districts by running the trained model
+    with representative terrain + live-ish rainfall estimates per district.
+    Falls back to fixed values if model is not loaded.
     """
-    np.random.seed(42)
-    label_map = {0: 'Low', 1: 'Moderate', 2: 'High', 3: 'Critical'}
-    color_map = {
-        'Low':      '#2ecc71',
-        'Moderate': '#f39c12',
-        'High':     '#e74c3c',
-        'Critical': '#8e44ad',
-    }
+   
+    # Representative terrain + average seasonal rainfall per district
+    
 
     regions = []
-    for d in NER_DISTRICTS:
-        label_idx = int(np.random.choice([0, 1, 2, 3], p=[0.2, 0.35, 0.30, 0.15]))
-        label     = label_map[label_idx]
+    for d in DISTRICT_PROFILES:
+        profile = {k: v for k, v in d.items() if k not in ('name', 'lat', 'lon')}
+
+        if MODEL is not None:
+            try:
+                X = preprocess_input(profile)
+                label_idx = int(MODEL.predict(X)[0])
+                label = LABEL_MAP[label_idx]
+
+                confidence = None
+                if hasattr(MODEL, 'predict_proba'):
+                    probabilities = MODEL.predict_proba(X)[0]
+                    confidence = round(float(max(probabilities)), 3)
+
+            except Exception as e:
+                print(f"Prediction error for {d['name']}: {e}")
+                label_idx = 1
+                label = 'Moderate'
+                confidence = None
+        else:
+            score = (
+                (d['slope'] / 75) * 0.4
+                + (d['precipitation'] / 400) * 0.4
+                + d['soil_moisture'] * 0.2
+            )
+
+            label_idx = (
+                3 if score > 0.75
+                else 2 if score > 0.50
+                else 1 if score > 0.25
+                else 0
+            )
+
+            label = LABEL_MAP[label_idx]
+            confidence = None
+
         regions.append({
-            **d,
-            "risk_label":    label_idx,
+            "name": d['name'],
+            "lat": d['lat'],
+            "lon": d['lon'],
+            "risk_label": label_idx,
             "risk_category": label,
-            "color":         color_map[label],
-            "rainfall_mm":   round(float(np.random.uniform(20, 180)), 1),
-            "slope_avg":     round(float(np.random.uniform(10, 60)), 1),
+            "confidence": confidence,
+            "color": color_map[label],
+            "rainfall_mm": d['precipitation'],
+            "slope_avg": d['slope'],
+            "soil_moisture": d['soil_moisture'],
+            "elevation": d['elevation'],
         })
-    return jsonify({"regions": regions})
+
+    return jsonify({
+        "regions": regions,
+        "model": "Gradient Boosting" if MODEL is not None else "Fallback Heuristic",
+        "total": len(regions)
+        })
 
 
 @app.route('/stats', methods=['GET'])
 def stats():
-    """Summary statistics for the dashboard header cards."""
+    """
+    Calculate dashboard statistics from the same ML predictions
+    used by /region-risks.
+    """
+
+    risk_counts = {
+        'Low': 0,
+        'Moderate': 0,
+        'High': 0,
+        'Critical': 0
+    }
+
+    for d in DISTRICT_PROFILES:
+
+        profile = {
+            k: v for k, v in d.items()
+            if k not in ('name', 'lat', 'lon')
+        }
+
+        try:
+
+            if MODEL is not None:
+
+                X = preprocess_input(profile)
+                label_idx = int(MODEL.predict(X)[0])
+                label = LABEL_MAP[label_idx]
+
+            else:
+
+                score = (
+                    (d['slope'] / 75) * 0.4
+                    + (d['precipitation'] / 400) * 0.4
+                    + d['soil_moisture'] * 0.2
+                )
+
+                label_idx = (
+                    3 if score > 0.75
+                    else 2 if score > 0.50
+                    else 1 if score > 0.25
+                    else 0
+                )
+
+                label = LABEL_MAP[label_idx]
+
+            risk_counts[label] += 1
+
+        except Exception as e:
+
+            print(
+                f"Stats prediction error for {d['name']}: {e}"
+            )
+
+            risk_counts['Moderate'] += 1
+
     return jsonify({
-        "total_monitored_zones": len(NER_DISTRICTS),
-        "active_alerts":         3,
-        "critical_zones":        1,
-        "high_zones":            2,
-        "last_updated":          "2026-09-10T09:30:00+05:30",
+
+        "total_monitored_zones": len(DISTRICT_PROFILES),
+
+        "active_alerts": (
+            risk_counts['High']
+            + risk_counts['Critical']
+        ),
+
+        "critical_zones": risk_counts['Critical'],
+
+        "high_zones": risk_counts['High'],
+
+        "moderate_zones": risk_counts['Moderate'],
+
+        "low_zones": risk_counts['Low'],
+
+        "risk_distribution": risk_counts,
+
+        "last_updated": datetime.now(timezone.utc).isoformat(),
+
+        "model": (
+            "Gradient Boosting"
+            if MODEL is not None
+            else "Fallback Heuristic"
+        )
     })
 
 

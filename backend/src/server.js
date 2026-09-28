@@ -32,7 +32,7 @@ app.use(helmet())
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173').split(',')
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,https://bhudrishti-sih-2026.vercel.app').split(',')
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) return callback(null, true)
