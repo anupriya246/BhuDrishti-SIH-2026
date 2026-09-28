@@ -6,7 +6,7 @@ Endpoints:
   GET  /health          - liveness check
   POST /predict         - single-location risk prediction
   POST /forecast        - 24-hour lead-time early warning
-  GET  /region-risks    - mock risk data for all NER districts (for map)
+  GET  /region-risks    - real-time risk data for all NER districts (for map)
 
 Run:
   pip install flask flask-cors joblib pandas scikit-learn requests
@@ -15,7 +15,10 @@ Run:
 
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# Add both ml/ (for preprocess) and ml/api/ (for forecast_alert) to path
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_HERE, '..'))  # ml/
+sys.path.insert(0, _HERE)                       # ml/api/
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -23,8 +26,10 @@ import joblib
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from forecast_alert import fetch_hourly_rainfall
 from forecast_alert import predict_lead_time_alert
 from datetime import datetime, timezone
+import time
 
 # ── App setup ──────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -82,6 +87,45 @@ DISTRICT_PROFILES = [
         {"name": "Silchar",     "lat": 24.8333, "lon": 92.7789, "slope": 14, "elevation": 23,   "curvature": 0.6, "aspect": 100, "precipitation": 42,  "ndvi": 0.58, "soil_moisture": 0.33, "soil_type": 0, "lulc": 1, "dist_road": 120,  "dist_fault": 16000},
         {"name": "Jorhat",      "lat": 26.7509, "lon": 94.2037, "slope": 18, "elevation": 87,   "curvature": 0.7, "aspect": 105, "precipitation": 68,  "ndvi": 0.62, "soil_moisture": 0.38, "soil_type": 1, "lulc": 1, "dist_road": 160,  "dist_fault": 12000},
     ]
+
+
+# ── Live rainfall helper ───────────────────────────────────────────────────────
+
+# Per-district rainfall cache: keyed by (lat, lon), stores {precipitation, soil_moisture, ts}
+_RAINFALL_CACHE: dict = {}
+_RAINFALL_TTL: int = 1800  # 30 minutes — matches forecast_alert.py cache TTL
+
+
+def fetch_live_rainfall(lat: float, lon: float) -> dict:
+    """
+    Returns the current hour's precipitation (mm) and soil moisture (0-1)
+    from Open-Meteo for the given lat/lon.
+
+    Uses a 30-minute in-memory cache so the 12 district calls on a single
+    /region-risks request only hit Open-Meteo once per district per half-hour.
+
+    Falls back to None if the API is unavailable; caller uses static profile value.
+    """
+    cache_key = (round(lat, 3), round(lon, 3))
+    cached = _RAINFALL_CACHE.get(cache_key)
+    if cached and time.time() - cached["ts"] < _RAINFALL_TTL:
+        return {"precipitation": cached["precipitation"], "soil_moisture": cached["soil_moisture"]}
+
+    try:
+        hourly = fetch_hourly_rainfall(lat, lon)
+        current = hourly[0] if hourly else {}
+        precipitation = float(current.get("precipitation", 0.0))
+        soil_moisture = float(current.get("soil_moisture", 0.3))
+    except Exception as exc:
+        print(f"[fetch_live_rainfall] Open-Meteo unavailable for ({lat},{lon}): {exc}")
+        return None
+
+    _RAINFALL_CACHE[cache_key] = {
+        "precipitation": precipitation,
+        "soil_moisture":  soil_moisture,
+        "ts":             time.time(),
+    }
+    return {"precipitation": precipitation, "soil_moisture": soil_moisture}
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -203,16 +247,25 @@ def forecast():
 def region_risks():
     """
     Returns risk data for all NER districts by running the trained model
-    with representative terrain + live-ish rainfall estimates per district.
-    Falls back to fixed values if model is not loaded.
+    with representative terrain + LIVE rainfall fetched from Open-Meteo
+    for each district's lat/lon. Falls back to static profile precipitation
+    if Open-Meteo is unreachable.
     """
-   
-    # Representative terrain + average seasonal rainfall per district
-    
 
     regions = []
     for d in DISTRICT_PROFILES:
+        # Build profile from static terrain features (slope, elevation, etc.)
         profile = {k: v for k, v in d.items() if k not in ('name', 'lat', 'lon')}
+
+        # ── Inject live rainfall & soil moisture ──────────────────────────────
+        live = fetch_live_rainfall(d['lat'], d['lon'])
+        if live is not None:
+            profile['precipitation'] = live['precipitation']
+            profile['soil_moisture'] = live['soil_moisture']
+            live_data = True
+        else:
+            live_data = False
+        # ─────────────────────────────────────────────────────────────────────
 
         if MODEL is not None:
             try:
@@ -233,8 +286,8 @@ def region_risks():
         else:
             score = (
                 (d['slope'] / 75) * 0.4
-                + (d['precipitation'] / 400) * 0.4
-                + d['soil_moisture'] * 0.2
+                + (profile['precipitation'] / 400) * 0.4
+                + profile['soil_moisture'] * 0.2
             )
 
             label_idx = (
@@ -248,23 +301,26 @@ def region_risks():
             confidence = None
 
         regions.append({
-            "name": d['name'],
-            "lat": d['lat'],
-            "lon": d['lon'],
-            "risk_label": label_idx,
+            "name":          d['name'],
+            "lat":           d['lat'],
+            "lon":           d['lon'],
+            "risk_label":    label_idx,
             "risk_category": label,
-            "confidence": confidence,
-            "color": color_map[label],
-            "rainfall_mm": d['precipitation'],
-            "slope_avg": d['slope'],
-            "soil_moisture": d['soil_moisture'],
-            "elevation": d['elevation'],
+            "confidence":    confidence,
+            "color":         color_map[label],
+            "rainfall_mm":   round(profile['precipitation'], 1),
+            "slope_avg":     d['slope'],
+            "soil_moisture": round(profile['soil_moisture'], 3),
+            "elevation":     d['elevation'],
+            "live_data":     live_data,
         })
 
     return jsonify({
-        "regions": regions,
-        "model": "Gradient Boosting" if MODEL is not None else "Fallback Heuristic",
-        "total": len(regions)
+        "regions":     regions,
+        "model":       "Gradient Boosting" if MODEL is not None else "Fallback Heuristic",
+        "total":       len(regions),
+        "data_source": "Open-Meteo (live)" if any(r["live_data"] for r in regions) else "Static profile (fallback)",
+        "fetched_at":  datetime.now(timezone.utc).isoformat(),
         })
 
 
@@ -272,7 +328,7 @@ def region_risks():
 def stats():
     """
     Calculate dashboard statistics from the same ML predictions
-    used by /region-risks.
+    used by /region-risks, using live rainfall from Open-Meteo.
     """
 
     risk_counts = {
@@ -289,6 +345,11 @@ def stats():
             if k not in ('name', 'lat', 'lon')
         }
 
+        # Inject live rainfall if available
+        live = fetch_live_rainfall(d['lat'], d['lon'])
+        if live is not None:
+            profile['precipitation'] = live['precipitation']
+            profile['soil_moisture'] = live['soil_moisture']
         try:
 
             if MODEL is not None:

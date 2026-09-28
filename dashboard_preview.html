@@ -626,7 +626,23 @@ footer strong{color:#fff}
 
 <script>
 /* ══ DATA ══ */
-const REGIONS=[
+const ML_API='https://bhudrishti-ml.onrender.com'
+
+const RC={Low:"#2d7a3a",Moderate:"#c07a10",High:"#b83020",Critical:"#6e3aaa"}
+const RR={Low:9,Moderate:13,High:17,Critical:22}
+
+// District terrain profiles matching DISTRICT_PROFILES in ml/api/app.py
+// precipitation & soil_moisture intentionally omitted — fetched live from Open-Meteo by Flask
+const PRESET_PROFILES=[
+  {label:"Cherrapunji",lat:25.25,lon:91.73,slope:54,elevation:1313,curvature:3.1,aspect:225,ndvi:0.20,soil_type:2,lulc:1,dist_road:400,dist_fault:3000},
+  {label:"Tawang",     lat:27.59,lon:91.86,slope:48,elevation:3048,curvature:2.2,aspect:210,ndvi:0.45,soil_type:2,lulc:0,dist_road:800,dist_fault:6000},
+  {label:"Kohima",     lat:25.67,lon:94.11,slope:41,elevation:1444,curvature:2.0,aspect:200,ndvi:0.40,soil_type:2,lulc:0,dist_road:350,dist_fault:5000},
+  {label:"Aizawl",     lat:23.73,lon:92.72,slope:36,elevation:1132,curvature:1.8,aspect:195,ndvi:0.42,soil_type:2,lulc:0,dist_road:300,dist_fault:6500},
+  {label:"Gangtok",    lat:27.34,lon:88.61,slope:45,elevation:1650,curvature:2.5,aspect:215,ndvi:0.38,soil_type:2,lulc:0,dist_road:500,dist_fault:4000},
+]
+
+// Fallback static data used only while live API loads or if unreachable
+let REGIONS=[
   {name:"Cherrapunji",lat:25.25,lon:91.73,risk:"Critical",rain:312,slope:54},
   {name:"Tawang",     lat:27.59,lon:91.86,risk:"High",    rain:178,slope:48},
   {name:"Kohima",     lat:25.67,lon:94.11,risk:"High",    rain:145,slope:41},
@@ -640,9 +656,54 @@ const REGIONS=[
   {name:"Silchar",    lat:24.83,lon:92.78,risk:"Low",     rain:42, slope:14},
   {name:"Jorhat",     lat:26.75,lon:94.20,risk:"Moderate",rain:68, slope:18},
 ]
-const RC={Low:"#2d7a3a",Moderate:"#c07a10",High:"#b83020",Critical:"#6e3aaa"}
-const RR={Low:9,Moderate:13,High:17,Critical:22}
-const PRESETS=[{lat:25.25,lon:91.73},{lat:27.59,lon:91.86},{lat:25.67,lon:94.11},{lat:23.73,lon:92.72},{lat:27.34,lon:88.61}]
+
+async function loadLiveRegions(){
+  try{
+    const res=await fetch(ML_API+'/region-risks',{signal:AbortSignal.timeout(12000)})
+    if(!res.ok)throw new Error('API '+res.status)
+    const json=await res.json()
+    REGIONS=json.regions.map(r=>({name:r.name,lat:r.lat,lon:r.lon,risk:r.risk_category,rain:r.rainfall_mm,slope:r.slope_avg}))
+    refreshMap();refreshCharts();refreshStatCards()
+  }catch(e){console.warn('[BhuDrishti] region-risks fallback. Reason:',e.message)}
+}
+function refreshMap(){
+  if(!window._mapMarkers)return
+  window._mapMarkers.forEach(m=>m.remove());window._mapMarkers=[]
+  REGIONS.forEach(r=>{
+    const c=RC[r.risk]||'#aaa'
+    const m=L.circleMarker([r.lat,r.lon],{radius:RR[r.risk]||10,fillColor:c,fillOpacity:.88,color:'#fff',weight:2})
+      .bindPopup(`<div style="font-size:.85rem;min-width:155px"><b style="font-size:.95rem">${r.name}</b><div style="display:inline-block;background:${c};color:#fff;padding:.15rem .6rem;border-radius:999px;font-size:.72rem;font-weight:700;margin:.3rem 0">${r.risk}</div><table style="width:100%;border-collapse:collapse"><tr><td>Rainfall</td><td style="font-weight:700;text-align:right">${r.rain} mm</td></tr><tr><td>Slope</td><td style="font-weight:700;text-align:right">${r.slope}°</td></tr></table></div>`)
+      .addTo(map)
+    window._mapMarkers.push(m)
+  })
+}
+function refreshCharts(){
+  if(window._rainfallChart){
+    window._rainfallChart.data.labels=REGIONS.map(r=>r.name)
+    window._rainfallChart.data.datasets[0].data=REGIONS.map(r=>r.rain)
+    window._rainfallChart.data.datasets[0].backgroundColor=REGIONS.map(r=>RC[r.risk]+'99')
+    window._rainfallChart.data.datasets[0].borderColor=REGIONS.map(r=>RC[r.risk])
+    window._rainfallChart.update()
+  }
+  if(window._riskDonut){
+    const cnt={Low:0,Moderate:0,High:0,Critical:0}
+    REGIONS.forEach(r=>cnt[r.risk]=(cnt[r.risk]||0)+1)
+    window._riskDonut.data.datasets[0].data=Object.values(cnt)
+    window._riskDonut.update()
+  }
+}
+function refreshStatCards(){
+  try{
+    const high=REGIONS.filter(r=>r.risk==='High').length
+    const crit=REGIONS.filter(r=>r.risk==='Critical').length
+    const aEl=document.querySelector('[data-stat="alerts"]')
+    const hEl=document.querySelector('[data-stat="high"]')
+    const cEl=document.querySelector('[data-stat="critical"]')
+    if(aEl)aEl.textContent=high+crit
+    if(hEl)hEl.textContent=high
+    if(cEl)cEl.textContent=crit
+  }catch(e){}
+}
 const BLOCKAGES=[
   {road:"NH-6 Cherrapunji Bypass",st:"blocked",cause:"Landslide debris",alt:"Alt Route A (NH-44)",delay:"+22 min"},
   {road:"Tawang–Bomdila Road",    st:"blocked",cause:"Slope failure",   alt:"Alt Route B (State Hwy)",delay:"+15 min"},
@@ -700,17 +761,19 @@ function showTab(id,btn){
 const map=L.map('map',{center:[25.5,92.5],zoom:6,zoomControl:false})
 L.control.zoom({position:'bottomright'}).addTo(map)
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CartoDB'}).addTo(map)
+window._mapMarkers=[]
 REGIONS.forEach(r=>{
   const c=RC[r.risk]
-  L.circleMarker([r.lat,r.lon],{radius:RR[r.risk],fillColor:c,fillOpacity:.88,color:'#fff',weight:2})
+  const m=L.circleMarker([r.lat,r.lon],{radius:RR[r.risk],fillColor:c,fillOpacity:.88,color:'#fff',weight:2})
   .bindPopup(`<div style="font-size:.85rem;min-width:155px"><b style="font-size:.95rem">${r.name}</b><div style="display:inline-block;background:${c};color:#fff;padding:.15rem .6rem;border-radius:999px;font-size:.72rem;font-weight:700;margin:.3rem 0">${r.risk}</div><table style="width:100%;border-collapse:collapse"><tr><td>Rainfall</td><td style="font-weight:700;text-align:right">${r.rain} mm</td></tr><tr><td>Slope</td><td style="font-weight:700;text-align:right">${r.slope}°</td></tr></table></div>`)
   .addTo(map)
+  window._mapMarkers.push(m)
 })
 L.polyline([[25.30,91.70],[25.20,91.80]],{color:'#b83020',weight:5,dashArray:'8,4'}).bindTooltip('⛔ NH-6 BLOCKED').addTo(map)
 L.polyline([[25.30,91.70],[25.40,91.60],[25.20,91.80]],{color:'#2d7a3a',weight:3,dashArray:'6,4'}).bindTooltip('✅ Alt Route A').addTo(map)
 
 /* ══ CHARTS ══ */
-new Chart(document.getElementById('rainfallChart'),{
+window._rainfallChart=new Chart(document.getElementById('rainfallChart'),{
   type:'bar',
   data:{
     labels:REGIONS.map(r=>r.name),
@@ -732,7 +795,7 @@ new Chart(document.getElementById('rainfallChart'),{
 })
 const cnt={Low:0,Moderate:0,High:0,Critical:0}
 REGIONS.forEach(r=>cnt[r.risk]++)
-new Chart(document.getElementById('riskDonut'),{
+window._riskDonut=new Chart(document.getElementById('riskDonut'),{
   type:'doughnut',
   data:{
     labels:Object.keys(cnt),
@@ -743,68 +806,102 @@ new Chart(document.getElementById('riskDonut'),{
     plugins:{legend:{position:'bottom',labels:{color:'#7a6a55',font:{size:10},padding:14}}}
   }
 })
+// Fetch live data — updates map, charts, stat cards when API responds
+loadLiveRegions()
 
-/* ══ AI PREDICTION ══ */
+/* ══ AI PREDICTION — real Flask ML API ══ */
 const RCONF={
-  Low:    {c1:'#2d7a3a',c2:'#1a7a6e',bg:'#f2faf4',border:'#90d0b0',emo:'✅',probs:{Low:.82,Moderate:.11,High:.05,Critical:.02}},
-  Moderate:{c1:'#c07a10',c2:'#d4860a',bg:'#fef8e8',border:'#e8d080',emo:'📢',probs:{Low:.10,Moderate:.68,High:.17,Critical:.05}},
-  High:   {c1:'#b83020',c2:'#c0541a',bg:'#fdf0ec',border:'#e8a090',emo:'⚠️', probs:{Low:.03,Moderate:.11,High:.70,Critical:.16}},
-  Critical:{c1:'#6e3aaa',c2:'#8b3a10',bg:'#f6f0fa',border:'#c8a0e0',emo:'🚨',probs:{Low:.01,Moderate:.05,High:.18,Critical:.76}},
+  Low:    {c1:'#2d7a3a',c2:'#1a7a6e',bg:'#f2faf4',border:'#90d0b0',emo:'✅'},
+  Moderate:{c1:'#c07a10',c2:'#d4860a',bg:'#fef8e8',border:'#e8d080',emo:'📢'},
+  High:   {c1:'#b83020',c2:'#c0541a',bg:'#fdf0ec',border:'#e8a090',emo:'⚠️'},
+  Critical:{c1:'#6e3aaa',c2:'#8b3a10',bg:'#f6f0fa',border:'#c8a0e0',emo:'🚨'},
 }
-function runPrediction(){
+async function runPrediction(){
   const btn=document.getElementById('pred-btn')
   btn.textContent='⚙️ Analysing…';btn.disabled=true
-  setTimeout(()=>{
-    const slope=+document.getElementById('f-slope').value
-    const rain=+document.getElementById('f-rain').value
-    const moist=+document.getElementById('f-moist').value
-    const ndvi=+document.getElementById('f-ndvi').value
-    const soil=+document.getElementById('f-soil').value
-    let s=(slope/75)*.30+(rain/600)*.22+moist*.16+(1-ndvi)*.10+(soil===2?1:soil===1?.6:.3)*.12+.10
-    s=Math.min(1,Math.max(0,s+(Math.random()*.05-.025)))
-    const cat=s<.25?'Low':s<.5?'Moderate':s<.75?'High':'Critical'
-    const r=RCONF[cat],conf=r.probs[cat]
+  const payload={
+    slope:     +document.getElementById('f-slope').value,
+    elevation: +(document.getElementById('f-elev')||{value:1000}).value||1000,
+    curvature: +(document.getElementById('f-curv')||{value:2}).value||2,
+    aspect:    +(document.getElementById('f-aspect')||{value:180}).value||180,
+    precipitation:+document.getElementById('f-rain').value,
+    ndvi:      +document.getElementById('f-ndvi').value,
+    soil_moisture:+document.getElementById('f-moist').value,
+    soil_type: +document.getElementById('f-soil').value,
+    lulc:      +(document.getElementById('f-lulc')||{value:0}).value||0,
+    dist_road: +(document.getElementById('f-droad')||{value:500}).value||500,
+    dist_fault:+(document.getElementById('f-dfault')||{value:8000}).value||8000,
+  }
+  try{
+    const res=await fetch(ML_API+'/predict',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload),signal:AbortSignal.timeout(12000)
+    })
+    if(!res.ok)throw new Error('API '+res.status)
+    const d=await res.json()
+    const cat=d.risk_category
+    const r=RCONF[cat]||RCONF.Moderate
+    const conf=d.confidence
+    const probs=d.probabilities||{}
     document.getElementById('predict-result').innerHTML=`
       <div class="result-box" style="background:${r.bg};border-color:${r.border}">
         <div class="result-hdr" style="--rc1:${r.c1};--rc2:${r.c2}">
           <div class="result-emoji-box" style="background:${r.c1}14;--rc1:${r.c1}">${r.emo}</div>
           <div>
             <div class="result-cat" style="--rc1:${r.c1};--rc2:${r.c2}">${cat} Risk</div>
-            <div class="result-sub">Random Forest Model · 14 features analysed</div>
+            <div class="result-sub">Gradient Boosting Model · 14 features · Live ML API</div>
           </div>
           <div class="conf-badge">Confidence: ${(conf*100).toFixed(1)}%</div>
         </div>
         <div class="conf-track"><div class="conf-fill" style="width:${conf*100}%;--rc1:${r.c1};--rc2:${r.c2}"></div></div>
         <div class="prob-grid">
-          ${Object.entries(r.probs).map(([k,v])=>`
+          ${Object.entries(probs).map(([k,v])=>`
             <div class="prob-card ${k===cat?'hi':''}">
-              <div class="prob-pct" style="color:${RC[k]}">${(v*100).toFixed(1)}%</div>
+              <div class="prob-pct" style="color:${RC[k]||'#888'}">${(v*100).toFixed(1)}%</div>
               <div class="prob-nm">${k}</div>
             </div>`).join('')}
         </div>
       </div>`
-    btn.textContent='🤖 Run AI Prediction';btn.disabled=false
-  },850)
+  }catch(e){
+    document.getElementById('predict-result').innerHTML=`<div class="result-box" style="background:#fdf0ec;border-color:#e8a090"><strong>⚠️ ML API unreachable.</strong><br><span style="font-size:.8rem;color:#888">${e.message}</span></div>`
+  }
+  btn.textContent='🤖 Run AI Prediction';btn.disabled=false
 }
 
-/* ══ FORECAST ══ */
-function selPreset(){const i=+document.getElementById('fc-preset').value;document.getElementById('fc-lat').value=PRESETS[i].lat;document.getElementById('fc-lon').value=PRESETS[i].lon}
-function runForecast(){
+/* ══ FORECAST — real Open-Meteo via Flask API ══ */
+function selPreset(){
+  const i=+document.getElementById('fc-preset').value
+  const p=PRESET_PROFILES[i]
+  document.getElementById('fc-lat').value=p.lat
+  document.getElementById('fc-lon').value=p.lon
+}
+async function runForecast(){
+  const btn=document.querySelector('[onclick="runForecast()"]')||document.getElementById('fc-btn')
+  if(btn){btn.textContent='⏳ Fetching…';btn.disabled=true}
   const thresh=document.getElementById('fc-thresh').value
-  const tord={low:0,moderate:1,high:2,critical:3},tr=tord[thresh]
-  const hours=Array.from({length:24},(_,i)=>{
-    const rain=Math.max(0,25+Math.sin(i/2.5)*35+Math.random()*45)
-    let s=(rain/600)*.4+.22+Math.random()*.12
-    const z=s<.25?'low':s<.5?'moderate':s<.75?'high':'critical'
-    return{hour:i,rain:rain.toFixed(1),zone:z}
-  })
-  const ah=hours.find(h=>tord[h.zone]>=tr)
+  const lat=+document.getElementById('fc-lat').value
+  const lon=+document.getElementById('fc-lon').value
+  const presetIdx=+document.getElementById('fc-preset').value
+  const p=PRESET_PROFILES[presetIdx]||PRESET_PROFILES[0]
+  const staticFeatures={slope:p.slope,elevation:p.elevation,curvature:p.curvature,aspect:p.aspect,ndvi:p.ndvi,soil_type:p.soil_type,lulc:p.lulc,dist_road:p.dist_road,dist_fault:p.dist_fault}
   const zc={low:RC.Low,moderate:RC.Moderate,high:RC.High,critical:RC.Critical}
-  const sum=ah
-    ?`<div class="fc-summary fc-alert"><div class="fc-icon">🚨</div><div><strong>Alert expected in ${ah.hour} hour${ah.hour!==1?'s':''}</strong><br><span style="font-size:.8rem">Threshold breach — Risk: <strong style="color:${zc[ah.zone]}">${ah.zone.toUpperCase()}</strong></span></div></div>`
-    :`<div class="fc-summary fc-safe"><div class="fc-icon">✅</div><strong>No ${thresh} alert expected in next 24 hours</strong></div>`
-  const tl=hours.map(h=>`<div class="tl-item" style="--zc:${zc[h.zone]}"><div class="tl-hr">${h.hour}h</div><div class="tl-rain">🌧${h.rain}</div><div class="tl-zone" style="color:${zc[h.zone]}">${h.zone}</div></div>`).join('')
-  document.getElementById('forecast-result').innerHTML=sum+`<div class="timeline">${tl}</div>`
+  try{
+    const res=await fetch(ML_API+'/forecast',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({latitude:lat,longitude:lon,static_features:staticFeatures,alert_threshold:thresh}),
+      signal:AbortSignal.timeout(20000)
+    })
+    if(!res.ok)throw new Error('API '+res.status)
+    const d=await res.json()
+    const sum=d.alert_expected
+      ?`<div class="fc-summary fc-alert"><div class="fc-icon">🚨</div><div><strong>Alert expected in ${d.hours_until_alert} hour${d.hours_until_alert!==1?'s':''}</strong><br><span style="font-size:.8rem">Breach at <strong>${d.alert_time}</strong> — Risk: <strong style="color:${zc[d.predicted_zone_at_alert]||'#888'}">${(d.predicted_zone_at_alert||'').toUpperCase()}</strong></span></div></div>`
+      :`<div class="fc-summary fc-safe"><div class="fc-icon">✅</div><strong>No ${thresh} alert expected in next 24 hours</strong></div>`
+    const tl=(d.full_24h_forecast||[]).map(h=>`<div class="tl-item" style="--zc:${zc[h.predicted_zone]||'#888'}"><div class="tl-hr">${h.hour}h</div><div class="tl-rain">🌧${(+h.precipitation).toFixed(1)}</div><div class="tl-zone" style="color:${zc[h.predicted_zone]||'#888'}">${h.predicted_zone}</div></div>`).join('')
+    document.getElementById('forecast-result').innerHTML=sum+`<div class="timeline">${tl}</div>`
+  }catch(e){
+    document.getElementById('forecast-result').innerHTML=`<div class="fc-summary" style="background:#fdf0ec;border-radius:10px;padding:1rem"><strong>⚠️ Forecast API unreachable.</strong><br><span style="font-size:.8rem;color:#888">${e.message}</span></div>`
+  }
+  if(btn){btn.textContent='▶ Run Forecast';btn.disabled=false}
 }
 
 /* ══ REROUTING ══ */

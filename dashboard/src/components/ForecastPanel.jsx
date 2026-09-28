@@ -12,27 +12,61 @@ const RISK_COLORS = {
   critical: '#8e44ad',
 }
 
-// Preset NER locations for quick selection
+// Preset NER locations with real district-specific terrain data
+// (matches DISTRICT_PROFILES in ml/api/app.py)
+// precipitation & soil_moisture are omitted — Flask fetches them live from Open-Meteo.
 const PRESETS = [
-  { label: 'Cherrapunji',  lat: 25.25,  lon: 91.73 },
-  { label: 'Tawang',       lat: 27.59,  lon: 91.86 },
-  { label: 'Kohima',       lat: 25.67,  lon: 94.11 },
-  { label: 'Aizawl',       lat: 23.73,  lon: 92.72 },
-  { label: 'Gangtok',      lat: 27.34,  lon: 88.61 },
+  {
+    label: 'Cherrapunji', lat: 25.25,  lon: 91.73,
+    slope: 54, elevation: 1313, curvature: 3.1, aspect: 225,
+    ndvi: 0.20, soil_type: 2, lulc: 1, dist_road: 400, dist_fault: 3000,
+  },
+  {
+    label: 'Tawang',      lat: 27.59,  lon: 91.86,
+    slope: 48, elevation: 3048, curvature: 2.2, aspect: 210,
+    ndvi: 0.45, soil_type: 2, lulc: 0, dist_road: 800, dist_fault: 6000,
+  },
+  {
+    label: 'Kohima',      lat: 25.67,  lon: 94.11,
+    slope: 41, elevation: 1444, curvature: 2.0, aspect: 200,
+    ndvi: 0.40, soil_type: 2, lulc: 0, dist_road: 350, dist_fault: 5000,
+  },
+  {
+    label: 'Aizawl',      lat: 23.73,  lon: 92.72,
+    slope: 36, elevation: 1132, curvature: 1.8, aspect: 195,
+    ndvi: 0.42, soil_type: 2, lulc: 0, dist_road: 300, dist_fault: 6500,
+  },
+  {
+    label: 'Gangtok',     lat: 27.34,  lon: 88.61,
+    slope: 45, elevation: 1650, curvature: 2.5, aspect: 215,
+    ndvi: 0.38, soil_type: 2, lulc: 0, dist_road: 500, dist_fault: 4000,
+  },
 ]
 
 export default function ForecastPanel() {
-  const [lat, setLat]             = useState(25.25)
-  const [lon, setLon]             = useState(91.73)
-  const [threshold, setThreshold] = useState('high')
-  const [result, setResult]       = useState(null)
-  const [loading, setLoading]     = useState(false)
-  const [error, setError]         = useState(null)
+  const [presetIdx, setPresetIdx]   = useState(0)
+  const [lat, setLat]               = useState(PRESETS[0].lat)
+  const [lon, setLon]               = useState(PRESETS[0].lon)
+  const [threshold, setThreshold]   = useState('high')
+  const [result, setResult]         = useState(null)
+  const [loading, setLoading]       = useState(false)
+  const [error, setError]           = useState(null)
 
-  const staticFeatures = {
-    slope: 42, elevation: 1150, curvature: 2.5,
-    aspect: 200, ndvi: 0.15, soil_moisture: 0.6,
-    soil_type: 2, lulc: 1, dist_road: 300, dist_fault: 4000,
+  // Derive terrain features from the selected preset.
+  // precipitation & soil_moisture are excluded — Flask fetches them live per hour.
+  function getStaticFeatures(idx) {
+    const p = PRESETS[idx]
+    return {
+      slope:      p.slope,
+      elevation:  p.elevation,
+      curvature:  p.curvature,
+      aspect:     p.aspect,
+      ndvi:       p.ndvi,
+      soil_type:  p.soil_type,
+      lulc:       p.lulc,
+      dist_road:  p.dist_road,
+      dist_fault: p.dist_fault,
+    }
   }
 
   async function handleForecast(e) {
@@ -41,7 +75,7 @@ export default function ForecastPanel() {
     setError(null)
     setResult(null)
     try {
-      const data = await fetchForecast(lat, lon, staticFeatures, threshold)
+      const data = await fetchForecast(lat, lon, getStaticFeatures(presetIdx), threshold)
       setResult(data)
     } catch (err) {
       setError(err.response?.data?.error || 'Forecast failed. Check internet connection and Flask API.')
@@ -62,9 +96,13 @@ export default function ForecastPanel() {
             <label htmlFor="preset">Quick Select</label>
             <select
               id="preset"
+              value={presetIdx}
               onChange={(e) => {
-                const p = PRESETS[e.target.value]
-                if (p) { setLat(p.lat); setLon(p.lon) }
+                const idx = parseInt(e.target.value, 10)
+                const p = PRESETS[idx]
+                setPresetIdx(idx)
+                setLat(p.lat)
+                setLon(p.lon)
               }}
             >
               {PRESETS.map((p, i) => <option key={p.label} value={i}>{p.label}</option>)}
