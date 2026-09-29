@@ -336,7 +336,8 @@ def region_risks():
             "risk_category": label,
             "confidence":    confidence,
             "color":         color_map[label],
-            "rainfall_mm":   round(profile['precipitation'], 1),
+            "rainfall_mm":          round(profile['precipitation'], 1),
+            "profile_precipitation_mm": round(d['precipitation'], 1),  # static profile value, always non-zero
             "slope_avg":     d['slope'],
             "soil_moisture": round(profile['soil_moisture'], 3),
             "elevation":     d['elevation'],

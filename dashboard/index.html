@@ -653,7 +653,9 @@ async function loadRealRiskData() {
       lat: Number(r.lat),
       lon: Number(r.lon),
       risk: r.risk_category,
-      rain: Number(r.rainfall_mm || 0),
+      // Use live rainfall when it's non-zero; fall back to static profile so bars are always visible
+      rain: Number(r.rainfall_mm) > 0 ? Number(r.rainfall_mm) : Number(r.profile_precipitation_mm || r.rainfall_mm || 0),
+      rainLive: Number(r.rainfall_mm) > 0,   // true = live Open-Meteo value, false = static profile
       slope: Number(r.slope_avg || 0),
       confidence: Number(r.confidence || 0),
       elevation: Number(r.elevation || 0),
@@ -787,12 +789,13 @@ function renderRainfallChart(){
     _rainfallChart.destroy()
     _rainfallChart = null
   }
+  const hasLive = REGIONS.some(r => r.rainLive)
   _rainfallChart = new Chart(document.getElementById('rainfallChart'),{
     type:'bar',
     data:{
       labels:REGIONS.map(r=>r.name),
       datasets:[{
-        label:'Rainfall (mm)',
+        label: hasLive ? 'Live Rainfall (mm)' : 'Avg Rainfall (mm)',
         data:REGIONS.map(r=>r.rain),
         backgroundColor:REGIONS.map(r=>RC[r.risk]+'99'),
         borderColor:REGIONS.map(r=>RC[r.risk]),
@@ -807,7 +810,11 @@ function renderRainfallChart(){
         legend:{display:false},
         tooltip:{
           callbacks:{
-            label:c=>` ${c.raw} mm`
+            label:c=>{
+              const reg=REGIONS[c.dataIndex]
+              const src=reg&&reg.rainLive?'🟢 live':'📌 avg'
+              return ` ${c.raw} mm (${src})`
+            }
           }
         }
       },
@@ -821,6 +828,8 @@ function renderRainfallChart(){
           grid:{color:'#ede9e0'}
         },
         y:{
+          beginAtZero:true,
+          suggestedMax: Math.max(...REGIONS.map(r=>r.rain), 50) * 1.15,
           ticks:{
             color:'#7a6a55',
             font:{size:10}
