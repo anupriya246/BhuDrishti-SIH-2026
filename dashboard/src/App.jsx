@@ -28,6 +28,7 @@ export default function App() {
   const [lastUpdated,     setLastUpdated]      = useState(null)
   const [apiOnline,       setApiOnline]        = useState(null)
 
+
   const loadData = useCallback(async () => {
     try {
       const [s, r] = await Promise.all([fetchStats(), fetchRegionRisks()])
@@ -65,8 +66,15 @@ export default function App() {
 
   // Show login/register screen if not authenticated
   if (!authed) {
-    return <AuthPage onAuth={handleAuth} />
+    // return <AuthPage onAuth={handleAuth} />
+    return <div style={{ fontSize: '200px' }}>AUTH PAGE IS HERE</div>
   }
+
+  // return (
+  //   <div style={{ fontSize: '50px', color: 'red' }}>
+  //     THIS IS MY APP.JSX
+  //   </div>
+  // )
 
   return (
     <div className="app">

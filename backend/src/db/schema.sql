@@ -1,6 +1,7 @@
 -- ============================================================
 -- BhuDrishti — PostgreSQL Schema
 -- Run once: psql -U postgres -d bhudrishti -f schema.sql
+-- (Safe to re-run: the constraint block at the end is idempotent.)
 -- ============================================================
 
 -- Enable UUID support
@@ -19,6 +20,19 @@ CREATE TABLE IF NOT EXISTS users (
   created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
+
+-- Extra integrity rules (added after CREATE TABLE so they also apply to an
+-- already-existing table). NOT VALID = enforced for new/updated rows without
+-- failing on old test accounts; run VALIDATE CONSTRAINT once you've cleaned them up.
+--   * staff roles must belong to a district
+--   * emails are stored lowercase (the API already lowercases them)
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_staff_district_chk;
+ALTER TABLE users ADD CONSTRAINT users_staff_district_chk
+  CHECK (role IN ('citizen', 'superadmin') OR district IS NOT NULL) NOT VALID;
+
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_email_lower_chk;
+ALTER TABLE users ADD CONSTRAINT users_email_lower_chk
+  CHECK (email = lower(email)) NOT VALID;
 
 -- ── Predictions ───────────────────────────────────────────────────────────────
 -- Stores every ML risk prediction made via the Flask API

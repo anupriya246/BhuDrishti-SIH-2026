@@ -33,7 +33,7 @@ import time
 
 # ── App setup ──────────────────────────────────────────────────────────────────
 app = Flask(__name__)
-CORS(app)  # allow all origins (dashboard on localhost:5173)
+CORS(app)  # allow all origins 
 
 # ── Load model on startup ──────────────────────────────────────────────────────
 MODELS_DIR = Path(__file__).parent.parent / 'models'

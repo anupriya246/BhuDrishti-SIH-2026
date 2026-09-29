@@ -1,7 +1,218 @@
+// /**
+//  * AuthPage — Login / Register form for BhuDrishti.
+//  * Shown when no JWT token exists in localStorage.
+//  */
+// import React, { useState } from 'react'
+// import { login, register } from '../services/api'
+
+// const DISTRICTS = [
+//   'Cherrapunji', 'Tawang', 'Kohima', 'Shillong', 'Itanagar',
+//   'Imphal', 'Dibrugarh', 'Aizawl', 'Agartala', 'Gangtok',
+//   'Silchar', 'Jorhat',
+// ]
+
+// const ROLES = [
+//   { value: 'citizen',        label: 'Citizen' },
+//   { value: 'field_officer',  label: 'Field Officer' },
+//   { value: 'district_admin', label: 'District Admin' },
+// ]
+
+// export default function AuthPage({ onAuth }) {
+//   const [mode,     setMode]     = useState('login')   // 'login' | 'register'
+//   const [form,     setForm]     = useState({
+//     name: '', email: '', password: '', role: 'citizen', district: 'Shillong', phone: '',
+//   })
+//   const [loading,  setLoading]  = useState(false)
+//   const [error,    setError]    = useState(null)
+
+//   const isStaff = form.role !== 'citizen'
+
+//   // function set(field, value) {
+//   //   setForm(f => ({ ...f, [field]: value }))
+//   //   setError(null)
+//   // }
+
+//   function set(field, value) {
+//     setForm(f => {
+//       const next = { ...f, [field]: value }
+//       // Don't keep a stale access code around when switching back to citizen
+//       if (field === 'role' && value === 'citizen') next.accessCode = ''
+//       return next
+//     })
+//     setError(null)
+//   }
+
+
+
+//   function switchMode(next) {
+//     setMode(next)
+//     setError(null)
+//   }
+
+//   function validate() {
+//     if (!form.email.trim() || !form.password) return 'Email and password are required.'
+//     if (mode === 'register') {
+//       if (!form.name.trim()) return 'Full name is required.'
+//       if (form.password.length < 8 || form.password.length>72) return 'Password must be at least 8 characters and max 72 characters.'
+//       if (isStaff && !form.accessCode.trim()) return 'An access code is required for staff accounts.'
+//     }
+//     return null
+//   }
+
+//   async function handleSubmit(e) {
+//     e.preventDefault()
+//     const problem = validate()
+//     if (problem) { setError(problem); return }
+//     setLoading(true)
+//     setError(null)
+//     try {
+//       if (mode === 'login') {
+//         await login(form.email, form.password)
+//       } else {
+//         await register(form.name, form.email, form.password, form.role, form.district, form.phone)
+//       }
+//       onAuth()
+//     } catch (err) {
+//       setError(err.response?.data?.error || 'Something went wrong. Check your credentials.')
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
+
+//   return (
+//     <div className="auth-overlay" role="main">
+//       <div className="auth-card">
+//         {/* Brand */}
+//         <div className="auth-brand">
+//           <span className="auth-brand__logo" aria-hidden="true">🏔️</span>
+//           <div>
+//             <h1 className="auth-brand__title">BhuDrishti</h1>
+//             <p className="auth-brand__sub">AI Landslide Early Warning · NER</p>
+//           </div>
+//         </div>
+
+//         {/* Mode toggle */}
+//         <div className="auth-toggle" role="tablist">
+//           <button
+//             role="tab"
+//             aria-selected={mode === 'login'}
+//             className={`auth-toggle__btn ${mode === 'login' ? 'auth-toggle__btn--active' : ''}`}
+//             onClick={() => { setMode('login'); setError(null) }}
+//           >
+//             Sign In
+//           </button>
+//           <button
+//             role="tab"
+//             aria-selected={mode === 'register'}
+//             className={`auth-toggle__btn ${mode === 'register' ? 'auth-toggle__btn--active' : ''}`}
+//             onClick={() => { setMode('register'); setError(null) }}
+//           >
+//             Register
+//           </button>
+//         </div>
+
+//         <form onSubmit={handleSubmit} className="auth-form" noValidate>
+//           {/* Register-only fields */}
+//           {mode === 'register' && (
+//             <>
+//               <div className="form-field">
+//                 <label htmlFor="auth-name">Full Name</label>
+//                 <input
+//                   id="auth-name"
+//                   type="text"
+//                   value={form.name}
+//                   onChange={e => set('name', e.target.value)}
+//                   placeholder="Your full name"
+//                   required
+//                   autoComplete="name"
+//                 />
+//               </div>
+//               <div className="form-field">
+//                 <label htmlFor="auth-role">Role</label>
+//                 <select id="auth-role" value={form.role} onChange={e => set('role', e.target.value)}>
+//                   {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+//                 </select>
+//               </div>
+//               <div className="form-field">
+//                 <label htmlFor="auth-district">District</label>
+//                 <select id="auth-district" value={form.district} onChange={e => set('district', e.target.value)}>
+//                   {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+//                 </select>
+//               </div>
+//               <div className="form-field">
+//                 <label htmlFor="auth-phone">Phone (optional)</label>
+//                 <input
+//                   id="auth-phone"
+//                   type="tel"
+//                   value={form.phone}
+//                   onChange={e => set('phone', e.target.value)}
+//                   placeholder="+91 XXXXXXXXXX"
+//                   autoComplete="tel"
+//                 />
+//               </div>
+//             </>
+//           )}
+
+//           {/* Shared fields */}
+//           <div className="form-field">
+//             <label htmlFor="auth-email">Email</label>
+//             <input
+//               id="auth-email"
+//               type="email"
+//               value={form.email}
+//               onChange={e => set('email', e.target.value)}
+//               placeholder="you@example.com"
+//               required
+//               autoComplete="email"
+//             />
+//           </div>
+//           <div className="form-field">
+//             <label htmlFor="auth-password">Password</label>
+//             <input
+//               id="auth-password"
+//               type="password"
+//               value={form.password}
+//               onChange={e => set('password', e.target.value)}
+//               placeholder={mode === 'register' ? 'Min. 8 characters' : 'Your password'}
+//               required
+//               minLength={mode === 'register' ? 8 : undefined}
+//               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+//             />
+//           </div>
+
+//           {error && (
+//             <div className="auth-error" role="alert">
+//               ⚠️ {error}
+//             </div>
+//           )}
+
+//           <button type="submit" className="btn btn--primary auth-submit" disabled={loading}>
+//             {loading
+//               ? (mode === 'login' ? 'Signing in…' : 'Creating account…')
+//               : (mode === 'login' ? 'Sign In' : 'Create Account')}
+//           </button>
+//         </form>
+
+//         <p className="auth-footer">
+//           {mode === 'login'
+//             ? <>No account? <button className="auth-link" onClick={() => setMode('register')}>Register here</button></>
+//             : <>Have an account? <button className="auth-link" onClick={() => setMode('login')}>Sign in</button></>
+//           }
+//         </p>
+//       </div>
+//     </div>
+//   )
+// }
+
+
+
+
 /**
  * AuthPage — Login / Register form for BhuDrishti.
  * Shown when no JWT token exists in localStorage.
  */
+
+
 import React, { useState } from 'react'
 import { login, register } from '../services/api'
 
@@ -20,25 +231,55 @@ const ROLES = [
 export default function AuthPage({ onAuth }) {
   const [mode,     setMode]     = useState('login')   // 'login' | 'register'
   const [form,     setForm]     = useState({
-    name: '', email: '', password: '', role: 'citizen', district: 'Shillong', phone: '',
+    name: '', email: '', password: '', role: 'citizen', district: 'Shillong', phone: '', accessCode: '',
   })
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState(null)
 
+  const isStaff = form.role !== 'citizen'
+
   function set(field, value) {
-    setForm(f => ({ ...f, [field]: value }))
+    setForm(f => {
+      const next = { ...f, [field]: value }
+      // Don't keep a stale access code around when switching back to citizen
+      if (field === 'role' && value === 'citizen') next.accessCode = ''
+      return next
+    })
     setError(null)
+  }
+
+  function switchMode(next) {
+    setMode(next)
+    setError(null)
+  }
+
+  // The form uses noValidate, so validate here
+  function validate() {
+    if (!form.email.trim() || !form.password) return 'Email and password are required.'
+    if (mode === 'register') {
+      if (!form.name.trim()) return 'Full name is required.'
+      if (form.password.length < 8) return 'Password must be at least 8 characters.'
+      if (isStaff && !form.accessCode.trim()) return 'An access code is required for staff accounts.'
+    }
+    return null
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
+    const problem = validate()
+    if (problem) { setError(problem); return }
+
     setLoading(true)
     setError(null)
     try {
       if (mode === 'login') {
-        await login(form.email, form.password)
+        await login(form.email.trim(), form.password)
       } else {
-        await register(form.name, form.email, form.password, form.role, form.district, form.phone)
+        await register(
+          form.name.trim(), form.email.trim(), form.password,
+          form.role, form.district, form.phone.trim(),
+          isStaff ? form.accessCode.trim() : undefined,
+        )
       }
       onAuth()
     } catch (err) {
@@ -66,7 +307,7 @@ export default function AuthPage({ onAuth }) {
             role="tab"
             aria-selected={mode === 'login'}
             className={`auth-toggle__btn ${mode === 'login' ? 'auth-toggle__btn--active' : ''}`}
-            onClick={() => { setMode('login'); setError(null) }}
+            onClick={() => switchMode('login')}
           >
             Sign In
           </button>
@@ -74,7 +315,7 @@ export default function AuthPage({ onAuth }) {
             role="tab"
             aria-selected={mode === 'register'}
             className={`auth-toggle__btn ${mode === 'register' ? 'auth-toggle__btn--active' : ''}`}
-            onClick={() => { setMode('register'); setError(null) }}
+            onClick={() => switchMode('register')}
           >
             Register
           </button>
@@ -108,6 +349,23 @@ export default function AuthPage({ onAuth }) {
                   {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
+
+              {/* Staff-only: access code issued by the administration */}
+              {isStaff && (
+                <div className="form-field">
+                  <label htmlFor="auth-access-code">Staff Access Code</label>
+                  <input
+                    id="auth-access-code"
+                    type="password"
+                    value={form.accessCode}
+                    onChange={e => set('accessCode', e.target.value)}
+                    placeholder="Issued by your administration"
+                    required
+                    autoComplete="off"
+                  />
+                </div>
+              )}
+
               <div className="form-field">
                 <label htmlFor="auth-phone">Phone (optional)</label>
                 <input
@@ -164,8 +422,8 @@ export default function AuthPage({ onAuth }) {
 
         <p className="auth-footer">
           {mode === 'login'
-            ? <>No account? <button className="auth-link" onClick={() => setMode('register')}>Register here</button></>
-            : <>Have an account? <button className="auth-link" onClick={() => setMode('login')}>Sign in</button></>
+            ? <>No account? <button className="auth-link" onClick={() => switchMode('register')}>Register here</button></>
+            : <>Have an account? <button className="auth-link" onClick={() => switchMode('login')}>Sign in</button></>
           }
         </p>
       </div>

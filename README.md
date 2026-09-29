@@ -62,14 +62,14 @@ python train.py                   # trains model, saves to models/
 ### 2 — Start the Flask API
 ```bash
 cd ml/api
-python app.py                     # runs on http://localhost:5000
+python app.py                     
 ```
 
 ### 3 — Start the React Dashboard
 ```bash
 cd dashboard
 npm install
-npm run dev                       # runs on http://localhost:5173
+npm run dev                      
 ```
 
 ---
@@ -86,7 +86,7 @@ npm run dev                       # runs on http://localhost:5173
 
 ### Example — Predict
 ```bash
-curl -X POST http://localhost:5000/predict \
+curl -X POST https://bhudrishti-backend-9mrh.onrender.com/predict \
   -H "Content-Type: application/json" \
   -d '{"slope":42,"elevation":1200,"curvature":2.1,"aspect":180,
        "precipitation":150,"ndvi":0.15,"soil_moisture":0.7,
@@ -95,7 +95,7 @@ curl -X POST http://localhost:5000/predict \
 
 ### Example — Forecast
 ```bash
-curl -X POST http://localhost:5000/forecast \
+curl -X POST https://bhudrishti-backend-9mrh.onrender.com/forecast \
   -H "Content-Type: application/json" \
   -d '{"latitude":25.25,"longitude":91.73,
        "static_features":{"slope":42,"elevation":1150},

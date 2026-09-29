@@ -14,7 +14,7 @@ import { query } from '../db/db.js'
 import { requireAuth } from '../middleware/auth.js'
 
 const router  = Router()
-const ML_URL  = process.env.ML_API_URL || 'http://localhost:5000'
+const ML_URL  = process.env.ML_API_URL || 'https://bhudrishti-backend-9mrh.onrender.com'
 
 // ── Health check ──────────────────────────────────────────────────────────────
 router.get('/health', async (req, res) => {
