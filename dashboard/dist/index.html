@@ -484,12 +484,25 @@ footer strong{color:#fff}
     </p>
     <div class="fc-controls">
       <div class="form-field"><label>Location</label>
-        <select id="fc-preset" onchange="selPreset()"><option value="0">Cherrapunji</option><option value="1">Tawang</option><option value="2">Kohima</option><option value="3">Aizawl</option><option value="4">Gangtok</option></select>
+        <select id="fc-preset" onchange="selPreset(); runForecast()">
+          <option value="0">Cherrapunji</option>
+          <option value="1">Tawang</option>
+          <option value="2">Kohima</option>
+          <option value="3">Aizawl</option>
+          <option value="4">Gangtok</option>
+          <option value="5">Shillong</option>
+          <option value="6">Imphal</option>
+          <option value="7">Itanagar</option>
+          <option value="8">Dibrugarh</option>
+          <option value="9">Agartala</option>
+          <option value="10">Silchar</option>
+          <option value="11">Jorhat</option>
+        </select>
       </div>
       <div class="form-field"><label>Latitude</label><input type="number" id="fc-lat" value="25.25" step="0.01" style="width:105px"/></div>
       <div class="form-field"><label>Longitude</label><input type="number" id="fc-lon" value="91.73" step="0.01" style="width:105px"/></div>
       <div class="form-field"><label>Alert Threshold</label>
-        <select id="fc-thresh"><option value="moderate">Moderate</option><option value="high" selected>High</option><option value="critical">Critical</option></select>
+        <select id="fc-thresh" onchange="runForecast()"><option value="moderate">Moderate</option><option value="high" selected>High</option><option value="critical">Critical</option></select>
       </div>
       <button class="btn btn-teal" onclick="runForecast()">▶ Run Forecast</button>
     </div>
@@ -721,7 +734,20 @@ async function loadRealStats() {
 }
 const RC={Low:"#2d7a3a",Moderate:"#c07a10",High:"#b83020",Critical:"#6e3aaa"}
 const RR={Low:9,Moderate:13,High:17,Critical:22}
-const PRESETS=[{lat:25.25,lon:91.73},{lat:27.59,lon:91.86},{lat:25.67,lon:94.11},{lat:23.73,lon:92.72},{lat:27.34,lon:88.61}]
+const PRESETS=[
+  {name:'Cherrapunji',lat:25.25,  lon:91.73, slope:54,elevation:1313,curvature:3.1,aspect:225,ndvi:0.20,soil_type:2,lulc:1,dist_road:400, dist_fault:3000},
+  {name:'Tawang',     lat:27.59,  lon:91.86, slope:48,elevation:3048,curvature:2.2,aspect:210,ndvi:0.45,soil_type:2,lulc:0,dist_road:800, dist_fault:6000},
+  {name:'Kohima',     lat:25.67,  lon:94.11, slope:41,elevation:1444,curvature:2.0,aspect:200,ndvi:0.40,soil_type:2,lulc:0,dist_road:350, dist_fault:5000},
+  {name:'Aizawl',     lat:23.73,  lon:92.72, slope:36,elevation:1132,curvature:1.8,aspect:195,ndvi:0.42,soil_type:2,lulc:0,dist_road:300, dist_fault:6500},
+  {name:'Gangtok',    lat:27.34,  lon:88.61, slope:45,elevation:1650,curvature:2.5,aspect:215,ndvi:0.38,soil_type:2,lulc:0,dist_road:500, dist_fault:4000},
+  {name:'Shillong',   lat:25.58,  lon:91.89, slope:28,elevation:1496,curvature:1.2,aspect:170,ndvi:0.50,soil_type:1,lulc:3,dist_road:100, dist_fault:7500},
+  {name:'Imphal',     lat:24.82,  lon:93.94, slope:25,elevation:786, curvature:1.0,aspect:160,ndvi:0.55,soil_type:1,lulc:1,dist_road:180, dist_fault:10000},
+  {name:'Itanagar',   lat:27.08,  lon:93.61, slope:32,elevation:350, curvature:1.4,aspect:185,ndvi:0.55,soil_type:1,lulc:3,dist_road:200, dist_fault:9000},
+  {name:'Dibrugarh',  lat:27.47,  lon:94.91, slope:12,elevation:108, curvature:0.5,aspect:90, ndvi:0.65,soil_type:1,lulc:1,dist_road:150, dist_fault:14000},
+  {name:'Agartala',   lat:23.83,  lon:91.29, slope:9, elevation:15,  curvature:0.3,aspect:95, ndvi:0.60,soil_type:0,lulc:1,dist_road:80,  dist_fault:18000},
+  {name:'Silchar',    lat:24.83,  lon:92.78, slope:14,elevation:23,  curvature:0.6,aspect:100,ndvi:0.58,soil_type:0,lulc:1,dist_road:120, dist_fault:16000},
+  {name:'Jorhat',     lat:26.75,  lon:94.20, slope:18,elevation:87,  curvature:0.7,aspect:105,ndvi:0.62,soil_type:1,lulc:1,dist_road:160, dist_fault:12000},
+]
 const BLOCKAGES=[
   {road:"NH-6 Cherrapunji Bypass",st:"blocked",cause:"Landslide debris",alt:"Alt Route A (NH-44)",delay:"+22 min"},
   {road:"Tawang–Bomdila Road",    st:"blocked",cause:"Slope failure",   alt:"Alt Route B (State Hwy)",delay:"+15 min"},
@@ -772,7 +798,7 @@ function showTab(id,btn){
   if(id==='mesh')    initMesh()
   if(id==='reroute') initRouteMap()
   if(id==='reports') initReports()
-  if(id==='forecast'&&!window._fd){window._fd=true;runForecast()}
+  if(id==='forecast') runForecast()
 }
 
 /* ══ MAP ══ */
@@ -1114,145 +1140,136 @@ async function runPrediction(){
 }
 
 /* ══ FORECAST ══ */
-function selPreset(){const i=+document.getElementById('fc-preset').value;document.getElementById('fc-lat').value=PRESETS[i].lat;document.getElementById('fc-lon').value=PRESETS[i].lon}
-async function runForecast(){
-  const thresh = document.getElementById('fc-thresh').value;
-  const lat = Number(document.getElementById('fc-lat').value);
-  const lon = Number(document.getElementById('fc-lon').value);
+// selPreset: sync lat/lon inputs when location dropdown changes
+function selPreset(){
+  const i = +document.getElementById('fc-preset').value
+  const p = PRESETS[i]
+  if(!p) return
+  document.getElementById('fc-lat').value = p.lat
+  document.getElementById('fc-lon').value = p.lon
+}
 
-  const out = document.getElementById('forecast-result');
+// Race-condition guard for forecast — only the latest request renders
+let _fcReqId = 0
+// Auto-refresh timer handle
+let _fcTimer  = null
+
+async function runForecast(){
+  const thresh = document.getElementById('fc-thresh').value
+  const lat    = Number(document.getElementById('fc-lat').value)
+  const lon    = Number(document.getElementById('fc-lon').value)
+  const out    = document.getElementById('forecast-result')
+  const reqId  = ++_fcReqId
+
+  // Derive static terrain features from the matching PRESET entry so
+  // we never pull from AI form fields (which may be stale/unrelated).
+  const presetIdx = +document.getElementById('fc-preset').value
+  const preset    = PRESETS[presetIdx] || PRESETS[0]
 
   out.innerHTML = `
     <div class="fc-summary fc-safe">
       <div class="fc-icon">⏳</div>
-      <strong>Running 24-hour AI forecast...</strong>
-    </div>
-  `;
+      <strong>Fetching 24-hour forecast for ${preset.name}…</strong>
+    </div>`
 
   try {
-    const response = await fetch('https://bhudrishti-ml.onrender.com/forecast',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-        latitude: lat,
+    const response = await fetch('https://bhudrishti-ml.onrender.com/forecast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        latitude:  lat,
         longitude: lon,
         alert_threshold: thresh,
         static_features: {
-          slope: Number(document.getElementById('f-slope').value),
-          elevation: Number(document.getElementById('f-elev').value),
-          curvature: Number(document.getElementById('f-curv').value),
-          aspect: Number(document.getElementById('f-aspect').value),
-          ndvi: Number(document.getElementById('f-ndvi').value),
-          soil_moisture: Number(document.getElementById('f-moist').value),
-          soil_type: Number(document.getElementById('f-soil').value),
-          lulc: Number(document.getElementById('f-lulc').value),
-          dist_road: Number(document.getElementById('f-road').value),
-          dist_fault: Number(document.getElementById('f-fault').value)
+          slope:        preset.slope,
+          elevation:    preset.elevation,
+          curvature:    preset.curvature,
+          aspect:       preset.aspect,
+          ndvi:         preset.ndvi,
+          soil_type:    preset.soil_type,
+          lulc:         preset.lulc,
+          dist_road:    preset.dist_road,
+          dist_fault:   preset.dist_fault,
         }
       })
-    });
+    })
+
+    // Stale response — user already switched district
+    if(reqId !== _fcReqId) return
 
     if(!response.ok){
-      const errorText = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
+      const errorText = await response.text()
+      throw new Error(`HTTP ${response.status}: ${errorText}`)
     }
 
-    const data = await response.json();
+    const data = await response.json()
 
-    if(data.error){
-      throw new Error(data.error);
-    }
+    if(reqId !== _fcReqId) return  // check again after await
 
-    console.log('Real forecast data:', data);
+    if(data.error) throw new Error(data.error)
 
-    const hours = data.full_24h_forecast || data.hours || data.forecast || data.results || [];
+    const hours = data.full_24h_forecast || data.hours || data.forecast || data.results || []
 
-    if(!hours.length){
-      throw new Error('Forecast API returned no hourly data.');
-    }
+    if(!hours.length) throw new Error('Forecast API returned no hourly data.')
 
-    const tord={
-      low:0,
-      moderate:1,
-      high:2,
-      critical:3
-    };
-
-    const zc={
-      low:RC.Low,
-      moderate:RC.Moderate,
-      high:RC.High,
-      critical:RC.Critical
-    };
+    const tord = { low:0, moderate:1, high:2, critical:3 }
+    const zc   = { low:RC.Low, moderate:RC.Moderate, high:RC.High, critical:RC.Critical }
 
     const ah = hours.find(h => {
-      const zone = String(
-        h.predicted_zone || h.zone || h.risk_category || h.risk || ''
-      ).toLowerCase();
+      const zone = String(h.predicted_zone || h.zone || h.risk_category || h.risk || '').toLowerCase()
+      return tord[zone] >= tord[thresh]
+    })
 
-      return tord[zone] >= tord[thresh];
-    });
     const sum = ah
       ? `<div class="fc-summary fc-alert">
           <div class="fc-icon">🚨</div>
           <div>
-            <strong>${
-              ah.hour === 0
-                ? 'High risk detected now'
-                : `Alert expected in ${ah.hour} hour${ah.hour !== 1 ? 's' : ''}`
-            }</strong><br>
+            <strong>${ah.hour === 0 ? 'High risk detected now' : `Alert expected in ${ah.hour} hour${ah.hour !== 1 ? 's' : ''}`}</strong><br>
             <span style="font-size:.8rem">
               Threshold breach —
-              Risk: <strong style="color:${zc[String(ah.predicted_zone||ah.zone || ah.risk_category || ah.risk || '').toLowerCase()]}">
-                ${String(ah.predicted_zone||ah.zone || ah.risk_category || ah.risk || '').toUpperCase()}
+              Risk: <strong style="color:${zc[String(ah.predicted_zone||ah.zone||ah.risk_category||ah.risk||'').toLowerCase()]}">
+                ${String(ah.predicted_zone||ah.zone||ah.risk_category||ah.risk||'').toUpperCase()}
               </strong>
             </span>
           </div>
         </div>`
       : `<div class="fc-summary fc-safe">
           <div class="fc-icon">✅</div>
-          <strong>No ${thresh} alert expected in next 24 hours</strong>
-        </div>`;
+          <strong>No ${thresh} alert expected in next 24 hours for ${preset.name}</strong>
+        </div>`
 
     const tl = hours.map(h => {
-      const zone = String(
-        h.predicted_zone || h.zone || h.risk_category || h.risk || 'moderate'
-      ).toLowerCase();
-
-      const rain = Number(
-        h.precipitation ?? h.rain ?? h.rainfall ?? h.rainfall_mm ?? 0
-      );
-
+      const zone = String(h.predicted_zone || h.zone || h.risk_category || h.risk || 'moderate').toLowerCase()
+      const rain = Number(h.precipitation ?? h.rain ?? h.rainfall ?? h.rainfall_mm ?? 0)
+      // Convert UTC hour index to IST wall-clock label (UTC+5:30)
+      const nowIST    = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Kolkata'}))
+      const slotDate  = new Date(nowIST.getTime() + h.hour * 3600000)
+      const label     = slotDate.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', hour12:true, timeZone:'Asia/Kolkata'})
       return `
         <div class="tl-item" style="--zc:${zc[zone]}">
-          <div class="tl-hr">${h.hour}h</div>
+          <div class="tl-hr" style="font-size:.6rem">${label}</div>
           <div class="tl-rain">🌧${rain.toFixed(1)}</div>
-          <div class="tl-zone" style="color:${zc[zone]}">
-            ${zone}
-          </div>
-        </div>
-      `;
-    }).join('');
+          <div class="tl-zone" style="color:${zc[zone]}">${zone}</div>
+        </div>`
+    }).join('')
 
-    out.innerHTML =
-      sum +
-      `<div class="timeline">${tl}</div>`;
+    out.innerHTML = sum + `<div class="timeline">${tl}</div>`
+
+    // Schedule auto-refresh every 30 minutes (matches Open-Meteo cache TTL)
+    clearTimeout(_fcTimer)
+    _fcTimer = setTimeout(() => runForecast(), 30 * 60 * 1000)
 
   } catch(err) {
-
-    console.error('Forecast error:',err);
-
+    if(reqId !== _fcReqId) return  // stale — ignore
+    console.error('Forecast error:', err)
     out.innerHTML = `
       <div class="fc-summary fc-alert">
         <div class="fc-icon">⚠️</div>
         <div>
-          <strong>Forecast unavailable</strong><br>
-          <span style="font-size:.8rem">${err.message}</span>
+          <strong>24-hour forecast unavailable</strong><br>
+          <span style="font-size:.8rem">Unable to fetch the latest forecast data. ${err.message}</span>
         </div>
-      </div>
-    `;
+      </div>`
   }
 }
 
