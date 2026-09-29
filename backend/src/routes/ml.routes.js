@@ -116,4 +116,27 @@ router.get('/stats', async (req, res) => {
   }
 })
 
+// ── Weather (proxy) ───────────────────────────────────────────────────────────
+// Returns live precipitation + soil_moisture from Open-Meteo plus static
+// terrain profile for the requested district.  Used by the AI Risk Assessment
+// tab to auto-populate all parameters when a district is selected.
+//
+// GET /api/ml/weather?district=Cherrapunji
+router.get('/weather', async (req, res) => {
+  try {
+    const { data } = await axios.get(`${ML_URL}/weather`, {
+      params:  req.query,   // forward district / lat / lon as-is
+      timeout: 10000,
+    })
+    return res.json(data)
+  } catch (err) {
+    if (err.code === 'ECONNREFUSED' || err.code === 'ECONNABORTED') {
+      return res.status(503).json({ error: 'ML service unavailable.' })
+    }
+    return res.status(err.response?.status || 502).json({
+      error: err.response?.data?.error || 'Weather fetch failed.',
+    })
+  }
+})
+
 export default router

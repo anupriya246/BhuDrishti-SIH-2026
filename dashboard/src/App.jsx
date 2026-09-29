@@ -10,8 +10,9 @@ import MapView        from './components/MapView'
 import RiskDashboard  from './components/RiskDashboard'
 import PredictForm    from './components/PredictForm'
 import ForecastPanel  from './components/ForecastPanel'
+import FieldReport    from './components/FieldReport'
 
-const TABS = ['Overview', 'Predict Risk', 'Forecast']
+const TABS = ['Overview', 'Predict Risk', 'Forecast', 'Field Report']
 const REFRESH_INTERVAL = 60_000 // 1 minute
 
 function hasToken() {
@@ -126,6 +127,7 @@ export default function App() {
             {tab === 'Overview'      && '📊 '}
             {tab === 'Predict Risk'  && '🔍 '}
             {tab === 'Forecast'      && '⏱️ '}
+            {tab === 'Field Report'  && '📋 '}
             {tab}
           </button>
         ))}
@@ -156,6 +158,7 @@ export default function App() {
 
         {activeTab === 'Predict Risk' && <PredictForm />}
         {activeTab === 'Forecast'     && <ForecastPanel />}
+        {activeTab === 'Field Report' && <FieldReport />}
       </main>
 
       {/* ── Footer ─────────────────────────────────────────────────────── */}

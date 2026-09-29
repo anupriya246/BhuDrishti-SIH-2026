@@ -982,7 +982,6 @@ async function fetchWeatherAndPredict(districtName) {
 
     // Label live vs. fallback fields
     const liveTag  = '🟢 live'
-    const statTag  = '📌 profile'
     const el = (id) => document.getElementById(id)
     if (el('f-rain-src'))  el('f-rain-src').textContent  = w.live_data ? liveTag : '⚠️ fallback'
     if (el('f-moist-src')) el('f-moist-src').textContent = w.live_data ? liveTag : '⚠️ fallback'

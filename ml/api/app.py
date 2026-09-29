@@ -30,6 +30,7 @@ from forecast_alert import fetch_hourly_rainfall
 from forecast_alert import predict_lead_time_alert
 from datetime import datetime, timezone
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeout
 
 # ── App setup ──────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -101,10 +102,8 @@ def fetch_live_rainfall(lat: float, lon: float) -> dict:
     Returns the current hour's precipitation (mm) and soil moisture (0-1)
     from Open-Meteo for the given lat/lon.
 
-    Uses a 30-minute in-memory cache so the 12 district calls on a single
-    /region-risks request only hit Open-Meteo once per district per half-hour.
-
-    Falls back to None if the API is unavailable; caller uses static profile value.
+    Uses a 30-minute in-memory cache so repeated calls within half an hour
+    are free. Falls back to None if API is unavailable; caller keeps static value.
     """
     cache_key = (round(lat, 3), round(lon, 3))
     cached = _RAINFALL_CACHE.get(cache_key)
@@ -126,6 +125,32 @@ def fetch_live_rainfall(lat: float, lon: float) -> dict:
         "ts":             time.time(),
     }
     return {"precipitation": precipitation, "soil_moisture": soil_moisture}
+
+
+def prefetch_all_districts(profiles: list, max_workers: int = 6, timeout_sec: float = 20.0) -> dict:
+    """
+    Fetch live rainfall for all districts in parallel.
+    Returns a dict keyed by (lat, lon) → {precipitation, soil_moisture} or None.
+    Completes within timeout_sec regardless of slow/failed individual requests.
+    """
+    results = {}
+    def _fetch(d):
+        key = (round(d['lat'], 3), round(d['lon'], 3))
+        return key, fetch_live_rainfall(d['lat'], d['lon'])
+
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futures = {ex.submit(_fetch, d): d for d in profiles}
+        try:
+            for future in as_completed(futures, timeout=timeout_sec):
+                try:
+                    key, val = future.result()
+                    results[key] = val
+                except Exception:
+                    pass
+        except FuturesTimeout:
+            print("[prefetch_all_districts] Timeout — using cached/fallback values for remaining districts")
+
+    return results
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -253,12 +278,15 @@ def region_risks():
     """
 
     regions = []
+    # Fetch live rainfall for all districts in parallel (max 20s total)
+    live_map = prefetch_all_districts(DISTRICT_PROFILES)
+
     for d in DISTRICT_PROFILES:
         # Build profile from static terrain features (slope, elevation, etc.)
         profile = {k: v for k, v in d.items() if k not in ('name', 'lat', 'lon')}
 
         # ── Inject live rainfall & soil moisture ──────────────────────────────
-        live = fetch_live_rainfall(d['lat'], d['lon'])
+        live = live_map.get((round(d['lat'], 3), round(d['lon'], 3)))
         if live is not None:
             profile['precipitation'] = live['precipitation']
             profile['soil_moisture'] = live['soil_moisture']
@@ -324,6 +352,100 @@ def region_risks():
         })
 
 
+@app.route('/weather', methods=['GET'])
+def weather():
+    """
+    Returns the current-hour live precipitation (mm) and soil_moisture (0-1)
+    for a given district via Open-Meteo.  Also returns the full static terrain
+    profile so the frontend can populate all AI Risk Assessment fields at once.
+
+    Query params:
+      district  — district name (must match DISTRICT_PROFILES)
+      lat       — latitude  (used when district not found, optional)
+      lon       — longitude (used when district not found, optional)
+
+    Response:
+    {
+      "district": "Cherrapunji",
+      "lat": 25.25, "lon": 91.73,
+      "precipitation": 14.2,
+      "soil_moisture": 0.68,
+      "slope": 54, "elevation": 1313, "curvature": 3.1, "aspect": 225,
+      "ndvi": 0.20, "soil_type": 2, "lulc": 1,
+      "dist_road": 400, "dist_fault": 3000,
+      "live_data": true,
+      "fetched_at": "2026-09-29T..."
+    }
+    """
+    district_name = request.args.get('district', '').strip()
+    try:
+        lat = float(request.args.get('lat', 0))
+        lon = float(request.args.get('lon', 0))
+    except (ValueError, TypeError):
+        lat = lon = 0.0
+
+    # Find the matching profile (case-insensitive)
+    profile = next(
+        (d for d in DISTRICT_PROFILES
+         if d['name'].lower() == district_name.lower()),
+        None
+    )
+
+    if profile is None and lat and lon:
+        # No named match but coordinates provided — build a minimal profile
+        profile = {
+            'name': district_name or 'Unknown',
+            'lat': lat, 'lon': lon,
+            'slope': 30, 'elevation': 500, 'curvature': 1.5, 'aspect': 180,
+            'ndvi': 0.40, 'soil_type': 1, 'lulc': 0,
+            'dist_road': 500, 'dist_fault': 8000,
+        }
+
+    if profile is None:
+        return jsonify({
+            "error": f"District '{district_name}' not found. "
+                     f"Available: {[d['name'] for d in DISTRICT_PROFILES]}"
+        }), 404
+
+    use_lat = profile['lat']
+    use_lon = profile['lon']
+
+    # Fetch live rainfall — reuses the same function used by /region-risks
+    live = fetch_live_rainfall(use_lat, use_lon)
+
+    if live is not None:
+        precipitation = live['precipitation']
+        soil_moisture = live['soil_moisture']
+        live_data = True
+    else:
+        # API unavailable — return static profile values, clearly flagged
+        precipitation = profile.get('precipitation', 0.0)
+        soil_moisture = profile.get('soil_moisture', 0.3)
+        live_data = False
+
+    return jsonify({
+        "district":     profile['name'],
+        "lat":          use_lat,
+        "lon":          use_lon,
+        # Live / fallback met values
+        "precipitation": round(precipitation, 2),
+        "soil_moisture": round(soil_moisture, 3),
+        # Static terrain values from DISTRICT_PROFILES
+        "slope":        profile['slope'],
+        "elevation":    profile['elevation'],
+        "curvature":    profile['curvature'],
+        "aspect":       profile['aspect'],
+        "ndvi":         profile['ndvi'],
+        "soil_type":    profile['soil_type'],
+        "lulc":         profile['lulc'],
+        "dist_road":    profile['dist_road'],
+        "dist_fault":   profile['dist_fault'],
+        # Metadata
+        "live_data":    live_data,
+        "fetched_at":   datetime.now(timezone.utc).isoformat(),
+    })
+
+
 @app.route('/stats', methods=['GET'])
 def stats():
     """
@@ -338,6 +460,9 @@ def stats():
         'Critical': 0
     }
 
+    # Fetch live rainfall for all districts in parallel (max 20s total)
+    live_map = prefetch_all_districts(DISTRICT_PROFILES)
+
     for d in DISTRICT_PROFILES:
 
         profile = {
@@ -346,7 +471,7 @@ def stats():
         }
 
         # Inject live rainfall if available
-        live = fetch_live_rainfall(d['lat'], d['lon'])
+        live = live_map.get((round(d['lat'], 3), round(d['lon'], 3)))
         if live is not None:
             profile['precipitation'] = live['precipitation']
             profile['soil_moisture'] = live['soil_moisture']
