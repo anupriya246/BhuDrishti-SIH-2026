@@ -302,10 +302,125 @@ footer strong{color:#fff}
   nav.tabs{padding:0 .5rem}
   #map,#routeMap{height:280px}
 }
+
+/* ══ LOGIN OVERLAY ══ */
+#login-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#7c2d12 0%,#c0541a 30%,#d97706 60%,#4a7c20 100%);
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+}
+#login-overlay.hidden{display:none}
+.login-box{
+  background:#fff;border-radius:20px;padding:2.5rem 2rem;
+  width:100%;max-width:440px;box-shadow:0 24px 60px #0007;
+  display:flex;flex-direction:column;gap:1.25rem;
+}
+.login-logo{display:flex;align-items:center;gap:.85rem;margin-bottom:.25rem}
+.login-logo-icon{
+  width:52px;height:52px;border-radius:14px;
+  background:linear-gradient(135deg,#7c2d12,#c0541a);
+  display:flex;align-items:center;justify-content:center;font-size:1.6rem;
+  box-shadow:0 4px 12px #c0541a40;
+}
+.login-logo-title{font-size:1.5rem;font-weight:900;color:#1a1040;letter-spacing:-.02em}
+.login-logo-sub{font-size:.7rem;color:#8a5020;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.login-heading{font-size:1rem;font-weight:700;color:#1a1040;margin-bottom:.1rem}
+.login-subhead{font-size:.78rem;color:#5a5475}
+.role-selector{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.role-btn{
+  border:2px solid #e0c8a0;border-radius:12px;padding:.9rem .75rem;
+  background:#fffbf5;cursor:pointer;text-align:center;transition:all .2s;
+  font-family:'Inter',sans-serif;
+}
+.role-btn:hover{border-color:#c0541a;background:#fff5ee}
+.role-btn.selected{border-color:#c0541a;background:linear-gradient(135deg,#fff3eb,#fff8f2);box-shadow:0 0 0 3px #c0541a20}
+.role-btn__icon{font-size:1.6rem;margin-bottom:.35rem}
+.role-btn__label{font-size:.82rem;font-weight:800;color:#1a1040}
+.role-btn__desc{font-size:.68rem;color:#8a5020;margin-top:.15rem}
+.login-field{display:flex;flex-direction:column;gap:.35rem}
+.login-field label{font-size:.72rem;font-weight:700;color:#8a5020;text-transform:uppercase;letter-spacing:.06em}
+.login-field input{
+  border:1.5px solid #e0c8a0;border-radius:9px;padding:.58rem .85rem;
+  font-size:.9rem;font-family:'Inter',sans-serif;color:#1a1040;background:#fffbf5;
+  transition:border-color .2s;
+}
+.login-field input:focus{outline:none;border-color:#c0541a;background:#fff}
+.login-submit{
+  background:linear-gradient(135deg,#8b3a10,#c0541a);color:#fff;
+  border:none;border-radius:10px;padding:.75rem;font-size:.9rem;font-weight:800;
+  font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;
+  box-shadow:0 4px 14px #c0541a30;
+}
+.login-submit:hover{transform:translateY(-1px);box-shadow:0 6px 20px #c0541a45}
+.login-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.login-error{
+  font-size:.78rem;color:#b83020;background:#fdecea;border-radius:8px;
+  padding:.55rem .8rem;border:1px solid #f0b0a0;
+}
+.login-demo{font-size:.7rem;color:#8a5020;background:#fffbf0;border-radius:8px;padding:.6rem .85rem;border:1px solid #e8d0a0;line-height:1.6}
+.login-demo strong{color:#c0541a}
+.user-badge{
+  display:flex;align-items:center;gap:.5rem;
+  background:#ffffff22;border:1px solid #ffffff45;border-radius:999px;
+  padding:.3rem .85rem;font-size:.75rem;color:#fff;font-weight:600;cursor:default;
+}
+.user-role-pill{
+  font-size:.62rem;font-weight:800;padding:.12rem .5rem;border-radius:999px;
+  background:#ffffff30;border:1px solid #ffffff60;text-transform:uppercase;letter-spacing:.05em;
+}
+.authority-only{display:none}
+.authority-only.visible{display:inline-flex}
+.authority-section{display:none}
+.authority-section.visible{display:block}
 </style>
 </head>
 <body>
 <div class="app">
+
+<!-- ══ LOGIN OVERLAY ══ -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">🏔️</div>
+      <div>
+        <div class="login-logo-title">BhuDrishti</div>
+        <div class="login-logo-sub">AI Landslide Early Warning · NE India</div>
+      </div>
+    </div>
+    <div>
+      <div class="login-heading">Sign In to Continue</div>
+      <div class="login-subhead">Select your role, then enter your credentials.</div>
+    </div>
+    <div class="role-selector" id="role-selector">
+      <button class="role-btn selected" id="role-citizen" onclick="selectRole('citizen')">
+        <div class="role-btn__icon">👤</div>
+        <div class="role-btn__label">Citizen</div>
+        <div class="role-btn__desc">View alerts & submit reports</div>
+      </button>
+      <button class="role-btn" id="role-authority" onclick="selectRole('authority')">
+        <div class="role-btn__icon">🏛️</div>
+        <div class="role-btn__label">Authority Official</div>
+        <div class="role-btn__desc">Manage reports & send alerts</div>
+      </button>
+    </div>
+    <div class="login-field">
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" placeholder="you@example.com" autocomplete="username"/>
+    </div>
+    <div class="login-field">
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div id="login-error" class="login-error" style="display:none"></div>
+    <button class="login-submit" id="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="login-demo" id="demo-hint">
+      <strong>Demo credentials</strong><br>
+      Citizen &nbsp;&nbsp;&nbsp;— <strong>citizen@bhudrishti.in</strong> / <strong>demo1234</strong><br>
+      Authority — <strong>authority@bhudrishti.in</strong> / <strong>admin1234</strong>
+    </div>
+  </div>
+</div>
 
 <!-- ══ HEADER ══ -->
 <header>
@@ -319,7 +434,12 @@ footer strong{color:#fff}
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live Monitoring</div>
     <span class="hdr-time" id="hdr-clock"></span>
+    <div class="user-badge" id="user-badge" style="display:none">
+      <span id="user-name-display">User</span>
+      <span class="user-role-pill" id="user-role-display">—</span>
+    </div>
     <button class="btn-hdr" onclick="refreshAll()">↻ Refresh</button>
+    <button class="btn-hdr" id="logout-btn" onclick="doLogout()" style="display:none;background:#ffffff22;border-color:#ffffff60">⏏ Sign Out</button>
   </div>
 </header>
 
@@ -1682,6 +1802,27 @@ async function initReports() {
               : '<span style="font-size:.68rem;color:#c07a10;font-weight:700">⏳ Pending</span>'
           }
 
+          ${
+            !r.verified
+              ? `<button
+                  class="authority-only"
+                  onclick="verifyFieldReport('${r.id}')"
+                  style="
+                    border:0;
+                    background:#dcfce7;
+                    color:#166534;
+                    padding:.35rem .6rem;
+                    border-radius:6px;
+                    cursor:pointer;
+                    font-size:.7rem;
+                    font-weight:700;
+                  "
+                >
+                  ✅ Verify
+                </button>`
+              : ''
+          }
+
           <button
             onclick="deleteFieldReport('${r.id}')"
             style="
@@ -1704,6 +1845,10 @@ async function initReports() {
         </div>
       </div>
     `).join('');
+
+    // Re-apply role UI so dynamically rendered authority-only buttons show/hide correctly
+    const currentUser = getStoredUser()
+    if (currentUser) applyRoleUI(currentUser)
 
   } catch (error) {
     console.error('Failed to load field reports:', error);
@@ -1930,17 +2075,188 @@ function loadMeshStats() {
   document.getElementById('mesh-nodes-online-count').textContent = onlineNodes;
 }
 
+/* ══ AUTH ══ */
+const AUTH_API = 'https://bhudrishti-backend-9mrh.onrender.com/api/auth'
+
+const DEMO_USERS = {
+  'citizen@bhudrishti.in':  { password:'demo1234',  role:'citizen',        name:'Demo Citizen' },
+  'authority@bhudrishti.in':{ password:'admin1234', role:'district_admin', name:'Authority Official' },
+}
+
+let _selectedRole = 'citizen'
+
+function selectRole(role) {
+  _selectedRole = role
+  document.getElementById('role-citizen').classList.toggle('selected',   role==='citizen')
+  document.getElementById('role-authority').classList.toggle('selected', role==='authority')
+  const emailInput = document.getElementById('login-email')
+  if (!emailInput.value || emailInput.value.includes('@bhudrishti.in')) {
+    emailInput.value = role==='citizen' ? 'citizen@bhudrishti.in' : 'authority@bhudrishti.in'
+  }
+}
+
+function getStoredUser() {
+  try { return JSON.parse(localStorage.getItem('bd_user') || 'null') } catch { return null }
+}
+
+function isAuthority(user) {
+  return user && ['field_officer','district_admin','superadmin'].includes(user.role)
+}
+
+function applyRoleUI(user) {
+  if (!user) return
+  const badge = document.getElementById('user-badge')
+  const logoutBtn = document.getElementById('logout-btn')
+  if (badge) {
+    badge.style.display = 'flex'
+    const nd = document.getElementById('user-name-display')
+    const rd = document.getElementById('user-role-display')
+    if (nd) nd.textContent = user.name || user.email || 'User'
+    if (rd) rd.textContent = isAuthority(user) ? 'Authority' : 'Citizen'
+  }
+  if (logoutBtn) logoutBtn.style.display = 'inline-block'
+  document.body.setAttribute('data-role', user.role)
+  document.querySelectorAll('.authority-only').forEach(el => {
+    el.classList.toggle('visible', isAuthority(user))
+  })
+  document.querySelectorAll('.authority-section').forEach(el => {
+    el.classList.toggle('visible', isAuthority(user))
+  })
+}
+
+async function doLogin() {
+  const email    = (document.getElementById('login-email')?.value  || '').trim()
+  const password = (document.getElementById('login-password')?.value || '')
+  const errDiv   = document.getElementById('login-error')
+  const btn      = document.getElementById('login-btn')
+
+  if (!email || !password) {
+    errDiv.textContent = 'Please enter your email and password.'
+    errDiv.style.display = 'block'
+    return
+  }
+
+  errDiv.style.display = 'none'
+  btn.disabled = true
+  btn.textContent = 'Signing in…'
+
+  try {
+    let user = null
+    let token = null
+
+    try {
+      const resp = await fetch(`${AUTH_API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await resp.json()
+      if (resp.ok && data.token) {
+        token = data.token
+        user  = data.user
+      } else {
+        throw new Error(data.error || `HTTP ${resp.status}`)
+      }
+    } catch (backendErr) {
+      const demo = DEMO_USERS[email.toLowerCase()]
+      if (demo && demo.password === password) {
+        const wantsAuthority = _selectedRole === 'authority'
+        const isAuth = ['field_officer','district_admin','superadmin'].includes(demo.role)
+        if (wantsAuthority !== isAuth) {
+          throw new Error(wantsAuthority ? 'This account does not have authority access.' : 'Please select the correct role for your account.')
+        }
+        token = 'demo_' + btoa(JSON.stringify({ email, role: demo.role, name: demo.name }))
+        user  = { id: 'demo', email, role: demo.role, name: demo.name }
+      } else {
+        throw backendErr
+      }
+    }
+
+    if (user) {
+      const wantsAuthority = _selectedRole === 'authority'
+      const isAuth = isAuthority(user)
+      if (wantsAuthority && !isAuth) {
+        throw new Error('This account does not have authority access. Please select Citizen.')
+      }
+    }
+
+    localStorage.setItem('bhudrishti_token', token)
+    localStorage.setItem('bd_user', JSON.stringify(user))
+
+    const overlay = document.getElementById('login-overlay')
+    if (overlay) overlay.classList.add('hidden')
+
+    applyRoleUI(user)
+    startDashboard()
+
+  } catch (err) {
+    errDiv.textContent = err.message || 'Login failed. Check your credentials.'
+    errDiv.style.display = 'block'
+  } finally {
+    btn.disabled = false
+    btn.textContent = 'Sign In'
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('bhudrishti_token')
+  localStorage.removeItem('bd_user')
+  const overlay = document.getElementById('login-overlay')
+  if (overlay) overlay.classList.remove('hidden')
+  document.getElementById('login-password').value = ''
+  document.getElementById('login-error').style.display = 'none'
+  const badge = document.getElementById('user-badge')
+  const logoutBtn = document.getElementById('logout-btn')
+  if (badge) badge.style.display = 'none'
+  if (logoutBtn) logoutBtn.style.display = 'none'
+  document.body.removeAttribute('data-role')
+}
+
+async function verifyFieldReport(id) {
+  const token = localStorage.getItem('bhudrishti_token')
+  const user  = getStoredUser()
+  if (!isAuthority(user)) {
+    alert('Access denied. Authority role required to verify reports.')
+    return
+  }
+  try {
+    const resp = await fetch(`https://bhudrishti-backend-9mrh.onrender.com/api/field-reports/${id}/verify`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+    })
+    const data = await resp.json()
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
+    alert('Report verified successfully.')
+    initReports()
+  } catch (err) {
+    alert(`Verification failed: ${err.message}`)
+  }
+}
+
+async function startDashboard() {
+  await loadRealRiskData()
+  await loadRealStats()
+  loadMeshStats()
+  runPrediction()
+  runForecast()
+  initReports()
+}
+
 /* ══ INIT ══ */
 window.onload = async () => {
-  await loadRealRiskData();
-  await loadRealStats();
-  loadMeshStats();
- 
+  const token = localStorage.getItem('bhudrishti_token')
+  const user  = getStoredUser()
 
-  runPrediction();
-  runForecast();
-  initReports();
-};
+  if (token && user) {
+    const overlay = document.getElementById('login-overlay')
+    if (overlay) overlay.classList.add('hidden')
+    applyRoleUI(user)
+    await startDashboard()
+  } else {
+    selectRole('citizen')
+    document.getElementById('login-email').value = 'citizen@bhudrishti.in'
+  }
+}
 </script>
 </body>
 </html>
