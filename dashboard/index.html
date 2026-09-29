@@ -638,6 +638,15 @@ footer strong{color:#fff}
 /* ══ DATA ══ */
 let REGIONS = [];
 
+// Static precipitation profile per district (mm) — representative average values from DISTRICT_PROFILES.
+// Used as fallback when Open-Meteo live hourly data returns 0 (no current rain).
+const DISTRICT_PRECIP = {
+  'Tawang':      178, 'Itanagar':  98, 'Dibrugarh': 45,
+  'Cherrapunji': 312, 'Shillong':  87, 'Imphal':    74,
+  'Kohima':      145, 'Aizawl':    92, 'Agartala':  38,
+  'Gangtok':     134, 'Silchar':   42, 'Jorhat':    68,
+};
+
 async function loadRealRiskData() {
   try {
     const response = await fetch('https://bhudrishti-ml.onrender.com/region-risks');
@@ -654,7 +663,7 @@ async function loadRealRiskData() {
       lon: Number(r.lon),
       risk: r.risk_category,
       // Use live rainfall when it's non-zero; fall back to static profile so bars are always visible
-      rain: Number(r.rainfall_mm) > 0 ? Number(r.rainfall_mm) : Number(r.profile_precipitation_mm || r.rainfall_mm || 0),
+      rain: Number(r.rainfall_mm) > 0 ? Number(r.rainfall_mm) : (r.profile_precipitation_mm || DISTRICT_PRECIP[r.name] || 50),
       rainLive: Number(r.rainfall_mm) > 0,   // true = live Open-Meteo value, false = static profile
       slope: Number(r.slope_avg || 0),
       confidence: Number(r.confidence || 0),
