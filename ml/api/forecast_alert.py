@@ -6,7 +6,8 @@ and runs the ML model against each hour to find the earliest risk threshold brea
 
 import requests
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone as tz
+from zoneinfo import ZoneInfo
 import time
 
 
@@ -21,19 +22,29 @@ def fetch_hourly_rainfall(lat: float, lon: float) -> list[dict]:
     """
     Calls Open-Meteo API for the next 24 hours of hourly rainfall
     and soil moisture data for a given lat/lon in NER.
-    Returns a list of dicts: [{time, precipitation, soil_moisture}, ...]
+
+    Uses forecast_days=2 (48 hours) so we can slice from the current IST
+    hour forward, guaranteeing the returned 24 entries are all in the future.
+    Cache key includes the current UTC hour so stale cached zeros are
+    discarded at the start of each new hour.
+
+    Returns a list of 24 dicts: [{time, precipitation, soil_moisture}, ...]
     """
-    cache_key = (round(lat, 3), round(lon, 3))
+    now_utc = datetime.now(tz.utc)
+    # Include current UTC hour in cache key — expires naturally when the hour rolls over
+    cache_key = (round(lat, 3), round(lon, 3), now_utc.year, now_utc.month, now_utc.day, now_utc.hour)
     cached = CACHE.get(cache_key)
 
     if cached and time.time() - cached["time"] < CACHE_TTL:
         return cached["data"]
+
     params = {
-        "latitude":              lat,
-        "longitude":             lon,
-        "hourly":                "precipitation,soil_moisture_0_to_1cm",
-        "forecast_days":         1,
-        "timezone":              "Asia/Kolkata",
+        "latitude":       lat,
+        "longitude":      lon,
+        # 2 days so we always have future hours even late in the day
+        "hourly":         "precipitation,soil_moisture_0_to_1cm",
+        "forecast_days":  2,
+        "timezone":       "Asia/Kolkata",
     }
     for attempt in range(3):
         resp = requests.get(
@@ -48,35 +59,43 @@ def fetch_hourly_rainfall(lat: float, lon: float) -> list[dict]:
             continue
 
         resp.raise_for_status()
-        data = resp.json()["hourly"]
+        raw = resp.json()["hourly"]
         break
     else:
         if cached:
             return cached["data"]
+        # Hard fail — do NOT return fake zeros; raise so caller shows error state
+        raise RuntimeError("Open-Meteo unavailable after 3 attempts and no cache available.")
 
-        hourly = []
-
-        for i in range(24):
-            hourly.append({
-                "time": (datetime.now() + pd.Timedelta(hours=i)).strftime("%Y-%m-%dT%H:00"),
-                "precipitation": 0.0,
-                "soil_moisture": 0.3,
-            })
-
-        return hourly
-
-    hourly = []
-    for i, t in enumerate(data["time"]):
-        hourly.append({
+    # Build full list of (timestamp, precipitation, soil_moisture)
+    all_hours = []
+    for i, t in enumerate(raw["time"]):
+        all_hours.append({
             "time":          t,
-            "precipitation": data["precipitation"][i] or 0.0,
-            "soil_moisture": data["soil_moisture_0_to_1cm"][i] or 0.3,
+            "precipitation": float(raw["precipitation"][i] or 0.0),
+            "soil_moisture": float(raw["soil_moisture_0_to_1cm"][i] or 0.3),
         })
+
+    # Slice to the next 24 hours from now (IST, matching Open-Meteo timezone)
+    # Open-Meteo returns IST timestamps as "YYYY-MM-DDTHH:00"
+    now_ist_str = datetime.now(tz.utc).astimezone(
+        ZoneInfo("Asia/Kolkata")
+    ).strftime("%Y-%m-%dT%H:00")
+
+    future = [h for h in all_hours if h["time"] >= now_ist_str]
+    hourly = future[:24]
+
+    # If somehow fewer than 24 future hours are available (very end of day 2),
+    # pad by repeating the last entry rather than returning zeros
+    while len(hourly) < 24 and hourly:
+        last = dict(hourly[-1])
+        hourly.append(last)
+
     CACHE[cache_key] = {
-    "time": time.time(),
-    "data": hourly
+        "time": time.time(),
+        "data": hourly,
     }
-    
+
     return hourly
 
 

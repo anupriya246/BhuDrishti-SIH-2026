@@ -102,10 +102,12 @@ def fetch_live_rainfall(lat: float, lon: float) -> dict:
     Returns the current hour's precipitation (mm) and soil moisture (0-1)
     from Open-Meteo for the given lat/lon.
 
-    Uses a 30-minute in-memory cache so repeated calls within half an hour
-    are free. Falls back to None if API is unavailable; caller keeps static value.
+    Cache key includes the current UTC hour so stale zeros from an earlier
+    hour are never served as "live" data for the current hour.
     """
-    cache_key = (round(lat, 3), round(lon, 3))
+    import datetime as _dt
+    now_utc = _dt.datetime.now(_dt.timezone.utc)
+    cache_key = (round(lat, 3), round(lon, 3), now_utc.year, now_utc.month, now_utc.day, now_utc.hour)
     cached = _RAINFALL_CACHE.get(cache_key)
     if cached and time.time() - cached["ts"] < _RAINFALL_TTL:
         return {"precipitation": cached["precipitation"], "soil_moisture": cached["soil_moisture"]}
