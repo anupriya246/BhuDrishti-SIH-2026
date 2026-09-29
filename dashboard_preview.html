@@ -883,23 +883,38 @@ async function runForecast(){
   const lon=+document.getElementById('fc-lon').value
   const presetIdx=+document.getElementById('fc-preset').value
   const p=PRESET_PROFILES[presetIdx]||PRESET_PROFILES[0]
-  const staticFeatures={slope:p.slope,elevation:p.elevation,curvature:p.curvature,aspect:p.aspect,ndvi:p.ndvi,soil_type:p.soil_type,lulc:p.lulc,dist_road:p.dist_road,dist_fault:p.dist_fault}
+  const tord={low:0,moderate:1,high:2,critical:3},tr=tord[thresh]
   const zc={low:RC.Low,moderate:RC.Moderate,high:RC.High,critical:RC.Critical}
   try{
-    const res=await fetch(ML_API+'/forecast',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({latitude:lat,longitude:lon,static_features:staticFeatures,alert_threshold:thresh}),
-      signal:AbortSignal.timeout(20000)
+    // Fetch 24h hourly forecast directly from Open-Meteo — no backend needed
+    const res=await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
+      `&hourly=precipitation,soil_moisture_0_to_1cm&forecast_days=1&timezone=Asia%2FKolkata`
+    )
+    if(!res.ok)throw new Error('Open-Meteo '+res.status)
+    const data=await res.json()
+    const times=data.hourly.time||[]
+    const rains=data.hourly.precipitation||[]
+    const moistures=data.hourly.soil_moisture_0_to_1cm||[]
+    // Compute risk per hour using terrain profile + live weather
+    const hours=times.map((t,i)=>{
+      const rain=parseFloat((rains[i]||0).toFixed(1))
+      const moist=parseFloat((moistures[i]||0.3).toFixed(3))
+      const slope=p.slope||30
+      const ndvi=p.ndvi||0.3
+      let s=(slope/75)*.30+(rain/600)*.22+moist*.16+(1-ndvi)*.10+.12
+      s=Math.min(1,Math.max(0,s))
+      const zone=s<.25?'low':s<.5?'moderate':s<.75?'high':'critical'
+      return{hour:i,time:t,rain,zone}
     })
-    if(!res.ok)throw new Error('API '+res.status)
-    const d=await res.json()
-    const sum=d.alert_expected
-      ?`<div class="fc-summary fc-alert"><div class="fc-icon">🚨</div><div><strong>Alert expected in ${d.hours_until_alert} hour${d.hours_until_alert!==1?'s':''}</strong><br><span style="font-size:.8rem">Breach at <strong>${d.alert_time}</strong> — Risk: <strong style="color:${zc[d.predicted_zone_at_alert]||'#888'}">${(d.predicted_zone_at_alert||'').toUpperCase()}</strong></span></div></div>`
+    const ah=hours.find(h=>tord[h.zone]>=tr)
+    const sum=ah
+      ?`<div class="fc-summary fc-alert"><div class="fc-icon">🚨</div><div><strong>Alert expected in ${ah.hour} hour${ah.hour!==1?'s':''}</strong><br><span style="font-size:.8rem">Breach at <strong>${ah.time}</strong> — Risk: <strong style="color:${zc[ah.zone]}">${ah.zone.toUpperCase()}</strong></span></div></div>`
       :`<div class="fc-summary fc-safe"><div class="fc-icon">✅</div><strong>No ${thresh} alert expected in next 24 hours</strong></div>`
-    const tl=(d.full_24h_forecast||[]).map(h=>`<div class="tl-item" style="--zc:${zc[h.predicted_zone]||'#888'}"><div class="tl-hr">${h.hour}h</div><div class="tl-rain">🌧${(+h.precipitation).toFixed(1)}</div><div class="tl-zone" style="color:${zc[h.predicted_zone]||'#888'}">${h.predicted_zone}</div></div>`).join('')
+    const tl=hours.map(h=>`<div class="tl-item" style="--zc:${zc[h.zone]}"><div class="tl-hr">${h.hour}h</div><div class="tl-rain">🌧${h.rain}</div><div class="tl-zone" style="color:${zc[h.zone]}">${h.zone}</div></div>`).join('')
     document.getElementById('forecast-result').innerHTML=sum+`<div class="timeline">${tl}</div>`
   }catch(e){
-    document.getElementById('forecast-result').innerHTML=`<div class="fc-summary" style="background:#fdf0ec;border-radius:10px;padding:1rem"><strong>⚠️ Forecast API unreachable.</strong><br><span style="font-size:.8rem;color:#888">${e.message}</span></div>`
+    document.getElementById('forecast-result').innerHTML=`<div class="fc-summary" style="background:#fdf0ec;border-radius:10px;padding:1rem"><strong>⚠️ Forecast fetch failed.</strong><br><span style="font-size:.8rem;color:#888">${e.message}</span></div>`
   }
   if(btn){btn.textContent='▶ Run Forecast';btn.disabled=false}
 }
