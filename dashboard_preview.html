@@ -886,33 +886,51 @@ async function runForecast(){
   const tord={low:0,moderate:1,high:2,critical:3},tr=tord[thresh]
   const zc={low:RC.Low,moderate:RC.Moderate,high:RC.High,critical:RC.Critical}
   try{
-    // Fetch 24h hourly forecast directly from Open-Meteo — no backend needed
+    // Fetch 24h hourly forecast + past 6h from Open-Meteo directly
     const res=await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
-      `&hourly=precipitation,soil_moisture_0_to_1cm&forecast_days=1&timezone=Asia%2FKolkata`
+      `&hourly=precipitation,precipitation_probability,soil_moisture_0_to_1cm`+
+      `&past_hours=6&forecast_hours=24&timezone=Asia%2FKolkata`
     )
     if(!res.ok)throw new Error('Open-Meteo '+res.status)
     const data=await res.json()
     const times=data.hourly.time||[]
     const rains=data.hourly.precipitation||[]
+    const probs=data.hourly.precipitation_probability||[]
     const moistures=data.hourly.soil_moisture_0_to_1cm||[]
-    // Compute risk per hour using terrain profile + live weather
+    const now=new Date()
+    // Compute risk per hour
     const hours=times.map((t,i)=>{
       const rain=parseFloat((rains[i]||0).toFixed(1))
+      const prob=probs[i]||0
       const moist=parseFloat((moistures[i]||0.3).toFixed(3))
       const slope=p.slope||30
       const ndvi=p.ndvi||0.3
-      let s=(slope/75)*.30+(rain/600)*.22+moist*.16+(1-ndvi)*.10+.12
+      // Use rain probability to scale effective rainfall for risk calc
+      const effectiveRain=rain+(prob/100)*2
+      let s=(slope/75)*.30+(effectiveRain/600)*.22+moist*.16+(1-ndvi)*.10+.12
       s=Math.min(1,Math.max(0,s))
       const zone=s<.25?'low':s<.5?'moderate':s<.75?'high':'critical'
-      return{hour:i,time:t,rain,zone}
+      const hr=new Date(t)
+      const isPast=hr<now
+      return{hour:i,time:t,rain,prob,zone,isPast}
     })
-    const ah=hours.find(h=>tord[h.zone]>=tr)
+    // Only look for alert in future hours
+    const futureHours=hours.filter(h=>!h.isPast)
+    const ah=futureHours.find(h=>tord[h.zone]>=tr)
     const sum=ah
-      ?`<div class="fc-summary fc-alert"><div class="fc-icon">🚨</div><div><strong>Alert expected in ${ah.hour} hour${ah.hour!==1?'s':''}</strong><br><span style="font-size:.8rem">Breach at <strong>${ah.time}</strong> — Risk: <strong style="color:${zc[ah.zone]}">${ah.zone.toUpperCase()}</strong></span></div></div>`
+      ?`<div class="fc-summary fc-alert"><div class="fc-icon">🚨</div><div><strong>Alert expected at ${ah.time.split('T')[1]}</strong><br><span style="font-size:.8rem">Risk: <strong style="color:${zc[ah.zone]}">${ah.zone.toUpperCase()}</strong> · Rain: ${ah.rain}mm · Prob: ${ah.prob}%</span></div></div>`
       :`<div class="fc-summary fc-safe"><div class="fc-icon">✅</div><strong>No ${thresh} alert expected in next 24 hours</strong></div>`
-    const tl=hours.map(h=>`<div class="tl-item" style="--zc:${zc[h.zone]}"><div class="tl-hr">${h.hour}h</div><div class="tl-rain">🌧${h.rain}</div><div class="tl-zone" style="color:${zc[h.zone]}">${h.zone}</div></div>`).join('')
-    document.getElementById('forecast-result').innerHTML=sum+`<div class="timeline">${tl}</div>`
+    const tl=hours.map(h=>`
+      <div class="tl-item" style="--zc:${zc[h.zone]};opacity:${h.isPast?'.5':'1'}">
+        <div class="tl-hr">${h.isPast?'–':''}${h.time.split('T')[1].slice(0,5)}</div>
+        <div class="tl-rain">🌧${h.rain}mm</div>
+        <div class="tl-rain" style="color:#1060b0;font-size:.6rem">${h.prob}%</div>
+        <div class="tl-zone" style="color:${zc[h.zone]}">${h.zone}</div>
+      </div>`).join('')
+    document.getElementById('forecast-result').innerHTML=
+      `<p style="font-size:.72rem;color:var(--muted);margin-bottom:.5rem">Dimmed = past hours · % = rain probability · Source: Open-Meteo</p>`
+      +sum+`<div class="timeline">${tl}</div>`
   }catch(e){
     document.getElementById('forecast-result').innerHTML=`<div class="fc-summary" style="background:#fdf0ec;border-radius:10px;padding:1rem"><strong>⚠️ Forecast fetch failed.</strong><br><span style="font-size:.8rem;color:#888">${e.message}</span></div>`
   }
