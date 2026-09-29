@@ -777,8 +777,17 @@ L.polyline([[25.30,91.70],[25.20,91.80]],{color:'#b83020',weight:5,dashArray:'8,
 L.polyline([[25.30,91.70],[25.40,91.60],[25.20,91.80]],{color:'#2d7a3a',weight:3,dashArray:'6,4'}).bindTooltip('✅ Alt Route A').addTo(map)
 
 /* ══ CHARTS ══ */
+let _rainfallChart = null   // guard: destroy before recreating to prevent Chart.js "canvas in use" error
+
 function renderRainfallChart(){
-  new Chart(document.getElementById('rainfallChart'),{
+  // Destroy any existing instance on this canvas before creating a new one.
+  // Without this, Chart.js 4.x refuses to render on a canvas it already owns,
+  // causing the bar chart to stay blank on any re-render (e.g. after a cold-start retry).
+  if (_rainfallChart) {
+    _rainfallChart.destroy()
+    _rainfallChart = null
+  }
+  _rainfallChart = new Chart(document.getElementById('rainfallChart'),{
     type:'bar',
     data:{
       labels:REGIONS.map(r=>r.name),
@@ -1706,6 +1715,10 @@ async function submitFieldReport() {
 
 /* ══ REFRESH ══ */
 function refreshAll(){
+  // Re-fetch all data so the rainfall graph and stats reflect the latest values.
+  // Previously this only animated stat cards — the charts stayed stale/blank.
+  loadRealRiskData()
+  loadRealStats()
   document.querySelectorAll('.stat-num').forEach(el=>{el.style.animation='none';void el.offsetWidth;el.style.animation='fsld .4s ease'})
 }
 function loadMeshStats() {
