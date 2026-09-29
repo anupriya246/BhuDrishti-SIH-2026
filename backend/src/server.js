@@ -21,6 +21,7 @@ import predictionsRoutes from './routes/predictions.routes.js'
 import alertsRoutes      from './routes/alerts.routes.js'
 import fieldReportRoutes from './routes/fieldReports.routes.js'
 import mlRoutes          from './routes/ml.routes.js'
+import routingRoutes     from './routes/routing.routes.js'
 
 dotenv.config()
 
@@ -67,6 +68,7 @@ app.use('/api/predictions',   predictionsRoutes)
 app.use('/api/alerts',        alertsRoutes)
 app.use('/api/field-reports', fieldReportRoutes)
 app.use('/api/ml',            mlRoutes)
+app.use('/api/routing',       routingRoutes)
 
 // ── Root health check ─────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {

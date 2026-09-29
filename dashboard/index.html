@@ -519,19 +519,19 @@ footer strong{color:#fff}
   <div class="route-stats">
     <div class="rstat">
       <div class="rstat-icon" style="background:linear-gradient(135deg,#fdecea,#f8d0c8)">🚧</div>
-      <div><div class="rstat-val" style="color:#b83020">2</div><div class="rstat-lbl">Blocked Roads</div></div>
+      <div><div class="rstat-val" style="color:#b83020" id="rt-blocked">—</div><div class="rstat-lbl">Blocked Roads</div></div>
     </div>
     <div class="rstat">
       <div class="rstat-icon" style="background:linear-gradient(135deg,#e8f5ea,#c8e8cc)">✅</div>
-      <div><div class="rstat-val" style="color:#2d7a3a">2</div><div class="rstat-lbl">Alt Routes Active</div></div>
+      <div><div class="rstat-val" style="color:#2d7a3a" id="rt-alts">—</div><div class="rstat-lbl">Routes Calculated</div></div>
     </div>
     <div class="rstat">
-      <div class="rstat-icon" style="background:linear-gradient(135deg,#fdeee6,#f8d8c0)">👥</div>
-      <div><div class="rstat-val" style="color:var(--terracotta)">340</div><div class="rstat-lbl">People Rerouted</div></div>
+      <div class="rstat-icon" style="background:linear-gradient(135deg,#fdeee6,#f8d8c0)">🏔️</div>
+      <div><div class="rstat-val" style="color:var(--terracotta)" id="rt-incidents">—</div><div class="rstat-lbl">Incidents Reported</div></div>
     </div>
     <div class="rstat">
       <div class="rstat-icon" style="background:linear-gradient(135deg,#e0f4f0,#c0e8e0)">⏱</div>
-      <div><div class="rstat-val" style="color:var(--teal)">+18 min</div><div class="rstat-lbl">Avg Detour</div></div>
+      <div><div class="rstat-val" style="color:var(--teal)" id="rt-source">OSM</div><div class="rstat-lbl">Road Data Source</div></div>
     </div>
   </div>
   <div style="display:grid;grid-template-columns:3fr 2fr;gap:1rem">
@@ -748,16 +748,8 @@ const PRESETS=[
   {name:'Silchar',    lat:24.83,  lon:92.78, slope:14,elevation:23,  curvature:0.6,aspect:100,ndvi:0.58,soil_type:0,lulc:1,dist_road:120, dist_fault:16000},
   {name:'Jorhat',     lat:26.75,  lon:94.20, slope:18,elevation:87,  curvature:0.7,aspect:105,ndvi:0.62,soil_type:1,lulc:1,dist_road:160, dist_fault:12000},
 ]
-const BLOCKAGES=[
-  {road:"NH-6 Cherrapunji Bypass",st:"blocked",cause:"Landslide debris",alt:"Alt Route A (NH-44)",delay:"+22 min"},
-  {road:"Tawang–Bomdila Road",    st:"blocked",cause:"Slope failure",   alt:"Alt Route B (State Hwy)",delay:"+15 min"},
-  {road:"NH-27 Kaziranga",        st:"caution",cause:"Flooding risk",   alt:"Proceed with caution",delay:"+5 min"},
-  {road:"NH-40 Shillong–Jowai",   st:"clear",  cause:"—",              alt:"—",delay:"—"},
-]
-const EVAC=[
-  {from:"Cherrapunji Zone A",to:"Shillong Safe Zone",via:"Alt Route A · NH-44",dist:"48 km",time:"1h 20m"},
-  {from:"Tawang Village Cluster",to:"Bomdila Relief Camp",via:"Alt Route B · State Hwy 8",dist:"62 km",time:"2h 05m"},
-]
+// BLOCKAGES and EVAC removed — road incidents now loaded dynamically from
+// field reports (report_type='blocked_road'/'landslide_occurred') in initRouteMap()
 const NODES=[
   {id:"NODE-01",name:"Cherrapunji HQ",   st:"online", role:"Gateway", bat:92},
   {id:"NODE-02",name:"Zone B Relay",     st:"relay",  role:"Relay",   bat:78},
@@ -1275,77 +1267,276 @@ async function runForecast(){
 }
 
 /* ══ REROUTING ══ */
-let rmInit=false
-function initRouteMap(){
-  if(rmInit)return;rmInit=true
-  const rm=L.map('routeMap',{center:[25.5,92.5],zoom:7,zoomControl:false})
-  L.control.zoom({position:'bottomright'}).addTo(rm)
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  attribution:'© OpenStreetMap contributors'
+// Race-condition guard — only the latest route request renders
+let _routeReqId = 0
+// Active Leaflet layer group for drawn routes
+let _routeLayers = null
+let rmInit = false
+
+// ── initRouteMap ──────────────────────────────────────────────────────────────
+// Creates the route map and loads live incident data from field reports.
+// Called once when the Rerouting tab is first opened.
+async function initRouteMap() {
+  if (rmInit) {
+    // On subsequent visits just refresh the incidents table
+    loadIncidentsAndTable()
+    return
+  }
+  rmInit = true
+
+  const rm = L.map('routeMap', { center: [25.5, 92.5], zoom: 7, zoomControl: false })
+  L.control.zoom({ position: 'bottomright' }).addTo(rm)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(rm)
-  REGIONS.forEach(r=>{L.circleMarker([r.lat,r.lon],{radius:7,fillColor:RC[r.risk],fillOpacity:.85,color:'#fff',weight:1.5}).addTo(rm)})
-  L.polyline([[25.30,91.70],[25.20,91.80]],{color:'#b83020',weight:6,dashArray:'8,5'}).bindTooltip('⛔ NH-6 BLOCKED').addTo(rm)
-  L.polyline([[27.59,91.86],[27.30,92.10]],{color:'#b83020',weight:6,dashArray:'8,5'}).bindTooltip('⛔ Tawang–Bomdila BLOCKED').addTo(rm)
-  L.polyline([[25.30,91.70],[25.45,91.55],[25.20,91.80]],{color:'#2d7a3a',weight:3,dashArray:'6,4'}).bindTooltip('✅ Alt Route A').addTo(rm)
-  L.polyline([[27.59,91.86],[27.45,92.20],[27.30,92.10]],{color:'#2d7a3a',weight:3,dashArray:'6,4'}).bindTooltip('✅ Alt Route B').addTo(rm)
+
+  // Store map reference so route drawing functions can access it
+  window._rm = rm
+
+  // Layer group for all route polylines — cleared and redrawn on each route request
+  _routeLayers = L.layerGroup().addTo(rm)
+
+  // Plot district risk markers from the already-loaded REGIONS data
+  ;(REGIONS || []).forEach(r => {
+    L.circleMarker([r.lat, r.lon], {
+      radius: 7, fillColor: RC[r.risk], fillOpacity: 0.85, color: '#fff', weight: 1.5
+    }).bindTooltip(`${r.name} — ${r.risk}`).addTo(rm)
+  })
+
+  // Load live incidents from field reports
+  await loadIncidentsAndTable()
 }
-document.getElementById('blk-body').innerHTML=BLOCKAGES.map(b=>`
-  <tr>
-    <td><strong>${b.road}</strong></td>
-    <td><span class="rpill ${b.st==='blocked'?'rblocked':b.st==='caution'?'rcaution':'rclear'}">${b.st==='blocked'?'⛔ Blocked':b.st==='caution'?'⚠️ Caution':'✅ Clear'}</span></td>
-    <td style="color:var(--muted);font-size:.75rem">${b.cause}</td>
-    <td>${b.st!=='clear'?`<button class="rbtn" onclick="showReroute('${b.road}','${b.alt}','${b.delay}')">Reroute</button>`:'<span style="color:#2d7a3a;font-size:.74rem;font-weight:700">No action</span>'}</td>
-  </tr>`).join('')
-document.getElementById('evac-routes').innerHTML=EVAC.map(e=>`
-  <div class="evac-card">
-    <div style="font-size:1.5rem">🚐</div>
-    <div style="flex:1;min-width:180px">
-      <div style="font-weight:800;margin-bottom:.25rem;color:var(--text)">${e.from} → ${e.to}</div>
-      <div style="font-size:.75rem;color:var(--muted)">Via: ${e.via}</div>
-    </div>
-    <div style="display:flex;gap:1.5rem;font-size:.8rem">
-      <div><div style="color:var(--muted);font-size:.67rem;text-transform:uppercase;font-weight:700">Distance</div><strong>${e.dist}</strong></div>
-      <div><div style="color:var(--muted);font-size:.67rem;text-transform:uppercase;font-weight:700">Est. Time</div><strong>${e.time}</strong></div>
-      <div><span class="rpill rclear">✅ Active</span></div>
-    </div>
-  </div>`).join('')
-function showReroute(road, alt, delay){
-  const result = document.getElementById('route-result');
 
-  if (!result) return;
+// ── loadIncidentsAndTable ────────────────────────────────────────────────────
+// Fetches real field reports (blocked_road / landslide_occurred) from the
+// BhuDrishti backend and populates the road blockage table + map markers.
+async function loadIncidentsAndTable() {
+  const tbody      = document.getElementById('blk-body')
+  const evacDiv    = document.getElementById('evac-routes')
+  const rm         = window._rm
 
-  result.innerHTML = `
-    <div style="
-      margin-top:1rem;
-      padding:1rem;
-      border-radius:12px;
-      background:#f0f7f1;
-      border:1px solid #b8d8bc;
-    ">
-      <div style="font-weight:800;font-size:.95rem;margin-bottom:.5rem">
-        🛣️ Rerouting Recommendation
-      </div>
+  tbody.innerHTML = `<tr><td colspan="4" style="padding:.6rem;color:var(--muted);font-size:.8rem">⏳ Loading incidents…</td></tr>`
+  evacDiv.innerHTML = `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Loading route recommendations…</div>`
 
-      <div style="font-size:.8rem;color:var(--muted);margin-bottom:.4rem">
-        Blocked Road
-      </div>
-      <strong>${road}</strong>
+  try {
+    const resp = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/field-reports?limit=50')
+    const data = await resp.json()
 
-      <div style="margin-top:.7rem;font-size:.8rem;color:var(--muted)">
-        Recommended Alternative
-      </div>
-      <strong style="color:#2d7a3a">${alt}</strong>
+    const reports = (data.reports || []).filter(r =>
+      r.report_type === 'blocked_road' || r.report_type === 'landslide_occurred'
+    )
 
-      <div style="margin-top:.7rem;font-size:.8rem;color:var(--muted)">
-        Estimated Additional Delay
-      </div>
-      <strong>${delay}</strong>
+    if (reports.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="padding:.6rem;color:#2d7a3a;font-size:.8rem">✅ No active road incidents reported.</td></tr>`
+      evacDiv.innerHTML = `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">No active incidents — all routes nominal.</div>`
+      return
+    }
 
-      <div style="margin-top:.8rem">
-        <span class="rpill rclear">✅ Route Available</span>
-      </div>
-    </div>
-  `;
+    // Render incident table
+    tbody.innerHTML = reports.map((r, i) => {
+      const label   = r.report_type === 'blocked_road' ? '⛔ Blocked' : '⚠️ Landslide'
+      const pill    = r.report_type === 'blocked_road' ? 'rblocked' : 'rcaution'
+      const loc     = r.district || (r.latitude ? `${Number(r.latitude).toFixed(3)},${Number(r.longitude).toFixed(3)}` : 'Unknown')
+      const cause   = r.description ? r.description.slice(0, 60) + (r.description.length > 60 ? '…' : '') : r.report_type.replace('_', ' ')
+      const canRoute = r.latitude && r.longitude
+      return `<tr>
+        <td><strong>${loc}</strong></td>
+        <td><span class="rpill ${pill}">${label}</span></td>
+        <td style="color:var(--muted);font-size:.75rem">${cause}</td>
+        <td>${canRoute
+          ? `<button class="rbtn" onclick="showReroute(${i})">Reroute</button>`
+          : '<span style="color:var(--muted);font-size:.74rem">No coords</span>'
+        }</td>
+      </tr>`
+    }).join('')
+
+    // Plot incident markers on map
+    if (rm) {
+      reports.forEach(r => {
+        if (!r.latitude || !r.longitude) return
+        const icon = r.report_type === 'blocked_road' ? '🚧' : '🏔️'
+        L.marker([r.latitude, r.longitude], {
+          icon: L.divIcon({
+            className: '',
+            html: `<div style="font-size:1.4rem;filter:drop-shadow(0 1px 2px #0008)">${icon}</div>`,
+            iconAnchor: [12, 12]
+          })
+        }).bindPopup(`<strong>${r.district || 'Incident'}</strong><br>${r.description || r.report_type}<br><small>Severity: ${r.severity}</small>`)
+          .addTo(rm)
+      })
+    }
+
+    // Store reports for showReroute to reference
+    window._incidents = reports
+
+    // Update stat counters
+    const blockedCount = reports.filter(r => r.report_type === 'blocked_road').length
+    const el = id => document.getElementById(id)
+    if (el('rt-blocked'))   el('rt-blocked').textContent   = blockedCount
+    if (el('rt-incidents')) el('rt-incidents').textContent = reports.length
+    if (el('rt-alts'))      el('rt-alts').textContent      = '—' // updated after first route calc
+
+    // Evacuation recommendation — nearest safe district from each incident
+    renderEvacRecommendations(reports)
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:.6rem;color:#b83020;font-size:.8rem">⚠️ Could not load incidents: ${err.message}</td></tr>`
+    evacDiv.innerHTML = ''
+  }
+}
+
+// ── renderEvacRecommendations ─────────────────────────────────────────────────
+// For each incident with known coordinates, find the nearest safe district
+// from PRESETS and offer a route button.
+function renderEvacRecommendations(incidents) {
+  const div = document.getElementById('evac-routes')
+  const items = incidents
+    .filter(r => r.latitude && r.longitude)
+    .slice(0, 4)  // show max 4
+    .map(r => {
+      // Find nearest district not matching the incident district
+      const origin = { lat: Number(r.latitude), lon: Number(r.longitude) }
+      let nearest = null, minDist = Infinity
+      ;(PRESETS || []).forEach(p => {
+        if (p.name === r.district) return
+        const d = Math.hypot(p.lat - origin.lat, p.lon - origin.lon)
+        if (d < minDist) { minDist = d; nearest = p }
+      })
+      if (!nearest) return ''
+      const districtLabel = r.district || `${Number(r.latitude).toFixed(2)},${Number(r.longitude).toFixed(2)}`
+      return `
+        <div class="evac-card">
+          <div style="font-size:1.5rem">🚐</div>
+          <div style="flex:1;min-width:160px">
+            <div style="font-weight:800;margin-bottom:.2rem;color:var(--text)">${districtLabel} → ${nearest.name}</div>
+            <div style="font-size:.72rem;color:var(--muted)">${r.report_type === 'blocked_road' ? 'Road blocked' : 'Landslide reported'} · ${r.severity} severity</div>
+          </div>
+          <button class="rbtn" style="padding:.4rem .9rem" onclick="calcEvacRoute(${origin.lat},${origin.lon},${nearest.lat},${nearest.lon},'${districtLabel}','${nearest.name}')">
+            📍 Show Route
+          </button>
+        </div>`
+    }).join('')
+
+  div.innerHTML = items || `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">No geolocated incidents for route recommendations.</div>`
+}
+
+// ── showReroute ──────────────────────────────────────────────────────────────
+// Called from the Reroute button in the incidents table.
+// Uses the incident location as "blocked point" origin and the origin district
+// selector as the start, routing to the nearest safe district.
+function showReroute(incidentIndex) {
+  const r = (window._incidents || [])[incidentIndex]
+  if (!r || !r.latitude || !r.longitude) return
+
+  // Find nearest safe district
+  const origin = { lat: Number(r.latitude), lon: Number(r.longitude) }
+  let nearest = null, minDist = Infinity
+  ;(PRESETS || []).forEach(p => {
+    if (p.name === r.district) return
+    const d = Math.hypot(p.lat - origin.lat, p.lon - origin.lon)
+    if (d < minDist) { minDist = d; nearest = p }
+  })
+  if (!nearest) return
+
+  calcEvacRoute(origin.lat, origin.lon, nearest.lat, nearest.lon,
+    r.district || 'Incident location', nearest.name)
+}
+
+// ── calcEvacRoute ─────────────────────────────────────────────────────────────
+// Calls OSRM public demo server directly from the browser.
+// OSRM uses real OpenStreetMap road network data.
+// Race-condition guard ensures only the latest request renders.
+async function calcEvacRoute(oLat, oLon, dLat, dLon, fromLabel, toLabel) {
+  const result = document.getElementById('route-result')
+  const rm     = window._rm
+  const reqId  = ++_routeReqId
+
+  if (result) result.innerHTML = `
+    <div style="margin-top:.85rem;padding:.75rem 1rem;background:#fff7ed;border-radius:9px;font-size:.8rem;color:#8a5020">
+      ⏳ Calculating route on OSM road network…
+    </div>`
+
+  // Clear previous route layers
+  if (_routeLayers) _routeLayers.clearLayers()
+
+  try {
+    // OSRM public demo server — OpenStreetMap road network, no API key
+    // Coordinate order: longitude,latitude (OSRM convention)
+    const url = `https://router.project-osrm.org/route/v1/driving/${oLon},${oLat};${dLon},${dLat}` +
+      `?overview=full&geometries=geojson&alternatives=true&steps=false`
+
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'BhuDrishti-SIH-2026/1.0' }
+    })
+
+    if (reqId !== _routeReqId) return  // stale — user already requested another route
+
+    if (!resp.ok) throw new Error(`OSRM HTTP ${resp.status}`)
+    const data = await resp.json()
+
+    if (reqId !== _routeReqId) return
+    if (data.code !== 'Ok') throw new Error(`OSRM: ${data.code}`)
+
+    const routes = data.routes || []
+    if (!routes.length) throw new Error('No route found between these points.')
+
+    const routeColors = ['#2d7a3a', '#1a6fa0', '#c07a10']
+
+    // Draw all routes on map (primary + alternatives)
+    routes.forEach((route, i) => {
+      const coords = route.geometry.coordinates.map(([lon, lat]) => [lat, lon])  // GeoJSON→Leaflet
+      const isPrimary = i === 0
+      const line = L.polyline(coords, {
+        color:     routeColors[i] || '#666',
+        weight:    isPrimary ? 5 : 3,
+        dashArray: isPrimary ? null : '8,5',
+        opacity:   isPrimary ? 0.9 : 0.6,
+      }).bindTooltip(
+        isPrimary
+          ? `✅ Primary: ${(route.distance / 1000).toFixed(1)} km · ${Math.round(route.duration / 60)} min`
+          : `🔄 Alt ${i}: ${(route.distance / 1000).toFixed(1)} km · ${Math.round(route.duration / 60)} min`
+      )
+      _routeLayers.addLayer(line)
+    })
+
+    // Fit map to primary route
+    const primaryCoords = routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon])
+    if (rm && primaryCoords.length) rm.fitBounds(L.polyline(primaryCoords).getBounds(), { padding: [30, 30] })
+
+    const primary   = routes[0]
+    const altCount  = routes.length - 1
+    const distKm    = (primary.distance / 1000).toFixed(1)
+    const durMin    = Math.round(primary.duration / 60)
+
+    // Update routes-calculated counter
+    const rtAlts = document.getElementById('rt-alts')
+    if (rtAlts) {
+      const prev = parseInt(rtAlts.textContent) || 0
+      rtAlts.textContent = prev + routes.length
+    }
+
+    if (result) result.innerHTML = `
+      <div style="margin-top:.85rem;padding:1rem;border-radius:10px;background:#f0f7f1;border:1.5px solid #90d0a8">
+        <div style="font-weight:800;font-size:.92rem;margin-bottom:.6rem">🛣️ Route — ${fromLabel} → ${toLabel}</div>
+        <div style="display:flex;gap:1.5rem;font-size:.82rem;flex-wrap:wrap">
+          <div><div style="color:var(--muted);font-size:.67rem;text-transform:uppercase;font-weight:700">Distance</div><strong>${distKm} km</strong></div>
+          <div><div style="color:var(--muted);font-size:.67rem;text-transform:uppercase;font-weight:700">Est. Time</div><strong>${durMin} min</strong></div>
+          <div><div style="color:var(--muted);font-size:.67rem;text-transform:uppercase;font-weight:700">Alternatives</div><strong>${altCount}</strong></div>
+        </div>
+        <div style="margin-top:.6rem;font-size:.72rem;color:var(--muted)">
+          Route calculated on real OSM road network via OSRM.
+          ${altCount > 0 ? `${altCount} alternative route${altCount > 1 ? 's' : ''} shown on map (dashed).` : ''}
+        </div>
+      </div>`
+
+  } catch (err) {
+    if (reqId !== _routeReqId) return
+    console.error('[routing]', err)
+    if (result) result.innerHTML = `
+      <div style="margin-top:.85rem;padding:.85rem 1rem;background:#fdecea;border:1.5px solid #f0a090;border-radius:9px;font-size:.82rem;color:#8b1a10">
+        ⚠️ Routing unavailable: ${err.message}
+      </div>`
+  }
 }
 
 /* ══ MESH ══ */
