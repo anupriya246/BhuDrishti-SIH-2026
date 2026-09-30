@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://bhudrishti-backend-9mrh.onrender.com/api/:path*"
+    },
+    {
+      "source": "/",
+      "destination": "/dashboard_preview.html"
     }
   ]
 }
