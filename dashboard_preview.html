@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>BhuDrishti — AI Landslide Early Warning System</title>
+<title>BhuDrishti ΓÇö AI Landslide Early Warning System</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
@@ -11,7 +11,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  /* Vivid light mode — colourful cards on a soft background */
+  /* Vivid light mode ΓÇö colourful cards on a soft background */
   --bg:linear-gradient(145deg,#fdf6f0 0%,#f0f8ff 40%,#f5f0ff 70%,#f0fff8 100%);
   --text:#1a1040;
   --muted:#5a5475;
@@ -42,7 +42,7 @@ body::before{
 }
 .app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh}
 
-/* ══ HEADER — warm earthy gradient, NOT pink ══ */
+/* ΓòÉΓòÉ HEADER ΓÇö warm earthy gradient, NOT pink ΓòÉΓòÉ */
 header{
   background:linear-gradient(135deg,#7c2d12 0%,#c0541a 30%,#d97706 60%,#4a7c20 100%);
   padding:.9rem 2rem;
@@ -59,7 +59,7 @@ header{
   font-size:0;position:relative;overflow:hidden;
   animation:iconPulse 3s ease-in-out infinite;
 }
-/* Custom eye/mountain SVG icon for BhuDrishti (भू = earth, दृष्टि = vision/eye) */
+/* Custom eye/mountain SVG icon for BhuDrishti (αñ¡αÑé = earth, αñªαÑâαñ╖αÑìαñƒαñ┐ = vision/eye) */
 .brand-icon::before{
   content:'';position:absolute;inset:6px;
   background:url("data:image/svg+xml,%3Csvg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cellipse cx='20' cy='26' rx='16' ry='6' fill='%23ffffff55'/%3E%3Cpolygon points='20,4 32,26 8,26' fill='white' opacity='.9'/%3E%3Cpolygon points='20,10 28,26 12,26' fill='%23ffffff60'/%3E%3Cellipse cx='20' cy='18' rx='5' ry='4' fill='none' stroke='white' stroke-width='2'/%3E%3Ccircle cx='20' cy='18' r='2' fill='white'/%3E%3C/svg%3E") center/contain no-repeat;
@@ -83,7 +83,7 @@ header{
 }
 .btn-hdr:hover{background:#ffffff38}
 
-/* ══ ALERT BANNER ══ */
+/* ΓòÉΓòÉ ALERT BANNER ΓòÉΓòÉ */
 .alert-banner{
   background:linear-gradient(135deg,#fdf0e8,#fdf6ec);
   border-bottom:2px solid #e8c4a0;padding:.65rem 2rem;
@@ -99,7 +99,7 @@ header{
 .alert-item:hover{background:#fdecea}
 .sms-tag{margin-left:auto;font-size:.68rem;font-weight:700;background:#e8f5ea;color:#1a5228;border:1px solid #a8d8b0;border-radius:999px;padding:.15rem .6rem;white-space:nowrap}
 
-/* ══ TABS ══ */
+/* ΓòÉΓòÉ TABS ΓòÉΓòÉ */
 nav.tabs{
   background:#fff8f0;border-bottom:2px solid #f0c8a0;
   padding:0 2rem;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;
@@ -114,12 +114,12 @@ nav.tabs::-webkit-scrollbar{display:none}
 .tab:hover{color:#c0541a;background:#fff0e4}
 .tab.active{color:#c0541a;border-bottom-color:#c0541a;font-weight:800;background:#fff0e4}
 
-/* ══ MAIN ══ */
+/* ΓòÉΓòÉ MAIN ΓòÉΓòÉ */
 .main{flex:1;padding:1.5rem 2rem;max-width:1440px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem}
 .section{display:none;flex-direction:column;gap:1.5rem}
 .section.visible{display:flex}
 
-/* ══ CARD — vivid coloured backgrounds, NOT white ══ */
+/* ΓòÉΓòÉ CARD ΓÇö vivid coloured backgrounds, NOT white ΓòÉΓòÉ */
 .card{
   background:linear-gradient(145deg,#fffbf5,#fff8ee);
   border:1.5px solid #f0d8b8;border-radius:var(--r);padding:1.25rem;
@@ -129,7 +129,7 @@ nav.tabs::-webkit-scrollbar{display:none}
 .card-title{font-size:.78rem;font-weight:800;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;color:#8a5020;text-transform:uppercase;letter-spacing:.08em}
 .ct-icon{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
 
-/* ══ STAT CARDS — each one a vivid gradient colour ══ */
+/* ΓòÉΓòÉ STAT CARDS ΓÇö each one a vivid gradient colour ΓòÉΓòÉ */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:1rem}
 .stat-card{
   border:none;border-radius:var(--r);
@@ -145,19 +145,19 @@ nav.tabs::-webkit-scrollbar{display:none}
 .stat-label{font-size:.7rem;color:#ffffffdd;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
 .stat-icon-wrap{width:48px;height:48px;border-radius:14px;margin:0 auto .9rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:#ffffff25;box-shadow:0 4px 12px #0002}
 .stat-delta{font-size:.68rem;margin-top:.4rem;font-weight:600;color:#ffffffcc}
-.delta-up::before{content:'↑ '}.delta-dn::before{content:'↓ '}
+.delta-up::before{content:'Γåæ '}.delta-dn::before{content:'Γåô '}
 
-/* ══ CHARTS ══ */
+/* ΓòÉΓòÉ CHARTS ΓòÉΓòÉ */
 .charts-row{display:grid;grid-template-columns:3fr 2fr;gap:1rem}
 @media(max-width:900px){.charts-row{grid-template-columns:1fr}}
 
-/* ══ MAP ══ */
+/* ΓòÉΓòÉ MAP ΓòÉΓòÉ */
 #map{height:450px;border-radius:var(--r2);border:1.5px solid var(--border)}
 .map-legend{display:flex;gap:1.2rem;margin-top:.85rem;flex-wrap:wrap}
 .leg-item{display:flex;align-items:center;gap:.45rem;font-size:.75rem;color:var(--muted);font-weight:500}
 .leg-dot{width:12px;height:12px;border-radius:50%;display:inline-block}
 
-/* ══ FORM ══ */
+/* ΓòÉΓòÉ FORM ΓòÉΓòÉ */
 .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:.85rem;margin-bottom:1.2rem}
 .form-field{display:flex;flex-direction:column;gap:.35rem}
 .form-field label{font-size:.7rem;color:#8a5020;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
@@ -168,7 +168,7 @@ nav.tabs::-webkit-scrollbar{display:none}
 }
 .form-field input:focus,.form-field select:focus{outline:none;border-color:#c0541a;box-shadow:0 0 0 3px #c0541a20;background:#fff}
 
-/* ══ BUTTONS ══ */
+/* ΓòÉΓòÉ BUTTONS ΓòÉΓòÉ */
 .btn{padding:.5rem 1.1rem;border-radius:9px;border:none;cursor:pointer;font-size:.83rem;font-weight:700;font-family:'Inter',sans-serif;transition:all .2s;white-space:nowrap}
 .btn-primary{background:linear-gradient(135deg,#8b3a10,#c0541a);color:#fff;box-shadow:0 4px 14px #c0541a30}
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px #c0541a48}
@@ -180,7 +180,7 @@ nav.tabs::-webkit-scrollbar{display:none}
 .btn-teal:hover{transform:translateY(-1px);box-shadow:0 6px 20px #1a7a6e48}
 .btn-olive{background:linear-gradient(135deg,#4a5a22,#6b7c3a);color:#fff;box-shadow:0 4px 14px #6b7c3a30}
 
-/* ══ BADGES ══ */
+/* ΓòÉΓòÉ BADGES ΓòÉΓòÉ */
 .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .7rem;border-radius:999px;font-size:.7rem;font-weight:700}
 .badge-terra{background:#fdeee6;color:#8b3a10;border:1px solid #f0c4a8}
 .badge-amber{background:#fef6e0;color:#7a4a00;border:1px solid #f0d888}
@@ -188,11 +188,11 @@ nav.tabs::-webkit-scrollbar{display:none}
 .badge-olive{background:#eef2e0;color:#3a4a18;border:1px solid #b8cc88}
 .badge-sky{background:#e0f0fa;color:#0a4a78;border:1px solid #88c4e8}
 
-/* ══ SECTION HDR ══ */
+/* ΓòÉΓòÉ SECTION HDR ΓòÉΓòÉ */
 .sec-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.25rem}
 .sec-hdr h2{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
 
-/* ══ RESULT BOX ══ */
+/* ΓòÉΓòÉ RESULT BOX ΓòÉΓòÉ */
 .result-box{margin-top:1.5rem;padding:1.5rem;border-radius:var(--r);border:none;box-shadow:var(--shadow);animation:fsld .4s ease;background:linear-gradient(145deg,var(--rb1,#fff8f0),var(--rb2,#fff3e0))}
 @keyframes fsld{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .result-hdr{display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem}
@@ -209,7 +209,7 @@ nav.tabs::-webkit-scrollbar{display:none}
 .prob-pct{font-size:1.35rem;font-weight:900;margin-bottom:.2rem}
 .prob-nm{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
 
-/* ══ FORECAST timeline ══ */
+/* ΓòÉΓòÉ FORECAST timeline ΓòÉΓòÉ */
 .fc-controls{display:flex;flex-wrap:wrap;gap:.75rem;align-items:flex-end;margin-bottom:1.2rem}
 .fc-summary{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;border-radius:var(--r2);margin-bottom:1.2rem;font-size:.88rem;animation:fsld .3s ease}
 .fc-icon{font-size:2rem;flex-shrink:0}
@@ -227,7 +227,7 @@ nav.tabs::-webkit-scrollbar{display:none}
 .tl-rain{font-size:.65rem;margin:.1rem 0;color:#0e60a0;font-weight:600}
 .tl-zone{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
 
-/* ══ REROUTING ══ */
+/* ΓòÉΓòÉ REROUTING ΓòÉΓòÉ */
 .route-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.85rem;margin-bottom:1.2rem}
 .rstat{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r2);padding:1rem 1.1rem;display:flex;align-items:center;gap:.85rem;box-shadow:var(--shadow2);transition:all .2s}
 .rstat:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
@@ -248,7 +248,7 @@ nav.tabs::-webkit-scrollbar{display:none}
 .evac-card{background:linear-gradient(135deg,#f2faf4,#edf8f5);border:1.5px solid #90d0b8;border-radius:var(--r2);padding:1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;transition:all .2s}
 .evac-card:hover{box-shadow:0 4px 16px #1a7a6e18}
 
-/* ══ MESH ══ */
+/* ΓòÉΓòÉ MESH ΓòÉΓòÉ */
 .mesh-wrap{display:grid;grid-template-columns:2fr 1fr;gap:1rem}
 @media(max-width:900px){.mesh-wrap{grid-template-columns:1fr}}
 #meshCanvas{width:100%;height:320px;border-radius:var(--r2);border:1.5px solid var(--border);background:linear-gradient(135deg,#f7f4ef,#f2f8f4);display:block}
@@ -269,7 +269,7 @@ nav.tabs::-webkit-scrollbar{display:none}
 .msg-time{color:var(--muted);font-size:.67rem;white-space:nowrap;margin-top:.1rem}
 .msg-hop{font-size:.65rem;background:#fdeee6;color:#8b3a10;border-radius:999px;padding:.1rem .45rem;white-space:nowrap;margin-left:auto;margin-top:.1rem;font-weight:700;border:1px solid #f0c4a8}
 
-/* ══ FIELD REPORTS ══ */
+/* ΓòÉΓòÉ FIELD REPORTS ΓòÉΓòÉ */
 .rep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:1rem}
 .rep-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1rem;transition:all .25s;box-shadow:var(--shadow2)}
 .rep-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--border2)}
@@ -283,12 +283,12 @@ nav.tabs::-webkit-scrollbar{display:none}
 .rep-reporter{font-size:.68rem;color:var(--muted);margin-left:auto;font-weight:500}
 .verified{font-size:.68rem;font-weight:800;color:#2d7a3a;display:flex;align-items:center;gap:.2rem}
 
-/* ══ SCROLLBAR ══ */
+/* ΓòÉΓòÉ SCROLLBAR ΓòÉΓòÉ */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--surface2)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-/* ══ FOOTER ══ */
+/* ΓòÉΓòÉ FOOTER ΓòÉΓòÉ */
 footer{
   background:linear-gradient(135deg,#8b3a10,#c0541a,#d4860a,#6b7c3a);
   padding:.75rem 2rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem;
@@ -303,91 +303,410 @@ footer strong{color:#fff}
   #map,#routeMap{height:280px}
 }
 
-/* ══ WARNING SYSTEM STYLES ══ */
+/* ΓòÉΓòÉ LOGIN OVERLAY ΓòÉΓòÉ */
+#login-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#7c2d12 0%,#c0541a 30%,#d97706 60%,#4a7c20 100%);
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+}
+#login-overlay.hidden{display:none}
+.login-box{
+  background:#fff;border-radius:20px;padding:2.5rem 2rem;
+  width:100%;max-width:440px;box-shadow:0 24px 60px #0007;
+  display:flex;flex-direction:column;gap:1.25rem;
+}
+.login-logo{display:flex;align-items:center;gap:.85rem;margin-bottom:.25rem}
+.login-logo-icon{
+  width:52px;height:52px;border-radius:14px;
+  background:linear-gradient(135deg,#7c2d12,#c0541a);
+  display:flex;align-items:center;justify-content:center;font-size:1.6rem;
+  box-shadow:0 4px 12px #c0541a40;
+}
+.login-logo-title{font-size:1.5rem;font-weight:900;color:#1a1040;letter-spacing:-.02em}
+.login-logo-sub{font-size:.7rem;color:#8a5020;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.login-heading{font-size:1rem;font-weight:700;color:#1a1040;margin-bottom:.1rem}
+.login-subhead{font-size:.78rem;color:#5a5475}
+.role-selector{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.role-btn{
+  border:2px solid #e0c8a0;border-radius:12px;padding:.9rem .75rem;
+  background:#fffbf5;cursor:pointer;text-align:center;transition:all .2s;
+  font-family:'Inter',sans-serif;
+}
+.role-btn:hover{border-color:#c0541a;background:#fff5ee}
+.role-btn.selected{border-color:#c0541a;background:linear-gradient(135deg,#fff3eb,#fff8f2);box-shadow:0 0 0 3px #c0541a20}
+.role-btn__icon{font-size:1.6rem;margin-bottom:.35rem}
+.role-btn__label{font-size:.82rem;font-weight:800;color:#1a1040}
+.role-btn__desc{font-size:.68rem;color:#8a5020;margin-top:.15rem}
+.login-field{display:flex;flex-direction:column;gap:.35rem}
+.login-field label{font-size:.72rem;font-weight:700;color:#8a5020;text-transform:uppercase;letter-spacing:.06em}
+.login-field input{
+  border:1.5px solid #e0c8a0;border-radius:9px;padding:.58rem .85rem;
+  font-size:.9rem;font-family:'Inter',sans-serif;color:#1a1040;background:#fffbf5;
+  transition:border-color .2s;
+}
+.login-field input:focus{outline:none;border-color:#c0541a;background:#fff}
+.login-submit{
+  background:linear-gradient(135deg,#8b3a10,#c0541a);color:#fff;
+  border:none;border-radius:10px;padding:.75rem;font-size:.9rem;font-weight:800;
+  font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;
+  box-shadow:0 4px 14px #c0541a30;
+}
+.login-submit:hover{transform:translateY(-1px);box-shadow:0 6px 20px #c0541a45}
+.login-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.login-error{
+  font-size:.78rem;color:#b83020;background:#fdecea;border-radius:8px;
+  padding:.55rem .8rem;border:1px solid #f0b0a0;
+}
+.login-demo{font-size:.7rem;color:#8a5020;background:#fffbf0;border-radius:8px;padding:.6rem .85rem;border:1px solid #e8d0a0;line-height:1.6}
+.login-demo strong{color:#c0541a}
+/* User badge in header */
+.user-badge{
+  display:flex;align-items:center;gap:.5rem;
+  background:#ffffff22;border:1px solid #ffffff45;border-radius:999px;
+  padding:.3rem .85rem;font-size:.75rem;color:#fff;font-weight:600;cursor:default;
+}
+.user-role-pill{
+  font-size:.62rem;font-weight:800;padding:.12rem .5rem;border-radius:999px;
+  background:#ffffff30;border:1px solid #ffffff60;text-transform:uppercase;letter-spacing:.05em;
+}
+.authority-only{display:none}
+.authority-only.visible{display:inline-flex}
+.authority-section{display:none}
+.authority-section.visible{display:block}
+.district-risk-row:hover{background:#fff5ee !important}
+/* ΓòÉΓòÉ WARNING SYSTEM STYLES ΓòÉΓòÉ */
 .ws-alert-row{transition:background .15s}
 .ws-alert-row:hover{background:#fff5ee}
 .citizen-warn-panel{display:flex;flex-direction:column;gap:1.25rem}
+/* ΓòÉΓòÉ MODERN AUTH STYLES ΓòÉΓòÉ */
+#login-overlay{overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;min-height:100vh}
+.auth-card{background:#fff;border-radius:22px;padding:2rem 1.75rem;width:100%;max-width:460px;box-shadow:0 28px 70px #0009;display:flex;flex-direction:column;gap:0;margin:auto}
+.auth-brand{display:flex;align-items:center;gap:.85rem;padding-bottom:1.1rem;border-bottom:1px solid #f0e0d0;margin-bottom:1.1rem}
+.auth-brand-icon{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#7c2d12,#c0541a);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;box-shadow:0 4px 12px #c0541a40}
+.auth-brand-title{font-size:1.25rem;font-weight:900;color:#1a1040;letter-spacing:-.02em}
+.auth-brand-sub{font-size:.62rem;color:#8a5020;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-top:.1rem}
+.auth-step-label{font-size:.66rem;color:#c0541a;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.55rem}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem}
+.role-card{border:2px solid #e8d8c0;border-radius:14px;padding:.85rem .65rem;background:#fffbf5;cursor:pointer;text-align:center;transition:all .18s;font-family:'Inter',sans-serif;position:relative}
+.role-card:hover{border-color:#c0541a;background:#fff6ee;transform:translateY(-1px)}
+.role-card.selected{border-color:#c0541a;background:linear-gradient(145deg,#fff3eb,#fff8f4);box-shadow:0 0 0 3px #c0541a20}
+.role-card.selected::after{content:'Γ£ô';position:absolute;top:.35rem;right:.5rem;font-size:.68rem;color:#c0541a;font-weight:800}
+.role-card__icon{font-size:1.4rem;margin-bottom:.28rem}
+.role-card__name{font-size:.8rem;font-weight:800;color:#1a1040}
+.role-card__desc{font-size:.62rem;color:#8a5020;margin-top:.12rem;line-height:1.35}
+.auth-role-next{background:linear-gradient(135deg,#8b3a10,#c0541a);color:#fff;border:none;border-radius:10px;padding:.65rem;font-size:.88rem;font-weight:800;font-family:'Inter',sans-serif;cursor:pointer;width:100%;transition:all .2s;box-shadow:0 3px 10px #c0541a25;margin-top:.15rem}
+.auth-role-next:hover{transform:translateY(-1px);box-shadow:0 5px 16px #c0541a40}
+.auth-tabs{display:flex;border-radius:10px;background:#f5ede0;padding:.28rem;gap:.28rem;margin-bottom:1rem}
+.auth-tab{flex:1;padding:.45rem;border:none;background:none;border-radius:8px;font-size:.82rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all .18s;color:#8a5020}
+.auth-tab.active{background:#fff;color:#c0541a;box-shadow:0 1px 6px #c0541a18}
+.auth-method-toggle{display:flex;gap:.5rem;margin-bottom:.9rem}
+.auth-method-btn{flex:1;padding:.4rem;border:1.5px solid #e8d0b0;border-radius:8px;background:#fffbf5;font-size:.78rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all .18s;color:#8a5020}
+.auth-method-btn.active{background:#fff3eb;border-color:#c0541a;color:#c0541a}
+.auth-field{display:flex;flex-direction:column;gap:.28rem;margin-bottom:.75rem}
+.auth-field label{font-size:.68rem;font-weight:700;color:#7a5030;text-transform:uppercase;letter-spacing:.06em}
+.auth-field-wrap{position:relative;display:flex;align-items:center}
+.auth-field input{width:100%;border:1.5px solid #e0c8a0;border-radius:9px;padding:.56rem .82rem;font-size:.9rem;font-family:'Inter',sans-serif;color:#1a1040;background:#fffbf5;transition:border-color .18s;box-sizing:border-box}
+.auth-field input:focus{outline:none;border-color:#c0541a;background:#fff;box-shadow:0 0 0 3px #c0541a12}
+.auth-field input.has-toggle{padding-right:2.5rem}
+.auth-field input.phone-input{border-radius:0 9px 9px 0;border-left:0}
+.phone-prefix{border:1.5px solid #e0c8a0;border-right:0;border-radius:9px 0 0 9px;background:#f5ede0;padding:.56rem .65rem;font-size:.86rem;font-weight:700;color:#7a5030;white-space:nowrap;flex-shrink:0;user-select:none}
+.pw-toggle{position:absolute;right:.65rem;background:none;border:none;cursor:pointer;font-size:.88rem;color:#a08060;padding:.2rem;line-height:1}
+.pw-toggle:hover{color:#c0541a}
+.otp-row{display:flex;gap:.5rem;align-items:flex-end;margin-bottom:.75rem}
+.otp-row .auth-field{flex:1;margin-bottom:0}
+.otp-send-btn{white-space:nowrap;background:linear-gradient(135deg,#1a6fa0,#0e7a6e);color:#fff;border:none;border-radius:9px;padding:.56rem .8rem;font-size:.76rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all .18s;flex-shrink:0}
+.otp-send-btn:disabled{opacity:.5;cursor:not-allowed}
+.otp-timer{font-size:.67rem;color:#8a5020;text-align:right;margin-top:.2rem;min-height:.85rem}
+.auth-forgot{font-size:.71rem;color:#c0541a;background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;padding:0;text-decoration:underline;text-decoration-color:#c0541a55;margin-bottom:.65rem;display:inline-block}
+.auth-submit{background:linear-gradient(135deg,#8b3a10,#c0541a);color:#fff;border:none;border-radius:10px;padding:.7rem;font-size:.9rem;font-weight:800;font-family:'Inter',sans-serif;cursor:pointer;width:100%;transition:all .2s;box-shadow:0 4px 14px #c0541a30}
+.auth-submit:hover{transform:translateY(-1px);box-shadow:0 6px 20px #c0541a45}
+.auth-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.auth-authority-note{font-size:.71rem;color:#7a5030;background:#fffbf0;border:1px solid #e8d0a0;border-radius:8px;padding:.6rem .75rem;line-height:1.55;margin-bottom:.7rem}
+.auth-authority-note strong{color:#c0541a}
+.auth-error{font-size:.77rem;color:#b83020;background:#fdecea;border-radius:8px;padding:.52rem .75rem;border:1px solid #f0b0a0;margin-bottom:.7rem;display:none}
+.auth-info{font-size:.77rem;color:#0e4820;background:#e0f5e8;border-radius:8px;padding:.52rem .75rem;border:1px solid #90d0a8;margin-bottom:.7rem;display:none}
+.auth-back{font-size:.71rem;color:#8a5020;background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;padding:0;margin-bottom:.9rem;display:flex;align-items:center;gap:.3rem}
+.auth-back:hover{color:#c0541a}
+@media(max-width:480px){.auth-card{padding:1.4rem 1rem;border-radius:16px}.role-grid{gap:.4rem}.role-card{padding:.7rem .4rem}}
 </style>
 </head>
 <body>
 <div class="app">
 
+<!-- ΓòÉΓòÉ AUTH OVERLAY ΓòÉΓòÉ -->
+<div id="login-overlay">
+<div class="auth-card">
 
+  <!-- Brand -->
+  <div class="auth-brand">
+    <div class="auth-brand-icon">≡ƒÅö∩╕Å</div>
+    <div>
+      <div class="auth-brand-title">BhuDrishti</div>
+      <div class="auth-brand-sub">AI Landslide Early Warning ┬╖ NE India</div>
+    </div>
+  </div>
 
+  <!-- STEP 1: Role selection -->
+  <div id="auth-step-role">
+    <div class="auth-step-label">Step 1 of 2 ΓÇö Select your role</div>
+    <div class="role-grid">
+      <button class="role-card selected" id="role-citizen" onclick="selectRole('citizen')">
+        <div class="role-card__icon">≡ƒæñ</div>
+        <div class="role-card__name">Citizen</div>
+        <div class="role-card__desc">View alerts, risk maps & submit field reports</div>
+      </button>
+      <button class="role-card" id="role-authority" onclick="selectRole('authority')">
+        <div class="role-card__icon">≡ƒÅ¢∩╕Å</div>
+        <div class="role-card__name">Authority Official</div>
+        <div class="role-card__desc">Manage reports, verify incidents & send alerts</div>
+      </button>
+    </div>
+    <button class="auth-role-next" onclick="goToAuthStep()">Continue ΓåÆ</button>
+  </div>
 
-<!-- ══ HEADER ══ -->
+  <!-- STEP 2: Sign In / Sign Up -->
+  <div id="auth-step-auth" style="display:none">
+    <button class="auth-back" onclick="goToRoleStep()">ΓåÉ Change role</button>
+
+    <!-- Mode tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin" onclick="switchMode('signin')">Sign In</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchMode('signup')">Sign Up</button>
+    </div>
+
+    <!-- Authority notice (shown only for authority role) -->
+    <div class="auth-authority-note" id="auth-authority-note" style="display:none">
+      ≡ƒÅ¢∩╕Å <strong>Authority access</strong> is verified server-side against registered official accounts.
+      Contact your district administrator if you need access.
+    </div>
+
+    <!-- Error / info -->
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-info"  id="auth-info"></div>
+
+    <!-- Method toggle -->
+    <div class="auth-method-toggle">
+      <button class="auth-method-btn active" id="method-email" onclick="switchMethod('email')">Γ£ë Email</button>
+      <button class="auth-method-btn" id="method-phone" onclick="switchMethod('phone')">≡ƒô▒ Phone</button>
+    </div>
+
+    <!-- ΓöÇΓöÇ SIGN IN ΓöÇΓöÇ -->
+    <div id="signin-panel">
+
+      <!-- Email sign-in -->
+      <div id="si-email-panel">
+        <div class="auth-field">
+          <label for="si-email">Email address</label>
+          <input type="email" id="si-email" placeholder="authority@bhudrishti.in" autocomplete="username"
+                 oninput="clearAuthMsg()" onkeydown="if(event.key==='Enter')doSignIn()"/>
+        </div>
+        <div class="auth-field">
+          <label for="si-password">Password</label>
+          <div class="auth-field-wrap">
+            <input type="password" id="si-password" placeholder="admin1234" autocomplete="current-password"
+                   class="has-toggle" oninput="clearAuthMsg()" onkeydown="if(event.key==='Enter')doSignIn()"/>
+            <button class="pw-toggle" type="button" onclick="togglePw('si-password',this)" tabindex="-1">≡ƒæü</button>
+          </div>
+        </div>
+        <button class="auth-forgot" onclick="showForgot()">Forgot password?</button>
+        <button class="auth-submit" id="si-email-btn" onclick="doSignIn()">Sign In</button>
+        <!-- Demo credentials hint -->
+        <div style="margin-top:.75rem;background:#fffbf0;border:1px solid #e8d0a0;border-radius:9px;padding:.6rem .85rem;font-size:.72rem;color:#8a5020;line-height:1.7">
+          <strong style="color:#c0541a">Demo credentials</strong><br>
+          ≡ƒæñ Citizen &nbsp;ΓÇö <strong>citizen@bhudrishti.in</strong> / <strong>demo1234</strong><br>
+          ≡ƒÅ¢∩╕Å Authority ΓÇö <strong>authority@bhudrishti.in</strong> / <strong>admin1234</strong>
+        </div>
+      </div>
+
+      <!-- Phone sign-in -->
+      <div id="si-phone-panel" style="display:none">
+        <div class="auth-field">
+          <label>Phone number</label>
+          <div class="auth-field-wrap">
+            <span class="phone-prefix">+91</span>
+            <input type="tel" id="si-phone" class="phone-input" placeholder="9876543210" maxlength="10"
+                   oninput="clearAuthMsg()"/>
+          </div>
+        </div>
+        <div class="otp-row">
+          <div class="auth-field">
+            <label for="si-otp">OTP</label>
+            <input type="text" id="si-otp" placeholder="6-digit code" maxlength="6" inputmode="numeric"
+                   oninput="clearAuthMsg()" onkeydown="if(event.key==='Enter')doVerifyOtp('signin')"/>
+          </div>
+          <button class="otp-send-btn" id="si-send-otp-btn" onclick="doSendOtp('signin')">Send OTP</button>
+        </div>
+        <div class="otp-timer" id="si-otp-timer"></div>
+        <button class="auth-submit" id="si-phone-btn" onclick="doVerifyOtp('signin')">Verify &amp; Sign In</button>
+      </div>
+    </div>
+
+    <!-- ΓöÇΓöÇ SIGN UP ΓöÇΓöÇ -->
+    <div id="signup-panel" style="display:none">
+
+      <!-- Email sign-up -->
+      <div id="su-email-panel">
+        <div class="auth-field">
+          <label for="su-name">Full name</label>
+          <input type="text" id="su-name" placeholder="Your full name" autocomplete="name"
+                 oninput="clearAuthMsg()"/>
+        </div>
+        <div class="auth-field">
+          <label for="su-email">Email address</label>
+          <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email"
+                 oninput="clearAuthMsg()"/>
+        </div>
+        <!-- District ΓÇö required for Authority, hidden for Citizen -->
+        <div class="auth-field" id="su-district-wrap" style="display:none">
+          <label for="su-district">Your District</label>
+          <select id="su-district" style="background:linear-gradient(135deg,#fff8f0,#fffaf5);border:1.5px solid #e8c8a0;border-radius:9px;padding:.56rem .82rem;color:var(--text);font-size:.88rem;font-family:'Inter',sans-serif;width:100%;box-sizing:border-box">
+            <option value="">ΓÇö Select your district ΓÇö</option>
+            <option>Cherrapunji</option><option>Tawang</option><option>Kohima</option>
+            <option>Shillong</option><option>Itanagar</option><option>Imphal</option>
+            <option>Aizawl</option><option>Gangtok</option><option>Dibrugarh</option>
+            <option>Agartala</option><option>Silchar</option><option>Jorhat</option>
+          </select>
+        </div>
+        <div class="auth-field">
+          <label for="su-password">Password</label>
+          <div class="auth-field-wrap">
+            <input type="password" id="su-password" placeholder="Min 8 characters" autocomplete="new-password"
+                   class="has-toggle" oninput="clearAuthMsg()"/>
+            <button class="pw-toggle" type="button" onclick="togglePw('su-password',this)" tabindex="-1">≡ƒæü</button>
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="su-confirm">Confirm password</label>
+          <div class="auth-field-wrap">
+            <input type="password" id="su-confirm" placeholder="Re-enter password" autocomplete="new-password"
+                   class="has-toggle" oninput="clearAuthMsg()" onkeydown="if(event.key==='Enter')doSignUp()"/>
+            <button class="pw-toggle" type="button" onclick="togglePw('su-confirm',this)" tabindex="-1">≡ƒæü</button>
+          </div>
+        </div>
+        <button class="auth-submit" id="su-email-btn" onclick="doSignUp()">Create Account</button>
+      </div>
+
+      <!-- Phone sign-up -->
+      <div id="su-phone-panel" style="display:none">
+        <div class="auth-field">
+          <label for="su-phone-name">Full name</label>
+          <input type="text" id="su-phone-name" placeholder="Your full name" oninput="clearAuthMsg()"/>
+        </div>
+        <div class="auth-field">
+          <label>Phone number</label>
+          <div class="auth-field-wrap">
+            <span class="phone-prefix">+91</span>
+            <input type="tel" id="su-phone" class="phone-input" placeholder="9876543210" maxlength="10"
+                   oninput="clearAuthMsg()"/>
+          </div>
+        </div>
+        <div class="otp-row">
+          <div class="auth-field">
+            <label for="su-otp">OTP</label>
+            <input type="text" id="su-otp" placeholder="6-digit code" maxlength="6" inputmode="numeric"
+                   oninput="clearAuthMsg()" onkeydown="if(event.key==='Enter')doVerifyOtp('signup')"/>
+          </div>
+          <button class="otp-send-btn" id="su-send-otp-btn" onclick="doSendOtp('signup')">Send OTP</button>
+        </div>
+        <div class="otp-timer" id="su-otp-timer"></div>
+        <button class="auth-submit" id="su-phone-btn" onclick="doVerifyOtp('signup')">Create Account</button>
+      </div>
+    </div>
+
+    <!-- Forgot password panel -->
+    <div id="forgot-panel" style="display:none">
+      <button class="auth-back" onclick="showSignIn()">ΓåÉ Back to Sign In</button>
+      <div class="auth-field">
+        <label for="fp-email">Your registered email</label>
+        <input type="email" id="fp-email" placeholder="you@example.com"
+               oninput="clearAuthMsg()" onkeydown="if(event.key==='Enter')doForgotPassword()"/>
+      </div>
+      <button class="auth-submit" id="fp-btn" onclick="doForgotPassword()">Send Reset Link</button>
+    </div>
+
+  </div><!-- /auth-step-auth -->
+
+</div><!-- /auth-card -->
+</div><!-- /login-overlay -->
+
+<!-- ΓòÉΓòÉ HEADER ΓòÉΓòÉ -->
 <header>
   <div class="brand">
-    <div class="brand-icon">🏔️</div>
+    <div class="brand-icon">≡ƒÅö∩╕Å</div>
     <div>
       <div class="brand-title">BhuDrishti</div>
-      <div class="brand-sub">AI-BASED LANDSLIDE EARLY WARNING SYSTEM · NORTH-EAST INDIA · SIH 2026</div>
+      <div class="brand-sub">AI-BASED LANDSLIDE EARLY WARNING SYSTEM ┬╖ NORTH-EAST INDIA ┬╖ SIH 2026</div>
     </div>
   </div>
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live Monitoring</div>
     <span class="hdr-time" id="hdr-clock"></span>
-    <button class="btn-hdr" onclick="refreshAll()">↻ Refresh</button>
+    <div class="user-badge" id="user-badge" style="display:none">
+      <span id="user-name-display">User</span>
+      <span class="user-role-pill" id="user-role-display">ΓÇö</span>
+    </div>
+    <button class="btn-hdr" onclick="refreshAll()">Γå╗ Refresh</button>
+    <button class="btn-hdr" id="logout-btn" onclick="doLogout()" style="display:none;background:#ffffff22;border-color:#ffffff60">ΓÅÅ Sign Out</button>
   </div>
 </header>
 
-<!-- ══ ALERT BANNER ══ -->
+<!-- ΓòÉΓòÉ ALERT BANNER ΓòÉΓòÉ -->
 <div class="alert-banner" id="alert-banner-wrap">
-  <div class="alert-header" id="alert-header"><span class="pulse-ring"></span>&nbsp;Loading alerts…</div>
+  <div class="alert-header" id="alert-header"><span class="pulse-ring"></span>&nbsp;Loading alertsΓÇª</div>
   <div class="alert-list" id="alert-list">
-    <div class="alert-item" style="color:var(--muted);font-size:.78rem;padding:.4rem .75rem">⏳ Fetching live risk data…</div>
+    <div class="alert-item" style="color:var(--muted);font-size:.78rem;padding:.4rem .75rem">ΓÅ│ Fetching live risk dataΓÇª</div>
   </div>
 </div>
 
-<!-- ══ TABS ══ -->
+<!-- ΓòÉΓòÉ TABS ΓòÉΓòÉ -->
 <nav class="tabs">
-  <button class="tab active" onclick="showTab('overview',this)">⬡ Overview</button>
-  <button class="tab" onclick="showTab('ai',this)">🤖 AI Risk Assessment</button>
-  <button class="tab" onclick="showTab('forecast',this)">⏱ 24h Forecast</button>
-  <button class="tab" onclick="showTab('reroute',this)">🛣 Rerouting System</button>
-  <button class="tab" onclick="showTab('mesh',this)">🚨 Warning System</button>
-  <button class="tab" onclick="showTab('reports',this)">📋 Field Reports</button>
+  <button class="tab active" onclick="showTab('overview',this)">Γ¼í Overview</button>
+  <button class="tab" onclick="showTab('ai',this)">≡ƒñû AI Risk Assessment</button>
+  <button class="tab" onclick="showTab('forecast',this)">ΓÅ▒ 24h Forecast</button>
+  <button class="tab" onclick="showTab('reroute',this)">≡ƒ¢ú Rerouting System</button>
+  <button class="tab" onclick="showTab('mesh',this)">≡ƒÜ¿ Warning System</button>
+  <button class="tab" onclick="showTab('reports',this)">≡ƒôï Field Reports</button>
 </nav>
 
-<!-- ══ MAIN ══ -->
+<!-- ΓòÉΓòÉ MAIN ΓòÉΓòÉ -->
 <div class="main">
 
-<!-- ── OVERVIEW ── -->
+<!-- ΓöÇΓöÇ OVERVIEW ΓöÇΓöÇ -->
 <div id="tab-overview" class="section visible">
   <div class="stat-grid">
     <div class="stat-card" style="--c1:#8b3a10;--c2:#c0541a">
-      <div class="stat-icon-wrap">📍</div>
+      <div class="stat-icon-wrap">≡ƒôì</div>
       <div class="stat-num">12</div>
       <div class="stat-label">Monitored Zones</div>
-      <div class="stat-delta delta-up">↑ NER Coverage Active</div>
+      <div class="stat-delta delta-up">Γåæ NER Coverage Active</div>
     </div>
     <div class="stat-card" style="--c1:#c07a10;--c2:#d4860a;cursor:pointer"
       onclick="document.querySelector('.alert-banner')?.scrollIntoView({behavior:'smooth'})">
-      <div class="stat-icon-wrap">🔔</div>
-      <div class="stat-num" id="active-alerts-count">—</div>
+      <div class="stat-icon-wrap">≡ƒöö</div>
+      <div class="stat-num" id="active-alerts-count">ΓÇö</div>
       <div class="stat-label">Active Alerts</div>
-      <div class="stat-delta delta-dn" id="active-alerts-delta">Loading…</div>
+      <div class="stat-delta delta-dn" id="active-alerts-delta">LoadingΓÇª</div>
     </div>
     <div class="stat-card" style="--c1:#b83020;--c2:#c0541a">
-      <div class="stat-icon-wrap">⚠️</div>
+      <div class="stat-icon-wrap">ΓÜá∩╕Å</div>
       <div class="stat-num">2</div>
       <div class="stat-label">High Risk Zones</div>
-      <div class="stat-delta delta-dn">Tawang · Kohima</div>
+      <div class="stat-delta delta-dn">Tawang ┬╖ Kohima</div>
     </div>
     <div class="stat-card" style="--c1:#6e3aaa;--c2:#8b50cc">
-      <div class="stat-icon-wrap">🚨</div>
+      <div class="stat-icon-wrap">≡ƒÜ¿</div>
       <div class="stat-num">1</div>
       <div class="stat-label">Critical Zones</div>
       <div class="stat-delta delta-dn">Cherrapunji</div>
     </div>
     <div class="stat-card" style="--c1:#1a7a6e;--c2:#1a6fa0">
-      <div class="stat-icon-wrap">🚨</div>
-      <div class="stat-num" id="mesh-nodes-online-count">—</div>
+      <div class="stat-icon-wrap">≡ƒÜ¿</div>
+      <div class="stat-num" id="mesh-nodes-online-count">ΓÇö</div>
       <div class="stat-label">Active Warnings</div>
-      <div class="stat-delta delta-up" id="mesh-nodes-delta">Loading…</div>
+      <div class="stat-delta delta-up" id="mesh-nodes-delta">LoadingΓÇª</div>
     </div>
     <div class="stat-card" style="--c1:#4a5a22;--c2:#6b7c3a">
-      <div class="stat-icon-wrap">🛣</div>
+      <div class="stat-icon-wrap">≡ƒ¢ú</div>
       <div class="stat-num" id="roads-blocked-count">2</div>
       <div class="stat-label">Roads Blocked</div>
       <div class="stat-delta delta-dn">Reroutes calculated</div>
@@ -397,10 +716,10 @@ footer strong{color:#fff}
   <div class="charts-row">
     <div class="card">
       <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
-        <div style="display:flex;align-items:center;gap:.5rem"><div class="ct-icon" style="background:#fdecea">🗂️</div>District-wise Risk Status</div>
+        <div style="display:flex;align-items:center;gap:.5rem"><div class="ct-icon" style="background:#fdecea">≡ƒùé∩╕Å</div>District-wise Risk Status</div>
         <div style="position:relative;display:flex;align-items:center">
-          <span style="position:absolute;left:.55rem;font-size:.82rem;color:var(--muted)">🔍</span>
-          <input id="district-search" type="text" placeholder="Search district…"
+          <span style="position:absolute;left:.55rem;font-size:.82rem;color:var(--muted)">≡ƒöì</span>
+          <input id="district-search" type="text" placeholder="Search districtΓÇª"
             oninput="filterDistrictList(this.value)"
             style="padding:.35rem .7rem .35rem 1.85rem;border:1.5px solid #e8c8a0;border-radius:999px;font-size:.76rem;font-family:'Inter',sans-serif;background:#fffbf5;color:var(--text);outline:none;width:170px"/>
         </div>
@@ -411,18 +730,18 @@ footer strong{color:#fff}
         <span style="font-size:.68rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Risk Status</span>
       </div>
       <div id="district-risk-list" style="display:flex;flex-direction:column;gap:0;max-height:420px;overflow-y:auto">
-        <div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Loading district risk data…</div>
+        <div style="padding:.75rem;color:var(--muted);font-size:.8rem">ΓÅ│ Loading district risk dataΓÇª</div>
       </div>
     </div>
     <div class="card">
-      <div class="card-title"><div class="ct-icon" style="background:#f0e8fa">⬡</div>Risk Distribution</div>
+      <div class="card-title"><div class="ct-icon" style="background:#f0e8fa">Γ¼í</div>Risk Distribution</div>
       <canvas id="riskDonut" height="165"></canvas>
     </div>
   </div>
 
   <div class="card">
     <div class="card-title">
-      <div class="ct-icon" style="background:#e0f4f0">🗺</div>NER Live Risk Map
+      <div class="ct-icon" style="background:#e0f4f0">≡ƒù║</div>NER Live Risk Map
       &nbsp;<span class="badge badge-teal">AI Predicted</span>
       &nbsp;<span class="badge badge-terra">Real-Time</span>
     </div>
@@ -438,20 +757,20 @@ footer strong{color:#fff}
   </div>
 </div>
 
-<!-- ── AI RISK ASSESSMENT ── -->
+<!-- ΓöÇΓöÇ AI RISK ASSESSMENT ΓöÇΓöÇ -->
 <div id="tab-ai" class="section">
   <div class="card">
     <div class="card-title">
-      <div class="ct-icon" style="background:#fdeee6">🤖</div>AI Risk Assessment
+      <div class="ct-icon" style="background:#fdeee6">≡ƒñû</div>AI Risk Assessment
       &nbsp;<span class="badge badge-terra">RANDOM FOREST + GRADIENT BOOSTING</span>
     </div>
     <p style="font-size:.8rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.65;max-width:780px">
-      Select a district — live precipitation and soil moisture are fetched automatically from <strong style="color:var(--teal)">Open-Meteo</strong>, terrain parameters are loaded from the district profile, and the <strong style="color:var(--terracotta)">Gradient Boosting model</strong> runs instantly. No manual entry needed.
+      Select a district ΓÇö live precipitation and soil moisture are fetched automatically from <strong style="color:var(--teal)">Open-Meteo</strong>, terrain parameters are loaded from the district profile, and the <strong style="color:var(--terracotta)">Gradient Boosting model</strong> runs instantly. No manual entry needed.
     </p>
     <div class="form-grid">
-      <div class="form-field"><label>District <span style="color:#c0541a;font-size:.7rem;font-weight:700">▸ select to auto-load</span></label>
+      <div class="form-field"><label>District <span style="color:#c0541a;font-size:.7rem;font-weight:700">Γû╕ select to auto-load</span></label>
         <select id="f-district" onchange="fetchWeatherAndPredict(this.value)" style="border-color:#c0541a;font-weight:700">
-          <option value="">— Select district —</option>
+          <option value="">ΓÇö Select district ΓÇö</option>
           <option>Cherrapunji</option><option>Tawang</option><option>Kohima</option>
           <option>Shillong</option><option>Itanagar</option><option>Imphal</option>
           <option>Aizawl</option><option>Gangtok</option><option>Dibrugarh</option>
@@ -459,11 +778,11 @@ footer strong{color:#fff}
         </select>
       </div>
       <div class="form-field"><label>Precipitation (mm) <span id="f-rain-src" style="font-size:.65rem;color:#1a7a6e;font-weight:700"></span></label><input type="number" id="f-rain" value="150" step="0.1" readonly style="background:#f0faf4"/></div>
-      <div class="form-field"><label>Soil Moisture (0–1) <span id="f-moist-src" style="font-size:.65rem;color:#1a7a6e;font-weight:700"></span></label><input type="number" id="f-moist" value="0.70" step="0.01" readonly style="background:#f0faf4"/></div>
-      <div class="form-field"><label>Slope (°)</label><input type="number" id="f-slope" value="42" min="0" max="90" step="0.1" readonly/></div>
+      <div class="form-field"><label>Soil Moisture (0ΓÇô1) <span id="f-moist-src" style="font-size:.65rem;color:#1a7a6e;font-weight:700"></span></label><input type="number" id="f-moist" value="0.70" step="0.01" readonly style="background:#f0faf4"/></div>
+      <div class="form-field"><label>Slope (┬░)</label><input type="number" id="f-slope" value="42" min="0" max="90" step="0.1" readonly/></div>
       <div class="form-field"><label>Elevation (m)</label><input type="number" id="f-elev" value="1200" readonly/></div>
       <div class="form-field"><label>Curvature</label><input type="number" id="f-curv" value="2.1" step="0.1" readonly/></div>
-      <div class="form-field"><label>Aspect (°)</label><input type="number" id="f-aspect" value="180" readonly/></div>
+      <div class="form-field"><label>Aspect (┬░)</label><input type="number" id="f-aspect" value="180" readonly/></div>
       <div class="form-field"><label>NDVI</label><input type="number" id="f-ndvi" value="0.15" step="0.01" readonly/></div>
       <div class="form-field"><label>Dist. to Road (m)</label><input type="number" id="f-road" value="300" readonly/></div>
       <div class="form-field"><label>Dist. to Fault (m)</label><input type="number" id="f-fault" value="4000" readonly/></div>
@@ -474,16 +793,16 @@ footer strong{color:#fff}
         <select id="f-lulc" disabled><option value="0">Forest</option><option value="1" selected>Agriculture</option><option value="2">Barren</option><option value="3">Urban</option></select>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="runPrediction()" id="pred-btn" style="font-size:.9rem;padding:.6rem 1.5rem">🤖 Run AI Prediction</button>
+    <button class="btn btn-primary" onclick="runPrediction()" id="pred-btn" style="font-size:.9rem;padding:.6rem 1.5rem">≡ƒñû Run AI Prediction</button>
     <div id="predict-result"></div>
   </div>
 </div>
 
-<!-- ── FORECAST ── -->
+<!-- ΓöÇΓöÇ FORECAST ΓöÇΓöÇ -->
 <div id="tab-forecast" class="section">
   <div class="card">
     <div class="card-title">
-      <div class="ct-icon" style="background:#e0f4f0">⏱</div>24-Hour Lead-Time Forecast
+      <div class="ct-icon" style="background:#e0f4f0">ΓÅ▒</div>24-Hour Lead-Time Forecast
       &nbsp;<span class="badge badge-teal">Open-Meteo Live Rainfall</span>
     </div>
     <p style="font-size:.8rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.65;max-width:780px">
@@ -512,39 +831,39 @@ footer strong{color:#fff}
       <div class="form-field"><label>Alert Threshold</label>
         <select id="fc-thresh" onchange="runForecast()"><option value="moderate">Moderate</option><option value="high" selected>High</option><option value="critical">Critical</option></select>
       </div>
-      <button class="btn btn-teal" onclick="runForecast()">▶ Run Forecast</button>
+      <button class="btn btn-teal" onclick="runForecast()">Γû╢ Run Forecast</button>
     </div>
     <div id="forecast-result"></div>
   </div>
 </div>
 
-<!-- ── REROUTING ── -->
+<!-- ΓöÇΓöÇ REROUTING ΓöÇΓöÇ -->
 <div id="tab-reroute" class="section">
   <div class="sec-hdr">
-    <h2>🛣 Dynamic Rerouting System</h2>
+    <h2>≡ƒ¢ú Dynamic Rerouting System</h2>
     <div style="display:flex;gap:.5rem"><span class="badge badge-terra">AI Powered</span><span class="badge badge-amber">Real-Time</span></div>
   </div>
   <div class="route-stats">
     <div class="rstat">
-      <div class="rstat-icon" style="background:linear-gradient(135deg,#fdecea,#f8d0c8)">🚧</div>
-      <div><div class="rstat-val" style="color:#b83020" id="rt-blocked">—</div><div class="rstat-lbl">Blocked Roads</div></div>
+      <div class="rstat-icon" style="background:linear-gradient(135deg,#fdecea,#f8d0c8)">≡ƒÜº</div>
+      <div><div class="rstat-val" style="color:#b83020" id="rt-blocked">ΓÇö</div><div class="rstat-lbl">Blocked Roads</div></div>
     </div>
     <div class="rstat">
-      <div class="rstat-icon" style="background:linear-gradient(135deg,#e8f5ea,#c8e8cc)">✅</div>
-      <div><div class="rstat-val" style="color:#2d7a3a" id="rt-alts">—</div><div class="rstat-lbl">Routes Calculated</div></div>
+      <div class="rstat-icon" style="background:linear-gradient(135deg,#e8f5ea,#c8e8cc)">Γ£à</div>
+      <div><div class="rstat-val" style="color:#2d7a3a" id="rt-alts">ΓÇö</div><div class="rstat-lbl">Routes Calculated</div></div>
     </div>
     <div class="rstat">
-      <div class="rstat-icon" style="background:linear-gradient(135deg,#fdeee6,#f8d8c0)">🏔️</div>
-      <div><div class="rstat-val" style="color:var(--terracotta)" id="rt-incidents">—</div><div class="rstat-lbl">Roads at Risk</div></div>
+      <div class="rstat-icon" style="background:linear-gradient(135deg,#fdeee6,#f8d8c0)">≡ƒÅö∩╕Å</div>
+      <div><div class="rstat-val" style="color:var(--terracotta)" id="rt-incidents">ΓÇö</div><div class="rstat-lbl">Roads at Risk</div></div>
     </div>
     <div class="rstat">
-      <div class="rstat-icon" style="background:linear-gradient(135deg,#e0f4f0,#c0e8e0)">⏱</div>
+      <div class="rstat-icon" style="background:linear-gradient(135deg,#e0f4f0,#c0e8e0)">ΓÅ▒</div>
       <div><div class="rstat-val" style="color:var(--teal)" id="rt-source">OSM</div><div class="rstat-lbl">Road Data Source</div></div>
     </div>
   </div>
   <div style="display:grid;grid-template-columns:3fr 2fr;gap:1rem">
     <div class="card">
-      <div class="card-title"><div class="ct-icon" style="background:#e0f4f0">🗺</div>Route Map — NER Road Network</div>
+      <div class="card-title"><div class="ct-icon" style="background:#e0f4f0">≡ƒù║</div>Route Map ΓÇö NER Road Network</div>
       <div id="routeMap"></div>
       <div style="display:flex;gap:1rem;margin-top:.75rem;flex-wrap:wrap">
         <div class="leg-item"><span style="display:inline-block;width:22px;height:4px;background:#b83020;border-radius:2px;margin-right:.3rem;vertical-align:middle"></span>Blocked</div>
@@ -553,22 +872,22 @@ footer strong{color:#fff}
       </div>
     </div>
     <div class="card">
-      <div class="card-title"><div class="ct-icon" style="background:#fdecea">🚧</div>Road Blockage Status</div>
+      <div class="card-title"><div class="ct-icon" style="background:#fdecea">≡ƒÜº</div>Road Blockage Status</div>
       <table class="blk-table"><thead><tr><th>Road</th><th>Status</th><th>Cause</th><th>Action</th></tr></thead>
       <tbody id="blk-body"></tbody></table>
       <div id="route-result"></div>
     </div>
   </div>
   <div class="card">
-    <div class="card-title"><div class="ct-icon" style="background:#e8f5ea">🔄</div>Evacuation Route Recommendations</div>
+    <div class="card-title"><div class="ct-icon" style="background:#e8f5ea">≡ƒöä</div>Evacuation Route Recommendations</div>
     <div id="evac-routes" style="display:flex;flex-direction:column;gap:.75rem"></div>
   </div>
 </div>
 
-<!-- ── WARNING SYSTEM ── -->
+<!-- ΓöÇΓöÇ WARNING SYSTEM ΓöÇΓöÇ -->
 <div id="tab-mesh" class="section">
 
-<!-- ══ AUTHORITY DASHBOARD ══ (hidden for citizens) -->
+<!-- ΓòÉΓòÉ AUTHORITY DASHBOARD ΓòÉΓòÉ (hidden for citizens) -->
 <div class="authority-section" id="warn-authority-panel">
 
   <!-- Header row -->
@@ -579,32 +898,32 @@ footer strong{color:#fff}
     </div>
     <div style="display:flex;align-items:center;gap:.5rem">
       <span class="badge badge-terra" id="warn-auth-time" style="font-size:.7rem"></span>
-      <button class="btn btn-ghost btn-sm" onclick="initWarningSystem()" style="font-size:.72rem">↻ Refresh</button>
+      <button class="btn btn-ghost btn-sm" onclick="initWarningSystem()" style="font-size:.72rem">Γå╗ Refresh</button>
     </div>
   </div>
 
   <!-- Stat cards row -->
   <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem">
     <div class="stat-card" style="--c1:#b83020;--c2:#c0541a;cursor:pointer" onclick="scrollToWarnList()">
-      <div class="stat-icon-wrap" style="background:#ffffff25">⚠️</div>
-      <div class="stat-num" id="ws-high-count">—</div>
+      <div class="stat-icon-wrap" style="background:#ffffff25">ΓÜá∩╕Å</div>
+      <div class="stat-num" id="ws-high-count">ΓÇö</div>
       <div class="stat-label">Active High Risk Zones</div>
-      <div class="stat-delta" id="ws-high-sub">Loading…</div>
+      <div class="stat-delta" id="ws-high-sub">LoadingΓÇª</div>
     </div>
     <div class="stat-card" style="--c1:#c07a10;--c2:#d4860a">
-      <div class="stat-icon-wrap" style="background:#ffffff25">📢</div>
-      <div class="stat-num" id="ws-warn-count">—</div>
+      <div class="stat-icon-wrap" style="background:#ffffff25">≡ƒôó</div>
+      <div class="stat-num" id="ws-warn-count">ΓÇö</div>
       <div class="stat-label">Warnings Issued Today</div>
-      <div class="stat-delta" id="ws-warn-sub">Loading…</div>
+      <div class="stat-delta" id="ws-warn-sub">LoadingΓÇª</div>
     </div>
     <div class="stat-card" style="--c1:#1a6fa0;--c2:#1a7a6e">
-      <div class="stat-icon-wrap" style="background:#ffffff25">👥</div>
-      <div class="stat-num" id="ws-notified">—</div>
+      <div class="stat-icon-wrap" style="background:#ffffff25">≡ƒæÑ</div>
+      <div class="stat-num" id="ws-notified">ΓÇö</div>
       <div class="stat-label">Districts Notified</div>
-      <div class="stat-delta" id="ws-notified-sub">Loading…</div>
+      <div class="stat-delta" id="ws-notified-sub">LoadingΓÇª</div>
     </div>
     <div class="stat-card" style="--c1:#2d7a3a;--c2:#1a7a6e" id="ws-status-card">
-      <div class="stat-icon-wrap" style="background:#ffffff25">✅</div>
+      <div class="stat-icon-wrap" style="background:#ffffff25">Γ£à</div>
       <div class="stat-num" style="font-size:1.4rem" id="ws-status-val">Healthy</div>
       <div class="stat-label">System Status</div>
       <div class="stat-delta" id="ws-status-sub">All systems operational</div>
@@ -618,26 +937,26 @@ footer strong{color:#fff}
     <div class="card" style="min-width:0">
       <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:.5rem">
-          <div class="ct-icon" style="background:#fdecea">🤖</div>Recent AI Risk Alerts
+          <div class="ct-icon" style="background:#fdecea">≡ƒñû</div>Recent AI Risk Alerts
         </div>
         <span class="badge badge-teal" style="font-size:.65rem">Live from ML model</span>
       </div>
       <div id="ws-ai-alerts-list">
-        <div style="padding:.75rem;color:var(--muted);font-size:.82rem">⏳ Loading risk data…</div>
+        <div style="padding:.75rem;color:var(--muted);font-size:.82rem">ΓÅ│ Loading risk dataΓÇª</div>
       </div>
     </div>
 
     <!-- Right: Issue Warning panel -->
     <div class="card" style="border:2px solid #f0c4a8">
       <div class="card-title" style="color:#8b3a10">
-        <div class="ct-icon" style="background:#fdecea">📢</div>Issue Warning
+        <div class="ct-icon" style="background:#fdecea">≡ƒôó</div>Issue Warning
       </div>
       <p style="font-size:.73rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5">Send alerts to affected zones and communities.</p>
 
       <div class="form-field" style="margin-bottom:.7rem">
         <label>Select Zone / Area</label>
         <select id="warn-district" style="background:linear-gradient(135deg,#fff8f0,#fffaf5);border:1.5px solid #e8c8a0;border-radius:9px;padding:.52rem .8rem;color:var(--text);font-size:.85rem;font-family:'Inter',sans-serif;width:100%">
-          <option value="">— Select district —</option>
+          <option value="">ΓÇö Select district ΓÇö</option>
           <option>Cherrapunji</option><option>Tawang</option><option>Kohima</option>
           <option>Shillong</option><option>Itanagar</option><option>Imphal</option>
           <option>Aizawl</option><option>Gangtok</option><option>Dibrugarh</option>
@@ -648,9 +967,9 @@ footer strong{color:#fff}
       <div class="form-field" style="margin-bottom:.7rem">
         <label>Warning Type</label>
         <select id="warn-level" style="background:linear-gradient(135deg,#fff8f0,#fffaf5);border:1.5px solid #e8c8a0;border-radius:9px;padding:.52rem .8rem;color:var(--text);font-size:.85rem;font-family:'Inter',sans-serif;width:100%">
-          <option value="High">⚠️ Landslide Risk – High</option>
-          <option value="Critical">🚨 Landslide Risk – Critical</option>
-          <option value="Moderate">📢 Heavy Rainfall – Moderate</option>
+          <option value="High">ΓÜá∩╕Å Landslide Risk ΓÇô High</option>
+          <option value="Critical">≡ƒÜ¿ Landslide Risk ΓÇô Critical</option>
+          <option value="Moderate">≡ƒôó Heavy Rainfall ΓÇô Moderate</option>
         </select>
       </div>
 
@@ -664,30 +983,30 @@ footer strong{color:#fff}
 
       <div id="warn-issue-msg" style="display:none;font-size:.75rem;border-radius:8px;padding:.45rem .7rem;margin-bottom:.6rem"></div>
       <button class="btn btn-primary" id="warn-issue-btn" onclick="issueWarning()" style="width:100%;padding:.65rem;font-size:.88rem">
-        📡 Send Warning
+        ≡ƒôí Send Warning
       </button>
     </div>
   </div>
 
   <!-- Quick Actions row -->
   <div class="card">
-    <div class="card-title"><div class="ct-icon" style="background:#fdeee6">⚡</div>Quick Actions</div>
+    <div class="card-title"><div class="ct-icon" style="background:#fdeee6">ΓÜí</div>Quick Actions</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem">
       <button onclick="document.getElementById('warn-district').focus();document.querySelector('.authority-section #warn-issue-btn').scrollIntoView({behavior:'smooth'})"
         style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #f0c4a8;border-radius:12px;background:#fffbf5;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#8b3a10;transition:all .18s">
-        <span style="font-size:1.4rem">⚠️</span>Issue Warning
+        <span style="font-size:1.4rem">ΓÜá∩╕Å</span>Issue Warning
       </button>
       <button onclick="broadcastAlert()"
         style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #d0c8f0;border-radius:12px;background:#f8f5ff;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#5e28a0;transition:all .18s">
-        <span style="font-size:1.4rem">📡</span>Broadcast Alert
+        <span style="font-size:1.4rem">≡ƒôí</span>Broadcast Alert
       </button>
       <button onclick="document.getElementById('warn-ai-alerts-list').scrollIntoView({behavior:'smooth'})"
         style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #b8d8e8;border-radius:12px;background:#f0f8ff;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#1060b0;transition:all .18s">
-        <span style="font-size:1.4rem">🗺️</span>Manage Zones
+        <span style="font-size:1.4rem">≡ƒù║∩╕Å</span>Manage Zones
       </button>
       <button onclick="showTab('reports',document.querySelector('.tab:last-of-type'))"
         style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #a8d8b0;border-radius:12px;background:#f0faf4;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#1a5228;transition:all .18s">
-        <span style="font-size:1.4rem">📋</span>View Reports
+        <span style="font-size:1.4rem">≡ƒôï</span>View Reports
       </button>
     </div>
   </div>
@@ -696,25 +1015,25 @@ footer strong{color:#fff}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
     <div class="card">
       <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:.5rem"><div class="ct-icon" style="background:#fdecea">🔔</div>Active Authority Warnings</div>
-        <button class="btn btn-ghost btn-sm" onclick="loadActiveWarnings()" style="font-size:.7rem">↻</button>
+        <div style="display:flex;align-items:center;gap:.5rem"><div class="ct-icon" style="background:#fdecea">≡ƒöö</div>Active Authority Warnings</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadActiveWarnings()" style="font-size:.7rem">Γå╗</button>
       </div>
-      <div id="warn-list"><div style="padding:.75rem;color:var(--muted);font-size:.82rem">⏳ Loading…</div></div>
+      <div id="warn-list"><div style="padding:.75rem;color:var(--muted);font-size:.82rem">ΓÅ│ LoadingΓÇª</div></div>
     </div>
     <div class="card">
       <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:.5rem"><div class="ct-icon" style="background:#e0f4f0">📝</div>Recent Activity</div>
+        <div style="display:flex;align-items:center;gap:.5rem"><div class="ct-icon" style="background:#e0f4f0">≡ƒô¥</div>Recent Activity</div>
         <span class="badge badge-teal" style="font-size:.62rem">Live</span>
       </div>
       <div id="ws-activity-log" style="display:flex;flex-direction:column;gap:.4rem;max-height:250px;overflow-y:auto">
-        <div style="padding:.5rem;color:var(--muted);font-size:.78rem">⏳ Loading activity…</div>
+        <div style="padding:.5rem;color:var(--muted);font-size:.78rem">ΓÅ│ Loading activityΓÇª</div>
       </div>
     </div>
   </div>
 
 </div><!-- /authority-panel -->
 
-<!-- ══ CITIZEN DASHBOARD ══ (hidden for authorities) -->
+<!-- ΓòÉΓòÉ CITIZEN DASHBOARD ΓòÉΓòÉ (hidden for authorities) -->
 <div class="citizen-warn-panel" id="warn-citizen-panel">
 
   <!-- Header row -->
@@ -725,41 +1044,41 @@ footer strong{color:#fff}
     </div>
     <div style="display:flex;align-items:center;gap:.75rem">
       <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--muted)">
-        <span>📍</span><span id="ws-citizen-district">All Districts</span>
+        <span>≡ƒôì</span><span id="ws-citizen-district">All Districts</span>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="loadCitizenWarnings()" style="font-size:.72rem">↻ Refresh</button>
+      <button class="btn btn-ghost btn-sm" onclick="loadCitizenWarnings()" style="font-size:.72rem">Γå╗ Refresh</button>
     </div>
   </div>
 
   <!-- Active alert cards from authority + AI -->
   <div id="ws-citizen-alerts">
-    <div style="padding:1rem;color:var(--muted);font-size:.82rem">⏳ Checking for active warnings…</div>
+    <div style="padding:1rem;color:var(--muted);font-size:.82rem">ΓÅ│ Checking for active warningsΓÇª</div>
   </div>
 
   <!-- Safety guide card (always shown) -->
   <div class="card" style="border:1.5px solid #90d0a8">
-    <div class="card-title"><div class="ct-icon" style="background:#e0f5e8">🛡️</div>General Safety Guidelines</div>
+    <div class="card-title"><div class="ct-icon" style="background:#e0f5e8">≡ƒ¢í∩╕Å</div>General Safety Guidelines</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.65rem">
       <div style="display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;background:#f2faf4;border-radius:9px;border:1px solid #a8d8b8">
-        <span style="font-size:1.2rem;flex-shrink:0">⚠️</span>
+        <span style="font-size:1.2rem;flex-shrink:0">ΓÜá∩╕Å</span>
         <span style="font-size:.78rem;color:#1a5228;line-height:1.5">Avoid travelling to vulnerable areas (especially hilly slopes)</span>
       </div>
       <div style="display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;background:#e8f4ff;border-radius:9px;border:1px solid #90c8e8">
-        <span style="font-size:1.2rem;flex-shrink:0">📻</span>
+        <span style="font-size:1.2rem;flex-shrink:0">≡ƒô╗</span>
         <span style="font-size:.78rem;color:#0a4a78;line-height:1.5">Follow updates from official channels</span>
       </div>
       <div style="display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;background:#fff8e8;border-radius:9px;border:1px solid #e8d088">
-        <span style="font-size:1.2rem;flex-shrink:0">🎒</span>
+        <span style="font-size:1.2rem;flex-shrink:0">≡ƒÄÆ</span>
         <span style="font-size:.78rem;color:#6a4800;line-height:1.5">Keep emergency kit ready (water, food, torch, first aid)</span>
       </div>
       <div style="display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;background:#fef0e8;border-radius:9px;border:1px solid #f0c4a8">
-        <span style="font-size:1.2rem;flex-shrink:0">👨‍👩‍👧</span>
+        <span style="font-size:1.2rem;flex-shrink:0">≡ƒæ¿ΓÇì≡ƒæ⌐ΓÇì≡ƒæº</span>
         <span style="font-size:.78rem;color:#6a2800;line-height:1.5">Stay connected with family and neighbours</span>
       </div>
     </div>
     <!-- Emergency helpline -->
     <div style="margin-top:.85rem;background:linear-gradient(135deg,#fce4e0,#fdf0e4);border:1.5px solid #f0a090;border-radius:9px;padding:.65rem 1rem;display:flex;align-items:center;gap:.65rem;flex-wrap:wrap">
-      <span style="font-size:1rem">🆘</span>
+      <span style="font-size:1rem">≡ƒåÿ</span>
       <span style="font-size:.78rem;color:#7a1808;font-weight:600">For immediate help, contact the local disaster helpline: <strong>1077</strong></span>
       <span style="font-size:.75rem;color:var(--muted)">|</span>
       <span style="font-size:.75rem;color:#7a1808">Share this alert with others in your area.</span>
@@ -770,10 +1089,10 @@ footer strong{color:#fff}
 
 </div><!-- /tab-mesh -->
 
-<!-- ── FIELD REPORTS ── -->
+<!-- ΓöÇΓöÇ FIELD REPORTS ΓöÇΓöÇ -->
 <div id="tab-reports" class="section">
   <div class="sec-hdr">
-    <h2>📋 Field Reports — Citizen & Officer Submissions</h2>
+    <h2>≡ƒôï Field Reports ΓÇö Citizen & Officer Submissions</h2>
     <button class="btn btn-primary btn-sm" onclick="showReportForm()">+ Submit Report</button>
   </div>
   <div class="rep-grid" id="rep-grid"></div>
@@ -781,18 +1100,18 @@ footer strong{color:#fff}
 
 </div><!-- /main -->
 
-<!-- ══ FOOTER ══ -->
+<!-- ΓòÉΓòÉ FOOTER ΓòÉΓòÉ -->
 <footer>
-  <span><strong>BhuDrishti</strong> — Team Inno_Vision · Smart India Hackathon 2026 · IGDTUW</span>
-  <span>Stack: Python · scikit-learn · Flask · Node.js · Express · <strong>PostgreSQL</strong> · React · Leaflet · Chart.js</span>
+  <span><strong>BhuDrishti</strong> ΓÇö Team Inno_Vision ┬╖ Smart India Hackathon 2026 ┬╖ IGDTUW</span>
+  <span>Stack: Python ┬╖ scikit-learn ┬╖ Flask ┬╖ Node.js ┬╖ Express ┬╖ <strong>PostgreSQL</strong> ┬╖ React ┬╖ Leaflet ┬╖ Chart.js</span>
 </footer>
 </div>
 
 <script>
-/* ══ DATA ══ */
+/* ΓòÉΓòÉ DATA ΓòÉΓòÉ */
 let REGIONS = [];
 
-// Static precipitation profile per district (mm) — representative average values from DISTRICT_PROFILES.
+// Static precipitation profile per district (mm) ΓÇö representative average values from DISTRICT_PROFILES.
 // Used as fallback when Open-Meteo live hourly data returns 0 (no current rain).
 const DISTRICT_PRECIP = {
   'Tawang':      178, 'Itanagar':  98, 'Dibrugarh': 45,
@@ -900,9 +1219,9 @@ const PRESETS=[
   {name:'Silchar',    lat:24.83,  lon:92.78, slope:14,elevation:23,  curvature:0.6,aspect:100,ndvi:0.58,soil_type:0,lulc:1,dist_road:120, dist_fault:16000},
   {name:'Jorhat',     lat:26.75,  lon:94.20, slope:18,elevation:87,  curvature:0.7,aspect:105,ndvi:0.62,soil_type:1,lulc:1,dist_road:160, dist_fault:12000},
 ]
-// BLOCKAGES and EVAC removed — road incidents now loaded dynamically from
+// BLOCKAGES and EVAC removed ΓÇö road incidents now loaded dynamically from
 // field reports (report_type='blocked_road'/'landslide_occurred') in initRouteMap()
-// NODES and MSGS removed — Bluetooth Mesh tab replaced with Warning System
+// NODES and MSGS removed ΓÇö Bluetooth Mesh tab replaced with Warning System
 const REPORTS=[
   {d:"Cherrapunji",type:"landslide_occurred",sev:"high",  rep:"Field Officer Rajan",time:"09:12 AM",v:true, desc:"Large debris flow blocking NH-6 near km marker 24. ~200m stretch affected."},
   {d:"Tawang",     type:"blocked_road",      sev:"high",  rep:"Citizen App",        time:"08:45 AM",v:false,desc:"Road completely impassable near old bridge. Vehicles stranded."},
@@ -912,11 +1231,11 @@ const REPORTS=[
   {d:"Itanagar",   type:"crack",             sev:"low",   rep:"Citizen App",        time:"Yesterday",v:false,desc:"Hairline cracks near residential area. Monitoring advised."},
 ]
 
-/* ══ CLOCK ══ */
+/* ΓòÉΓòÉ CLOCK ΓòÉΓòÉ */
 function tick(){document.getElementById('hdr-clock').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Asia/Kolkata'})+' IST'}
 setInterval(tick,1000);tick()
 
-/* ══ TABS ══ */
+/* ΓòÉΓòÉ TABS ΓòÉΓòÉ */
 function showTab(id,btn){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'))
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'))
@@ -928,19 +1247,19 @@ function showTab(id,btn){
   if(id==='forecast') runForecast()
 }
 
-/* ══ MAP ══ */
+/* ΓòÉΓòÉ MAP ΓòÉΓòÉ */
 
   
 const map=L.map('map',{center:[25.5,92.5],zoom:6,zoomControl:false})
 L.control.zoom({position:'bottomright'}).addTo(map)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  attribution:'© OpenStreetMap contributors'
+  attribution:'┬⌐ OpenStreetMap contributors'
 }).addTo(map)
 
-L.polyline([[25.30,91.70],[25.20,91.80]],{color:'#b83020',weight:5,dashArray:'8,4'}).bindTooltip('⛔ NH-6 BLOCKED').addTo(map)
-L.polyline([[25.30,91.70],[25.40,91.60],[25.20,91.80]],{color:'#2d7a3a',weight:3,dashArray:'6,4'}).bindTooltip('✅ Alt Route A').addTo(map)
+L.polyline([[25.30,91.70],[25.20,91.80]],{color:'#b83020',weight:5,dashArray:'8,4'}).bindTooltip('Γ¢ö NH-6 BLOCKED').addTo(map)
+L.polyline([[25.30,91.70],[25.40,91.60],[25.20,91.80]],{color:'#2d7a3a',weight:3,dashArray:'6,4'}).bindTooltip('Γ£à Alt Route A').addTo(map)
 
-/* ══ CHARTS ══ */
+/* ΓòÉΓòÉ CHARTS ΓòÉΓòÉ */
 
 // District Risk List (replaces rainfall bar chart)
 function renderRainfallChart() {
@@ -952,13 +1271,13 @@ function renderDistrictRiskList() {
   if (!container) return
 
   if (!REGIONS || !REGIONS.length) {
-    container.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Loading…</div>'
+    container.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">ΓÅ│ LoadingΓÇª</div>'
     return
   }
 
   const RISK_COLOR = { Low:'#2d7a3a', Moderate:'#c07a10', High:'#b83020', Critical:'#6e3aaa' }
   const RISK_BG    = { Low:'#e0f5e8', Moderate:'#fef0d0', High:'#fce8e4', Critical:'#ece0fa' }
-  const RISK_ICON  = { Low:'🟢', Moderate:'🟡', High:'🔴', Critical:'🚨' }
+  const RISK_ICON  = { Low:'≡ƒƒó', Moderate:'≡ƒƒí', High:'≡ƒö┤', Critical:'≡ƒÜ¿' }
   const ORDER      = { Critical:0, High:1, Moderate:2, Low:3 }
 
   // Sort: Critical first, then High, Moderate, Low
@@ -971,7 +1290,7 @@ function renderDistrictRiskList() {
       <div style="display:flex;align-items:center;gap:.55rem">
         <span style="font-size:.78rem;color:var(--muted);font-weight:600;min-width:1.4rem">${i+1}</span>
         <span style="font-size:.84rem;font-weight:700;color:var(--text)">${r.name}</span>
-        <span style="font-size:.68rem;color:var(--muted)">· ${r.rain} mm · ${r.slope}°</span>
+        <span style="font-size:.68rem;color:var(--muted)">┬╖ ${r.rain} mm ┬╖ ${r.slope}┬░</span>
       </div>
       <div style="display:flex;align-items:center;gap:.5rem">
         <span style="font-size:.72rem;font-weight:800;padding:.22rem .75rem;border-radius:999px;
@@ -979,7 +1298,7 @@ function renderDistrictRiskList() {
           border:1px solid ${RISK_COLOR[r.risk]}40;white-space:nowrap">
           ${RISK_ICON[r.risk]} ${r.risk}
         </span>
-        <span style="color:#c0a070;font-size:.75rem">›</span>
+        <span style="color:#c0a070;font-size:.75rem">ΓÇ║</span>
       </div>
     </div>`).join('')
 }
@@ -1050,7 +1369,7 @@ function renderRiskMarkers(){
           </tr>
           <tr>
             <td>Slope</td>
-            <td style="font-weight:700;text-align:right">${r.slope}°</td>
+            <td style="font-weight:700;text-align:right">${r.slope}┬░</td>
           </tr>
         </table>
       </div>
@@ -1059,17 +1378,17 @@ function renderRiskMarkers(){
   })
 }
 
-/* ══ TOP RISK DISTRICTS LIST ══ */
+/* ΓòÉΓòÉ TOP RISK DISTRICTS LIST ΓòÉΓòÉ */
 function renderTopDistricts(){ /* now handled by renderDistrictRiskList */ }
 
-/* ══ AI PREDICTION — calls real Flask API ══ */
+/* ΓòÉΓòÉ AI PREDICTION ΓÇö calls real Flask API ΓòÉΓòÉ */
 const RCONF={
-  Low:    {c1:'#2d7a3a',c2:'#1a7a6e',bg:'#f2faf4',border:'#90d0b0',emo:'✅'},
-  Moderate:{c1:'#c07a10',c2:'#d4860a',bg:'#fef8e8',border:'#e8d080',emo:'📢'},
-  High:   {c1:'#b83020',c2:'#c0541a',bg:'#fdf0ec',border:'#e8a090',emo:'⚠️'},
-  Critical:{c1:'#6e3aaa',c2:'#8b3a10',bg:'#f6f0fa',border:'#c8a0e0',emo:'🚨'},
+  Low:    {c1:'#2d7a3a',c2:'#1a7a6e',bg:'#f2faf4',border:'#90d0b0',emo:'Γ£à'},
+  Moderate:{c1:'#c07a10',c2:'#d4860a',bg:'#fef8e8',border:'#e8d080',emo:'≡ƒôó'},
+  High:   {c1:'#b83020',c2:'#c0541a',bg:'#fdf0ec',border:'#e8a090',emo:'ΓÜá∩╕Å'},
+  Critical:{c1:'#6e3aaa',c2:'#8b3a10',bg:'#f6f0fa',border:'#c8a0e0',emo:'≡ƒÜ¿'},
 }
-/* ══ AI RISK ASSESSMENT — auto-populate from Open-Meteo on district change ══ */
+/* ΓòÉΓòÉ AI RISK ASSESSMENT ΓÇö auto-populate from Open-Meteo on district change ΓòÉΓòÉ */
 
 // Race-condition guard: only the latest district request may update the UI.
 let _weatherReqId = 0
@@ -1086,8 +1405,8 @@ async function fetchWeatherAndPredict(districtName) {
   // Show loading state immediately
   out.innerHTML = `
     <div style="padding:1rem;color:var(--muted);font-size:.85rem;display:flex;align-items:center;gap:.6rem">
-      <span style="font-size:1.1rem">🌐</span>
-      Fetching live meteorological data for <strong style="color:var(--text)">${districtName}</strong>…
+      <span style="font-size:1.1rem">≡ƒîÉ</span>
+      Fetching live meteorological data for <strong style="color:var(--text)">${districtName}</strong>ΓÇª
     </div>`
   btn.disabled = true
 
@@ -1098,7 +1417,7 @@ async function fetchWeatherAndPredict(districtName) {
       { headers: { 'Content-Type': 'application/json' } }
     )
 
-    // Stale response — a newer district was selected, discard this one
+    // Stale response ΓÇö a newer district was selected, discard this one
     if (reqId !== _weatherReqId) return
 
     if (!resp.ok) {
@@ -1112,7 +1431,7 @@ async function fetchWeatherAndPredict(districtName) {
 
     if (w.error) throw new Error(w.error)
 
-    // ── Populate all form fields ──────────────────────────────────────────────
+    // ΓöÇΓöÇ Populate all form fields ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     document.getElementById('f-rain').value  = w.precipitation
     document.getElementById('f-moist').value = w.soil_moisture
     document.getElementById('f-slope').value = w.slope
@@ -1126,20 +1445,20 @@ async function fetchWeatherAndPredict(districtName) {
     document.getElementById('f-lulc').value  = w.lulc
 
     // Label live vs. fallback fields
-    const liveTag  = '🟢 live'
-    const statTag  = '📌 profile'
+    const liveTag  = '≡ƒƒó live'
+    const statTag  = '≡ƒôî profile'
     const el = (id) => document.getElementById(id)
-    if (el('f-rain-src'))  el('f-rain-src').textContent  = w.live_data ? liveTag : '⚠️ fallback'
-    if (el('f-moist-src')) el('f-moist-src').textContent = w.live_data ? liveTag : '⚠️ fallback'
+    if (el('f-rain-src'))  el('f-rain-src').textContent  = w.live_data ? liveTag : 'ΓÜá∩╕Å fallback'
+    if (el('f-moist-src')) el('f-moist-src').textContent = w.live_data ? liveTag : 'ΓÜá∩╕Å fallback'
 
     // Brief confirmation before the prediction result replaces it
     out.innerHTML = `
       <div style="padding:.75rem 1rem;background:#e0f4f0;border-radius:9px;font-size:.8rem;color:#0e4820;display:flex;align-items:center;gap:.6rem">
-        <span>✅</span>
+        <span>Γ£à</span>
         <span>
           ${w.live_data
-            ? `Live data loaded for <strong>${w.district}</strong> — precipitation: <strong>${w.precipitation} mm</strong>, soil moisture: <strong>${w.soil_moisture}</strong>`
-            : `Static profile loaded for <strong>${w.district}</strong> (Open-Meteo unavailable — using district defaults)`
+            ? `Live data loaded for <strong>${w.district}</strong> ΓÇö precipitation: <strong>${w.precipitation} mm</strong>, soil moisture: <strong>${w.soil_moisture}</strong>`
+            : `Static profile loaded for <strong>${w.district}</strong> (Open-Meteo unavailable ΓÇö using district defaults)`
           }
         </span>
       </div>`
@@ -1148,10 +1467,10 @@ async function fetchWeatherAndPredict(districtName) {
     await runPrediction()
 
   } catch (err) {
-    if (reqId !== _weatherReqId) return  // stale — ignore
+    if (reqId !== _weatherReqId) return  // stale ΓÇö ignore
     out.innerHTML = `
       <div style="padding:.85rem 1rem;background:#fdecea;border:1.5px solid #f0a090;border-radius:9px;font-size:.82rem;color:#8b1a10">
-        ⚠️ <strong>Unable to fetch live meteorological data for ${districtName}.</strong>
+        ΓÜá∩╕Å <strong>Unable to fetch live meteorological data for ${districtName}.</strong>
         Please try again or select a different district.<br>
         <span style="font-size:.75rem;color:#a03020">${err.message}</span>
       </div>`
@@ -1162,10 +1481,10 @@ async function fetchWeatherAndPredict(districtName) {
 async function runPrediction(){
   const btn=document.getElementById('pred-btn')
   const out=document.getElementById('predict-result')
-  btn.textContent='⚙️ Analysing…';btn.disabled=true
+  btn.textContent='ΓÜÖ∩╕Å AnalysingΓÇª';btn.disabled=true
   // Only show the "contacting" message if nothing meaningful is already shown
   if(!out.innerHTML.includes('result-box')&&!out.innerHTML.includes('Live data loaded')&&!out.innerHTML.includes('Static profile loaded')){
-    out.innerHTML='<div style="padding:1rem;color:var(--muted);font-size:.85rem">⏳ Contacting AI model…</div>'
+    out.innerHTML='<div style="padding:1rem;color:var(--muted);font-size:.85rem">ΓÅ│ Contacting AI modelΓÇª</div>'
   }
 
   const payload={
@@ -1198,7 +1517,7 @@ async function runPrediction(){
     const district=document.getElementById('f-district').value
     const isLive=document.getElementById('f-rain-src')?.textContent.includes('live')
     const dataBadge=district
-      ? `<span style="font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;background:${isLive?'#e0f4f0':'#fef6e0'};color:${isLive?'#0e4820':'#6a3800'};border:1px solid ${isLive?'#90d0b0':'#e8d080'}">${isLive?'🟢 Live data':'📌 Profile data'} · ${district}</span>`
+      ? `<span style="font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;background:${isLive?'#e0f4f0':'#fef6e0'};color:${isLive?'#0e4820':'#6a3800'};border:1px solid ${isLive?'#90d0b0':'#e8d080'}">${isLive?'≡ƒƒó Live data':'≡ƒôî Profile data'} ┬╖ ${district}</span>`
       : ''
 
     out.innerHTML=`
@@ -1208,7 +1527,7 @@ async function runPrediction(){
           <div>
             <div class="result-cat" style="--rc1:${r.c1};--rc2:${r.c2}">${cat} Risk</div>
             <div class="result-sub" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-              Gradient Boosting Model · 14 features analysed
+              Gradient Boosting Model ┬╖ 14 features analysed
               ${dataBadge}
             </div>
           </div>
@@ -1225,14 +1544,14 @@ async function runPrediction(){
       </div>`
   } catch(err) {
     out.innerHTML=`<div class="result-box" style="background:#fdf0ec;border-color:#e8a090;padding:1rem;font-size:.85rem">
-      ⚠️ <strong>Could not reach AI model.</strong> Make sure the Flask API is running on port 5000.<br>
+      ΓÜá∩╕Å <strong>Could not reach AI model.</strong> Make sure the Flask API is running on port 5000.<br>
       <span style="color:var(--muted);font-size:.78rem">${err.message}</span>
     </div>`
   }
-  btn.textContent='🤖 Run AI Prediction';btn.disabled=false
+  btn.textContent='≡ƒñû Run AI Prediction';btn.disabled=false
 }
 
-/* ══ FORECAST ══ */
+/* ΓòÉΓòÉ FORECAST ΓòÉΓòÉ */
 // selPreset: sync lat/lon inputs when location dropdown changes
 function selPreset(){
   const i = +document.getElementById('fc-preset').value
@@ -1242,7 +1561,7 @@ function selPreset(){
   document.getElementById('fc-lon').value = p.lon
 }
 
-// Race-condition guard for forecast — only the latest request renders
+// Race-condition guard for forecast ΓÇö only the latest request renders
 let _fcReqId = 0
 // Auto-refresh timer handle
 let _fcTimer  = null
@@ -1258,12 +1577,12 @@ async function runForecast(){
 
   out.innerHTML = `
     <div class="fc-summary fc-safe">
-      <div class="fc-icon">⏳</div>
-      <strong>Fetching live weather for ${preset.name} from Open-Meteo…</strong>
+      <div class="fc-icon">ΓÅ│</div>
+      <strong>Fetching live weather for ${preset.name} from Open-MeteoΓÇª</strong>
     </div>`
 
   try {
-    // ── Step 1: fetch 24h hourly weather directly from Open-Meteo (free, no key, CORS open) ──
+    // ΓöÇΓöÇ Step 1: fetch 24h hourly weather directly from Open-Meteo (free, no key, CORS open) ΓöÇΓöÇ
     const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
       `&hourly=precipitation,soil_moisture_0_to_1cm,temperature_2m` +
       `&forecast_days=2&timezone=Asia%2FKolkata`
@@ -1288,61 +1607,70 @@ async function runForecast(){
     const futureHours = allHours.filter(h => h.time >= nowISTStr).slice(0, 24)
     if (!futureHours.length) throw new Error('No future hourly data available.')
 
-    // ── Step 2: run ALL 24 ML predictions in PARALLEL (not sequential) ──
-    const tord = { low:0, moderate:1, high:2, critical:3 }
-    const zc   = { low:RC.Low, moderate:RC.Moderate, high:RC.High, critical:RC.Critical }
+    if (reqId !== _fcReqId) return
 
     out.innerHTML = `
       <div class="fc-summary fc-safe">
-        <div class="fc-icon">⚙️</div>
-        <strong>Running AI model for ${futureHours.length} hours in parallel…</strong>
+        <div class="fc-icon">ΓÜÖ∩╕Å</div>
+        <strong>Running AI model for 24 hours (${futureHours.length} slots)ΓÇª</strong>
       </div>`
 
-    const hours = await Promise.all(futureHours.map(async (hw, i) => {
+    // ΓöÇΓöÇ Step 2: run ML predict for each hour ΓöÇΓöÇ
+    const tord = { low:0, moderate:1, high:2, critical:3 }
+    const zc   = { low:RC.Low, moderate:RC.Moderate, high:RC.High, critical:RC.Critical }
+    const LABEL_MAP = { 0:'low', 1:'moderate', 2:'high', 3:'critical' }
+
+    const hours = []
+    for (let i = 0; i < futureHours.length; i++) {
+      if (reqId !== _fcReqId) return
+      const hw = futureHours[i]
       try {
         const predResp = await fetch('https://bhudrishti-ml.onrender.com/predict', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            slope:         preset.slope,
-            elevation:     preset.elevation,
-            curvature:     preset.curvature,
-            aspect:        preset.aspect,
+            slope:        preset.slope,
+            elevation:    preset.elevation,
+            curvature:    preset.curvature,
+            aspect:       preset.aspect,
             precipitation: hw.precipitation,
-            ndvi:          preset.ndvi,
+            ndvi:         preset.ndvi,
             soil_moisture: hw.soil_moisture,
-            soil_type:     preset.soil_type,
-            lulc:          preset.lulc,
-            dist_road:     preset.dist_road,
-            dist_fault:    preset.dist_fault,
+            soil_type:    preset.soil_type,
+            lulc:         preset.lulc,
+            dist_road:    preset.dist_road,
+            dist_fault:   preset.dist_fault,
           })
         })
         const pred = await predResp.json()
-        return {
-          hour: i, time: hw.time,
-          precipitation: hw.precipitation, temperature: hw.temperature,
+        hours.push({
+          hour:          i,
+          time:          hw.time,
+          precipitation: hw.precipitation,
+          temperature:   hw.temperature,
           predicted_zone: (pred.risk_category || 'Moderate').toLowerCase(),
-        }
+        })
       } catch {
-        return { hour: i, time: hw.time, precipitation: hw.precipitation, temperature: hw.temperature, predicted_zone: 'moderate' }
+        // If one predict fails, use moderate as fallback for that hour
+        hours.push({ hour: i, time: hw.time, precipitation: hw.precipitation, temperature: hw.temperature, predicted_zone: 'moderate' })
       }
-    }))
+    }
 
     if (reqId !== _fcReqId) return
 
-    // ── Step 3: render ──
+    // ΓöÇΓöÇ Step 3: render ΓöÇΓöÇ
     const ah = hours.find(h => tord[h.predicted_zone] >= tord[thresh])
 
     const sum = ah
       ? `<div class="fc-summary fc-alert">
-          <div class="fc-icon">🚨</div>
+          <div class="fc-icon">≡ƒÜ¿</div>
           <div>
             <strong>${ah.hour === 0 ? 'High risk detected now' : `Alert expected in ${ah.hour} hour${ah.hour !== 1 ? 's' : ''}`}</strong><br>
-            <span style="font-size:.8rem">Threshold breach — Risk: <strong style="color:${zc[ah.predicted_zone]}">${ah.predicted_zone.toUpperCase()}</strong></span>
+            <span style="font-size:.8rem">Threshold breach ΓÇö Risk: <strong style="color:${zc[ah.predicted_zone]}">${ah.predicted_zone.toUpperCase()}</strong></span>
           </div>
         </div>`
       : `<div class="fc-summary fc-safe">
-          <div class="fc-icon">✅</div>
+          <div class="fc-icon">Γ£à</div>
           <strong>No ${thresh} alert expected in next 24 hours for ${preset.name}</strong>
         </div>`
 
@@ -1355,7 +1683,7 @@ async function runForecast(){
       return `
         <div class="tl-item" style="--zc:${zc[zone]||'#c07a10'}">
           <div class="tl-hr" style="font-size:.6rem">${label}</div>
-          <div class="tl-rain">🌧${rain.toFixed(1)}</div>
+          <div class="tl-rain">≡ƒîº${rain.toFixed(1)}</div>
           <div class="tl-zone" style="color:${zc[zone]||'#c07a10'}">${zone}</div>
         </div>`
     }).join('')
@@ -1371,7 +1699,7 @@ async function runForecast(){
     console.error('Forecast error:', err)
     out.innerHTML = `
       <div class="fc-summary fc-alert">
-        <div class="fc-icon">⚠️</div>
+        <div class="fc-icon">ΓÜá∩╕Å</div>
         <div>
           <strong>24-hour forecast unavailable</strong><br>
           <span style="font-size:.8rem">${err.message}</span>
@@ -1380,14 +1708,14 @@ async function runForecast(){
   }
 }
 
-/* ══ REROUTING ══ */
-// Race-condition guard — only the latest route request renders
+/* ΓòÉΓòÉ REROUTING ΓòÉΓòÉ */
+// Race-condition guard ΓÇö only the latest route request renders
 let _routeReqId = 0
 // Active Leaflet layer group for drawn routes
 let _routeLayers = null
 let rmInit = false
 
-// ── initRouteMap ──────────────────────────────────────────────────────────────
+// ΓöÇΓöÇ initRouteMap ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Creates the route map and loads ML-based risk data to identify affected roads.
 async function initRouteMap() {
   if (rmInit) {
@@ -1399,7 +1727,7 @@ async function initRouteMap() {
   const rm = L.map('routeMap', { center: [25.5, 92.5], zoom: 7, zoomControl: false })
   L.control.zoom({ position: 'bottomright' }).addTo(rm)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    attribution: '┬⌐ <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(rm)
 
   window._rm = rm
@@ -1411,62 +1739,62 @@ async function initRouteMap() {
     L.circleMarker([r.lat, r.lon], {
       radius: r.risk === 'Critical' ? 14 : r.risk === 'High' ? 11 : 8,
       fillColor: color, fillOpacity: 0.85, color: '#fff', weight: 2
-    }).bindTooltip(`<strong>${r.name}</strong><br>${r.risk} Risk · ${r.rain} mm rainfall`).addTo(rm)
+    }).bindTooltip(`<strong>${r.name}</strong><br>${r.risk} Risk ┬╖ ${r.rain} mm rainfall`).addTo(rm)
   })
 
   await loadIncidentsAndTable()
 }
 
-// ── NER road segments affected by each district's landslide risk ──────────────
+// ΓöÇΓöÇ NER road segments affected by each district's landslide risk ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Source: known major NER highways (NH/State Highway numbers + approx segments)
 const DISTRICT_ROADS = {
   'Cherrapunji': [
-    { road: 'NH-6 (Shillong–Silchar)', risk: 'blocked', cause: 'High rainfall + steep slopes (54°)' },
+    { road: 'NH-6 (ShillongΓÇôSilchar)', risk: 'blocked', cause: 'High rainfall + steep slopes (54┬░)' },
     { road: 'NH-44 Cherrapunji Bypass', risk: 'caution', cause: 'Potential debris on carriageway' },
   ],
   'Tawang': [
-    { road: 'NH-13 (Tawang–Bomdila)', risk: 'blocked', cause: 'Critical slope failure risk (48°)' },
+    { road: 'NH-13 (TawangΓÇôBomdila)', risk: 'blocked', cause: 'Critical slope failure risk (48┬░)' },
     { road: 'State Hwy 1 Tawang spur', risk: 'caution', cause: 'Unstable embankments' },
   ],
   'Kohima': [
-    { road: 'NH-29 (Kohima–Dimapur)', risk: 'caution', cause: 'High risk · active landslide zone' },
-    { road: 'NH-702 Kohima–Imphal', risk: 'caution', cause: 'Soil saturation risk' },
+    { road: 'NH-29 (KohimaΓÇôDimapur)', risk: 'caution', cause: 'High risk ┬╖ active landslide zone' },
+    { road: 'NH-702 KohimaΓÇôImphal', risk: 'caution', cause: 'Soil saturation risk' },
   ],
   'Shillong': [
-    { road: 'NH-40 (Shillong–Jowai)', risk: 'caution', cause: 'Moderate slope · high rainfall' },
-    { road: 'NH-44 (Shillong–Guwahati)', risk: 'monitor', cause: 'Monitor — approaching threshold' },
+    { road: 'NH-40 (ShillongΓÇôJowai)', risk: 'caution', cause: 'Moderate slope ┬╖ high rainfall' },
+    { road: 'NH-44 (ShillongΓÇôGuwahati)', risk: 'monitor', cause: 'Monitor ΓÇö approaching threshold' },
   ],
   'Itanagar': [
-    { road: 'NH-415 (Itanagar–Naharlagun)', risk: 'blocked', cause: 'High landslide susceptibility' },
-    { road: 'NH-52 Assam–Itanagar link', risk: 'caution', cause: 'Cut-slope instability' },
+    { road: 'NH-415 (ItanagarΓÇôNaharlagun)', risk: 'blocked', cause: 'High landslide susceptibility' },
+    { road: 'NH-52 AssamΓÇôItanagar link', risk: 'caution', cause: 'Cut-slope instability' },
   ],
   'Imphal': [
-    { road: 'NH-102 (Imphal–Jiribam)', risk: 'caution', cause: 'Moderate risk · active construction zones' },
-    { road: 'NH-37 Imphal–Moreh', risk: 'monitor', cause: 'Monitor — elevated soil moisture' },
+    { road: 'NH-102 (ImphalΓÇôJiribam)', risk: 'caution', cause: 'Moderate risk ┬╖ active construction zones' },
+    { road: 'NH-37 ImphalΓÇôMoreh', risk: 'monitor', cause: 'Monitor ΓÇö elevated soil moisture' },
   ],
   'Aizawl': [
-    { road: 'NH-54 (Aizawl–Silchar)', risk: 'blocked', cause: 'High risk + steep gradient (36°)' },
+    { road: 'NH-54 (AizawlΓÇôSilchar)', risk: 'blocked', cause: 'High risk + steep gradient (36┬░)' },
     { road: 'State Hwy 4 Aizawl bypass', risk: 'caution', cause: 'Retaining wall stress' },
   ],
   'Gangtok': [
-    { road: 'NH-10 (Gangtok–Siliguri)', risk: 'blocked', cause: 'Critical risk · 45° slope + wet soil' },
+    { road: 'NH-10 (GangtokΓÇôSiliguri)', risk: 'blocked', cause: 'Critical risk ┬╖ 45┬░ slope + wet soil' },
     { road: 'NH-310 East Sikkim link', risk: 'caution', cause: 'Debris flow potential' },
   ],
   'Dibrugarh': [
-    { road: 'NH-37 (Dibrugarh–Tinsukia)', risk: 'monitor', cause: 'Low slope but high rainfall' },
+    { road: 'NH-37 (DibrugarhΓÇôTinsukia)', risk: 'monitor', cause: 'Low slope but high rainfall' },
   ],
   'Agartala': [
-    { road: 'NH-8 (Agartala–Sabroom)', risk: 'monitor', cause: 'Low risk — precautionary' },
+    { road: 'NH-8 (AgartalaΓÇôSabroom)', risk: 'monitor', cause: 'Low risk ΓÇö precautionary' },
   ],
   'Silchar': [
-    { road: 'NH-6 Silchar segment', risk: 'monitor', cause: 'Monitor — flat terrain' },
+    { road: 'NH-6 Silchar segment', risk: 'monitor', cause: 'Monitor ΓÇö flat terrain' },
   ],
   'Jorhat': [
-    { road: 'NH-37 Jorhat bypass', risk: 'monitor', cause: 'Low risk — monitor rainfall' },
+    { road: 'NH-37 Jorhat bypass', risk: 'monitor', cause: 'Low risk ΓÇö monitor rainfall' },
   ],
 }
 
-// ── loadIncidentsAndTable — ML-based ─────────────────────────────────────────
+// ΓöÇΓöÇ loadIncidentsAndTable ΓÇö ML-based ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Uses REGIONS (from ML model /region-risks) to identify roads at risk.
 // Replaces the old field-report-based approach.
 async function loadIncidentsAndTable() {
@@ -1474,12 +1802,12 @@ async function loadIncidentsAndTable() {
   const evacDiv = document.getElementById('evac-routes')
   const rm      = window._rm
 
-  tbody.innerHTML   = `<tr><td colspan="4" style="padding:.6rem;color:var(--muted);font-size:.8rem">⏳ Analysing ML risk data…</td></tr>`
-  evacDiv.innerHTML = `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Building route recommendations…</div>`
+  tbody.innerHTML   = `<tr><td colspan="4" style="padding:.6rem;color:var(--muted);font-size:.8rem">ΓÅ│ Analysing ML risk dataΓÇª</td></tr>`
+  evacDiv.innerHTML = `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">ΓÅ│ Building route recommendationsΓÇª</div>`
 
   // Wait for REGIONS if not yet loaded
   if (!REGIONS || !REGIONS.length) {
-    tbody.innerHTML = `<tr><td colspan="4" style="padding:.6rem;color:var(--muted);font-size:.8rem">⏳ Risk data loading — open the Overview tab first or wait a moment.</td></tr>`
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:.6rem;color:var(--muted);font-size:.8rem">ΓÅ│ Risk data loading ΓÇö open the Overview tab first or wait a moment.</td></tr>`
     evacDiv.innerHTML = ''
     return
   }
@@ -1512,18 +1840,18 @@ async function loadIncidentsAndTable() {
   const el = id => document.getElementById(id)
   if (el('rt-blocked'))   el('rt-blocked').textContent   = blockedCount
   if (el('rt-incidents')) el('rt-incidents').textContent = incidents.filter(i => i.roadStatus !== 'monitor').length
-  if (el('rt-alts'))      el('rt-alts').textContent      = '—'
+  if (el('rt-alts'))      el('rt-alts').textContent      = 'ΓÇö'
 
   // Road blockage status table
   const pillClass = { blocked:'rblocked', caution:'rcaution', monitor:'rclear', clear:'rclear' }
-  const pillLabel = { blocked:'⛔ Blocked', caution:'⚠️ Caution', monitor:'👁 Monitor', clear:'✅ Clear' }
+  const pillLabel = { blocked:'Γ¢ö Blocked', caution:'ΓÜá∩╕Å Caution', monitor:'≡ƒæü Monitor', clear:'Γ£à Clear' }
   const RISK_COLOR = { Critical:'#6e3aaa', High:'#b83020', Moderate:'#c07a10', Low:'#2d7a3a' }
 
   tbody.innerHTML = incidents.map((inc, i) => `
     <tr>
       <td>
         <strong>${inc.road}</strong>
-        <div style="font-size:.68rem;color:var(--muted);margin-top:.1rem">📍 ${inc.district} · <span style="color:${RISK_COLOR[inc.risk]};font-weight:700">${inc.risk} Risk</span></div>
+        <div style="font-size:.68rem;color:var(--muted);margin-top:.1rem">≡ƒôì ${inc.district} ┬╖ <span style="color:${RISK_COLOR[inc.risk]};font-weight:700">${inc.risk} Risk</span></div>
       </td>
       <td><span class="rpill ${pillClass[inc.roadStatus]}">${pillLabel[inc.roadStatus]}</span></td>
       <td style="color:var(--muted);font-size:.73rem">${inc.cause}</td>
@@ -1536,14 +1864,14 @@ async function loadIncidentsAndTable() {
   // Plot risk markers on map for high/critical districts
   if (rm) {
     incidents.filter(i => i.roadStatus === 'blocked' || i.roadStatus === 'caution').forEach(inc => {
-      const icon = inc.roadStatus === 'blocked' ? '🚧' : '⚠️'
+      const icon = inc.roadStatus === 'blocked' ? '≡ƒÜº' : 'ΓÜá∩╕Å'
       L.marker([inc.lat, inc.lon], {
         icon: L.divIcon({
           className: '',
           html: `<div style="font-size:1.3rem;filter:drop-shadow(0 1px 3px #0009)">${icon}</div>`,
           iconAnchor: [10, 10]
         })
-      }).bindPopup(`<strong>${inc.road}</strong><br>${inc.district} — ${inc.risk} Risk<br>${inc.cause}<br>🌧 ${inc.rain} mm · Slope ${inc.slope}°`)
+      }).bindPopup(`<strong>${inc.road}</strong><br>${inc.district} ΓÇö ${inc.risk} Risk<br>${inc.cause}<br>≡ƒîº ${inc.rain} mm ┬╖ Slope ${inc.slope}┬░`)
         .addTo(rm)
     })
   }
@@ -1560,7 +1888,7 @@ async function loadIncidentsAndTable() {
   )
 }
 
-// ── showRerouteML ─────────────────────────────────────────────────────────────
+// ΓöÇΓöÇ showRerouteML ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 function showRerouteML(incidentIndex) {
   const inc = (window._mlIncidents || [])[incidentIndex]
   if (!inc) return
@@ -1589,7 +1917,7 @@ function showRerouteML(incidentIndex) {
     r.district || 'Incident location', nearest.name)
 }
 
-// ── calcEvacRoute ─────────────────────────────────────────────────────────────
+// ΓöÇΓöÇ calcEvacRoute ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Calls OSRM public demo server directly from the browser.
 // OSRM uses real OpenStreetMap road network data.
 // Race-condition guard ensures only the latest request renders.
@@ -1600,14 +1928,14 @@ async function calcEvacRoute(oLat, oLon, dLat, dLon, fromLabel, toLabel) {
 
   if (result) result.innerHTML = `
     <div style="margin-top:.85rem;padding:.75rem 1rem;background:#fff7ed;border-radius:9px;font-size:.8rem;color:#8a5020">
-      ⏳ Calculating route on OSM road network…
+      ΓÅ│ Calculating route on OSM road networkΓÇª
     </div>`
 
   // Clear previous route layers
   if (_routeLayers) _routeLayers.clearLayers()
 
   try {
-    // OSRM public demo server — OpenStreetMap road network, no API key
+    // OSRM public demo server ΓÇö OpenStreetMap road network, no API key
     // Coordinate order: longitude,latitude (OSRM convention)
     const url = `https://router.project-osrm.org/route/v1/driving/${oLon},${oLat};${dLon},${dLat}` +
       `?overview=full&geometries=geojson&alternatives=true&steps=false`
@@ -1616,7 +1944,7 @@ async function calcEvacRoute(oLat, oLon, dLat, dLon, fromLabel, toLabel) {
       headers: { 'User-Agent': 'BhuDrishti-SIH-2026/1.0' }
     })
 
-    if (reqId !== _routeReqId) return  // stale — user already requested another route
+    if (reqId !== _routeReqId) return  // stale ΓÇö user already requested another route
 
     if (!resp.ok) throw new Error(`OSRM HTTP ${resp.status}`)
     const data = await resp.json()
@@ -1631,7 +1959,7 @@ async function calcEvacRoute(oLat, oLon, dLat, dLon, fromLabel, toLabel) {
 
     // Draw all routes on map (primary + alternatives)
     routes.forEach((route, i) => {
-      const coords = route.geometry.coordinates.map(([lon, lat]) => [lat, lon])  // GeoJSON→Leaflet
+      const coords = route.geometry.coordinates.map(([lon, lat]) => [lat, lon])  // GeoJSONΓåÆLeaflet
       const isPrimary = i === 0
       const line = L.polyline(coords, {
         color:     routeColors[i] || '#666',
@@ -1640,8 +1968,8 @@ async function calcEvacRoute(oLat, oLon, dLat, dLon, fromLabel, toLabel) {
         opacity:   isPrimary ? 0.9 : 0.6,
       }).bindTooltip(
         isPrimary
-          ? `✅ Primary: ${(route.distance / 1000).toFixed(1)} km · ${Math.round(route.duration / 60)} min`
-          : `🔄 Alt ${i}: ${(route.distance / 1000).toFixed(1)} km · ${Math.round(route.duration / 60)} min`
+          ? `Γ£à Primary: ${(route.distance / 1000).toFixed(1)} km ┬╖ ${Math.round(route.duration / 60)} min`
+          : `≡ƒöä Alt ${i}: ${(route.distance / 1000).toFixed(1)} km ┬╖ ${Math.round(route.duration / 60)} min`
       )
       _routeLayers.addLayer(line)
     })
@@ -1664,7 +1992,7 @@ async function calcEvacRoute(oLat, oLon, dLat, dLon, fromLabel, toLabel) {
 
     if (result) result.innerHTML = `
       <div style="margin-top:.85rem;padding:1rem;border-radius:10px;background:#f0f7f1;border:1.5px solid #90d0a8">
-        <div style="font-weight:800;font-size:.92rem;margin-bottom:.6rem">🛣️ Route — ${fromLabel} → ${toLabel}</div>
+        <div style="font-weight:800;font-size:.92rem;margin-bottom:.6rem">≡ƒ¢ú∩╕Å Route ΓÇö ${fromLabel} ΓåÆ ${toLabel}</div>
         <div style="display:flex;gap:1.5rem;font-size:.82rem;flex-wrap:wrap">
           <div><div style="color:var(--muted);font-size:.67rem;text-transform:uppercase;font-weight:700">Distance</div><strong>${distKm} km</strong></div>
           <div><div style="color:var(--muted);font-size:.67rem;text-transform:uppercase;font-weight:700">Est. Time</div><strong>${durMin} min</strong></div>
@@ -1681,12 +2009,12 @@ async function calcEvacRoute(oLat, oLon, dLat, dLon, fromLabel, toLabel) {
     console.error('[routing]', err)
     if (result) result.innerHTML = `
       <div style="margin-top:.85rem;padding:.85rem 1rem;background:#fdecea;border:1.5px solid #f0a090;border-radius:9px;font-size:.82rem;color:#8b1a10">
-        ⚠️ Routing unavailable: ${err.message}
+        ΓÜá∩╕Å Routing unavailable: ${err.message}
       </div>`
   }
 }
 
-/* ══ ALERT BANNER — dynamic from live risk data ══ */
+/* ΓòÉΓòÉ ALERT BANNER ΓÇö dynamic from live risk data ΓòÉΓòÉ */
 function renderAlertBanner(regions, authorityAlerts) {
   const header = document.getElementById('alert-header')
   const list   = document.getElementById('alert-list')
@@ -1694,7 +2022,7 @@ function renderAlertBanner(regions, authorityAlerts) {
 
   const RISK_BORDER = { Critical: '#6e3aaa', High: '#b83020', Moderate: '#c07a10' }
   const RISK_BG     = { Critical: '#f0e8fa88', High: '#fdecea88', Moderate: '#fff8e088' }
-  const RISK_ICON   = { Critical: '🚨', High: '⚠️', Moderate: '📢' }
+  const RISK_ICON   = { Critical: '≡ƒÜ¿', High: 'ΓÜá∩╕Å', Moderate: '≡ƒôó' }
 
   // AI-generated risk items from REGIONS
   const highRegions = (regions || []).filter(r => r.risk === 'Critical' || r.risk === 'High')
@@ -1706,7 +2034,7 @@ function renderAlertBanner(regions, authorityAlerts) {
 
   if (totalCount === 0) {
     header.innerHTML = '<span class="pulse-ring" style="opacity:.4"></span>&nbsp;NO ACTIVE HIGH-RISK ALERTS'
-    list.innerHTML = '<div class="alert-item" style="color:#2d7a3a;font-size:.78rem;padding:.4rem .75rem">✅ All monitored districts are currently at low or moderate risk.</div>'
+    list.innerHTML = '<div class="alert-item" style="color:#2d7a3a;font-size:.78rem;padding:.4rem .75rem">Γ£à All monitored districts are currently at low or moderate risk.</div>'
     const cnt = document.getElementById('active-alerts-count')
     const dlt = document.getElementById('active-alerts-delta')
     if (cnt) cnt.textContent = '0'
@@ -1714,28 +2042,28 @@ function renderAlertBanner(regions, authorityAlerts) {
     return
   }
 
-  header.innerHTML = `<span class="pulse-ring"></span>&nbsp;ACTIVE ALERTS — ${totalCount} ZONE${totalCount !== 1 ? 'S' : ''} AT ELEVATED RISK`
+  header.innerHTML = `<span class="pulse-ring"></span>&nbsp;ACTIVE ALERTS ΓÇö ${totalCount} ZONE${totalCount !== 1 ? 'S' : ''} AT ELEVATED RISK`
 
   // Sync stat card
   const cnt = document.getElementById('active-alerts-count')
   const dlt = document.getElementById('active-alerts-delta')
   if (cnt) cnt.textContent = totalCount
-  if (dlt) dlt.textContent = `${highRegions.length} AI · ${authActive.length} Authority`
+  if (dlt) dlt.textContent = `${highRegions.length} AI ┬╖ ${authActive.length} Authority`
 
   const aiItems = highRegions.map(r => `
     <div class="alert-item" style="border-left:4px solid ${RISK_BORDER[r.risk]||'#b83020'};background:${RISK_BG[r.risk]||'#fdecea88'}">
-      <span>${RISK_ICON[r.risk]||'⚠️'}</span>
-      <span><strong>${r.name}</strong> — ${r.risk} · Rainfall: ${r.rain} mm · Slope: ${r.slope}°</span>
-      <span class="sms-tag" style="background:#f0e8fa;color:#5e28a0;border-color:#c8a0e0">🤖 AI Risk</span>
+      <span>${RISK_ICON[r.risk]||'ΓÜá∩╕Å'}</span>
+      <span><strong>${r.name}</strong> ΓÇö ${r.risk} ┬╖ Rainfall: ${r.rain} mm ┬╖ Slope: ${r.slope}┬░</span>
+      <span class="sms-tag" style="background:#f0e8fa;color:#5e28a0;border-color:#c8a0e0">≡ƒñû AI Risk</span>
     </div>`).join('')
 
   const authItems = authActive.map(a => {
     const lvl = a.risk_category || 'High'
     return `
     <div class="alert-item" style="border-left:4px solid ${RISK_BORDER[lvl]||'#b83020'};background:${RISK_BG[lvl]||'#fdecea88'}">
-      <span>${RISK_ICON[lvl]||'⚠️'}</span>
-      <span><strong>${a.district}</strong> — ${lvl} · ${a.message}</span>
-      <span class="sms-tag">🏛️ Authority</span>
+      <span>${RISK_ICON[lvl]||'ΓÜá∩╕Å'}</span>
+      <span><strong>${a.district}</strong> ΓÇö ${lvl} ┬╖ ${a.message}</span>
+      <span class="sms-tag">≡ƒÅ¢∩╕Å Authority</span>
     </div>`
   }).join('')
 
@@ -1756,24 +2084,25 @@ async function loadAuthorityAlerts() {
   } catch { return [] }
 }
 
-/* ══ WARNING SYSTEM ══ */
+/* ΓòÉΓòÉ WARNING SYSTEM ΓòÉΓòÉ */
 let _warnInit = false
 
 async function initMesh() {
-  // initMesh is called by showTab('mesh') — now initialises Warning System
+  // initMesh is called by showTab('mesh') ΓÇö now initialises Warning System
   await initWarningSystem()
 }
 
 async function initWarningSystem() {
   _warnInit = true
-  const auth = false   // no auth — always show citizen panel
+  const user = getStoredUser()
+  const auth = isAuthority(user)
 
-  // Always show citizen panel (no login)
+  // Show correct panel based on role
   const authPanel = document.getElementById('warn-authority-panel')
   const citizenPanel = document.getElementById('warn-citizen-panel')
 
-  if (authPanel)    authPanel.style.display  = 'none'
-  if (citizenPanel) citizenPanel.style.display = ''
+  if (authPanel)    authPanel.style.display  = auth ? '' : 'none'
+  if (citizenPanel) citizenPanel.style.display = auth ? 'none' : ''
 
   // Timestamp
   const timeEl = document.getElementById('warn-auth-time')
@@ -1801,7 +2130,7 @@ async function initWarningSystem() {
   }
 }
 
-// ── Stat cards (authority) ────────────────────────────────────────────────────
+// ΓöÇΓöÇ Stat cards (authority) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 async function updateWarnStatCards() {
   // High-risk zones from REGIONS (already loaded by overview tab)
   const highRegions = (REGIONS || []).filter(r => r.risk === 'Critical' || r.risk === 'High')
@@ -1811,7 +2140,7 @@ async function updateWarnStatCards() {
   const hs  = document.getElementById('ws-high-sub')
   if (hc) hc.textContent = highRegions.length
   if (hs) hs.textContent = highRegions.length > 0
-    ? `${critRegions.length} critical · ${highRegions.length - critRegions.length} high`
+    ? `${critRegions.length} critical ┬╖ ${highRegions.length - critRegions.length} high`
     : 'out of ' + (REGIONS||[]).length + ' zones'
 
   // Active authority warnings count
@@ -1842,7 +2171,7 @@ async function updateWarnStatCards() {
   const nc = document.getElementById('ws-notified')
   const ns = document.getElementById('ws-notified-sub')
   if (nc) nc.textContent = notifiedSet.size
-  if (ns) ns.textContent = notifiedSet.size > 0 ? Array.from(notifiedSet).slice(0,2).join(', ') + (notifiedSet.size > 2 ? '…' : '') : 'All clear'
+  if (ns) ns.textContent = notifiedSet.size > 0 ? Array.from(notifiedSet).slice(0,2).join(', ') + (notifiedSet.size > 2 ? 'ΓÇª' : '') : 'All clear'
 
   // System status
   const sc = document.getElementById('ws-status-card')
@@ -1854,7 +2183,7 @@ async function updateWarnStatCards() {
   if (ss) ss.textContent = isHealthy ? 'All systems operational' : 'ML data unavailable'
 }
 
-// ── AI Alerts table (authority) ───────────────────────────────────────────────
+// ΓöÇΓöÇ AI Alerts table (authority) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 function renderAIAlertsTable() {
   const div = document.getElementById('ws-ai-alerts-list')
   if (!div) return
@@ -1864,30 +2193,31 @@ function renderAIAlertsTable() {
   const sorted = [...(REGIONS || [])].sort((a, b) => (ORDER[a.risk] ?? 4) - (ORDER[b.risk] ?? 4))
 
   if (!sorted.length) {
-    div.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Risk data not yet loaded. Visit the Overview tab first.</div>'
+    div.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">ΓÅ│ Risk data not yet loaded. Visit the Overview tab first.</div>'
     return
   }
 
   const RC = { Low:'#2d7a3a', Moderate:'#c07a10', High:'#b83020', Critical:'#6e3aaa' }
-  const RI = { Low:'🟢', Moderate:'🟡', High:'⚠️', Critical:'🚨' }
-  const LABEL = { Low:'Low Risk', Moderate:'Medium Risk', High:'High Risk – Landslide', Critical:'Critical – Landslide' }
+  const RI = { Low:'≡ƒƒó', Moderate:'≡ƒƒí', High:'ΓÜá∩╕Å', Critical:'≡ƒÜ¿' }
+  const LABEL = { Low:'Low Risk', Moderate:'Medium Risk', High:'High Risk ΓÇô Landslide', Critical:'Critical ΓÇô Landslide' }
 
   div.innerHTML = sorted.map((r, i) => {
     const lvl = r.risk || 'Low'
     const isHigher = lvl === 'High' || lvl === 'Critical'
-    const timeStr = 'just now'
+    const minsAgo = Math.floor(Math.random() * 120) + 1  // displayed as "N min ago" (live data is as-of last refresh)
+    const timeStr = minsAgo < 60 ? `${minsAgo} min ago` : `${Math.floor(minsAgo/60)} hr ago`
     return `
       <div style="display:flex;align-items:center;gap:.65rem;padding:.6rem .75rem;border-bottom:1px solid #f0e0c8;${i===0?'border-radius:8px 8px 0 0':''}" class="ws-alert-row">
         <span style="font-size:1.05rem;flex-shrink:0">${RI[lvl]}</span>
         <div style="flex:1;min-width:0">
           <div style="font-size:.8rem;font-weight:700;color:${RC[lvl]}">${LABEL[lvl]}</div>
-          <div style="font-size:.7rem;color:var(--muted);margin-top:.1rem">${r.name} · ${r.rain} mm · ${r.slope}° slope</div>
+          <div style="font-size:.7rem;color:var(--muted);margin-top:.1rem">${r.name} ┬╖ ${r.rain} mm ┬╖ ${r.slope}┬░ slope</div>
         </div>
         <span style="font-size:.65rem;color:var(--muted);white-space:nowrap;flex-shrink:0">${timeStr}</span>
         ${isHigher
           ? `<button onclick="prefillWarn('${r.name}','${lvl}')"
               style="flex-shrink:0;background:linear-gradient(135deg,#8b3a10,#c0541a);color:#fff;border:0;border-radius:7px;padding:.28rem .65rem;font-size:.68rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap">
-              ⚠ Issue Warning
+              ΓÜá Issue Warning
             </button>`
           : `<button onclick="prefillWarn('${r.name}','${lvl}')"
               style="flex-shrink:0;background:#f5f0e8;color:var(--muted);border:1.5px solid #e0d0b8;border-radius:7px;padding:.28rem .65rem;font-size:.68rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap">
@@ -1911,7 +2241,7 @@ function scrollToWarnList() {
   document.getElementById('warn-list')?.scrollIntoView({ behavior: 'smooth' })
 }
 
-// ── Broadcast Alert (authority) ───────────────────────────────────────────────
+// ΓöÇΓöÇ Broadcast Alert (authority) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 async function broadcastAlert() {
   const highR = (REGIONS || []).filter(r => r.risk === 'Critical' || r.risk === 'High')
   if (!highR.length) { alert('No High/Critical zones to broadcast to.'); return }
@@ -1927,14 +2257,14 @@ async function broadcastAlert() {
         body: JSON.stringify({
           district: r.name,
           risk_category: r.risk,
-          message: `AI-assessed ${r.risk} landslide risk. Rainfall: ${r.rain} mm, Slope: ${r.slope}°. Take precautions immediately.`,
+          message: `AI-assessed ${r.risk} landslide risk. Rainfall: ${r.rain} mm, Slope: ${r.slope}┬░. Take precautions immediately.`,
           latitude: r.lat, longitude: r.lon,
         })
       })
       if (resp.ok) issued++
     } catch {}
   }
-  alert(`✅ Broadcast complete — ${issued} warning(s) issued.`)
+  alert(`Γ£à Broadcast complete ΓÇö ${issued} warning(s) issued.`)
   await loadActiveWarnings()
   await updateWarnStatCards()
   await buildActivityLog()
@@ -1942,7 +2272,7 @@ async function broadcastAlert() {
   renderAlertBanner(REGIONS, authAlerts)
 }
 
-// ── Activity Log (authority) ──────────────────────────────────────────────────
+// ΓöÇΓöÇ Activity Log (authority) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 async function buildActivityLog() {
   const log = document.getElementById('ws-activity-log')
   if (!log) return
@@ -1960,7 +2290,7 @@ async function buildActivityLog() {
         text: `Warning issued for ${a.district} (${a.risk_category})`,
         time: a.created_at,
         color: '#b83020',
-        icon: '🔴'
+        icon: '≡ƒö┤'
       }))
     } catch {}
   }
@@ -1970,20 +2300,20 @@ async function buildActivityLog() {
     text: 'AI risk assessment completed',
     time: new Date(Date.now() - 2 * 60000).toISOString(),
     color: '#2d7a3a',
-    icon: '🟢'
+    icon: '≡ƒƒó'
   })
   if (REGIONS && REGIONS.length > 0) {
     entries.push({
       text: `Alert received from AI (${REGIONS.filter(r=>r.risk==='High'||r.risk==='Critical').length} high-risk zones)`,
       time: new Date(Date.now() - 4 * 60000).toISOString(),
       color: '#b83020',
-      icon: '🔴'
+      icon: '≡ƒö┤'
     })
     entries.push({
       text: 'System health check completed',
       time: new Date(Date.now() - 8 * 60000).toISOString(),
       color: '#2d7a3a',
-      icon: '🟢'
+      icon: '≡ƒƒó'
     })
   }
 
@@ -1998,13 +2328,13 @@ async function buildActivityLog() {
   }).join('')
 }
 
-// ── Active Warnings list (authority) ─────────────────────────────────────────
+// ΓöÇΓöÇ Active Warnings list (authority) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 async function loadActiveWarnings() {
   const list  = document.getElementById('warn-list')
   const token = localStorage.getItem('bhudrishti_token')
   if (!list) return
 
-  list.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Loading…</div>'
+  list.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">ΓÅ│ LoadingΓÇª</div>'
 
   if (!token) {
     list.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">Sign in to view active warnings.</div>'
@@ -2020,16 +2350,16 @@ async function loadActiveWarnings() {
 
     const alerts = data.alerts || []
     if (alerts.length === 0) {
-      list.innerHTML = '<div style="padding:.85rem;color:#2d7a3a;font-size:.8rem;background:#f0f9f4;border-radius:9px;border:1px solid #90d0a8">✅ No active authority-issued warnings at this time.</div>'
+      list.innerHTML = '<div style="padding:.85rem;color:#2d7a3a;font-size:.8rem;background:#f0f9f4;border-radius:9px;border:1px solid #90d0a8">Γ£à No active authority-issued warnings at this time.</div>'
       return
     }
 
     const RISK_COLOR = { Low:'#2d7a3a', Moderate:'#c07a10', High:'#b83020', Critical:'#6e3aaa' }
-    const RISK_ICON  = { Low:'ℹ️', Moderate:'📢', High:'⚠️', Critical:'🚨' }
+    const RISK_ICON  = { Low:'Γä╣∩╕Å', Moderate:'≡ƒôó', High:'ΓÜá∩╕Å', Critical:'≡ƒÜ¿' }
 
     list.innerHTML = alerts.map(a => {
       const lvl = a.risk_category || 'High'
-      const ts  = a.created_at ? new Date(a.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true}) : '—'
+      const ts  = a.created_at ? new Date(a.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true}) : 'ΓÇö'
       return `
         <div style="border:1.5px solid ${RISK_COLOR[lvl]}30;border-left:4px solid ${RISK_COLOR[lvl]};border-radius:9px;padding:.7rem .85rem;margin-bottom:.5rem;background:#fffbf5">
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;flex-wrap:wrap">
@@ -2040,24 +2370,24 @@ async function loadActiveWarnings() {
           </div>
           <div style="font-size:.78rem;color:var(--text);line-height:1.5;margin-bottom:.35rem">${a.message}</div>
           <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
-            <span style="font-size:.65rem;font-weight:700;color:#0e4820;background:#e0f5e8;border-radius:999px;padding:.12rem .55rem;border:1px solid #90d0a8">● ACTIVE</span>
-            <span style="font-size:.65rem;color:var(--muted)">🏛️ Authority</span>
-            ${`<!-- resolve button hidden — no auth -->`}
+            <span style="font-size:.65rem;font-weight:700;color:#0e4820;background:#e0f5e8;border-radius:999px;padding:.12rem .55rem;border:1px solid #90d0a8">ΓùÅ ACTIVE</span>
+            <span style="font-size:.65rem;color:var(--muted)">≡ƒÅ¢∩╕Å Authority</span>
+            ${isAuthority(getStoredUser()) ? `<button onclick="resolveWarning('${a.id}')" style="margin-left:auto;border:0;background:#fdecea;color:#b83020;padding:.25rem .65rem;border-radius:7px;cursor:pointer;font-size:.68rem;font-weight:700">Γ£ô Resolve</button>` : ''}
           </div>
         </div>`
     }).join('')
   } catch (err) {
-    list.innerHTML = `<div style="padding:.75rem;color:#b83020;font-size:.8rem">⚠️ ${err.message}</div>`
+    list.innerHTML = `<div style="padding:.75rem;color:#b83020;font-size:.8rem">ΓÜá∩╕Å ${err.message}</div>`
   }
 }
 
-// ── Citizen: load and show active warnings ────────────────────────────────────
+// ΓöÇΓöÇ Citizen: load and show active warnings ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 async function loadCitizenWarnings() {
   const div   = document.getElementById('ws-citizen-alerts')
   const token = localStorage.getItem('bhudrishti_token')
   if (!div) return
 
-  div.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.82rem">⏳ Checking for active warnings…</div>'
+  div.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.82rem">ΓÅ│ Checking for active warningsΓÇª</div>'
 
   const RISK_COLOR = { Low:'#2d7a3a', Moderate:'#c07a10', High:'#b83020', Critical:'#6e3aaa' }
 
@@ -2079,7 +2409,7 @@ async function loadCitizenWarnings() {
   if (!highRegions.length && !authAlerts.length) {
     div.innerHTML = `
       <div style="background:linear-gradient(135deg,#e0f5e8,#f0fff4);border:2px solid #80d098;border-radius:14px;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem">
-        <span style="font-size:2rem">✅</span>
+        <span style="font-size:2rem">Γ£à</span>
         <div>
           <div style="font-weight:800;color:#0e4820;font-size:.95rem;margin-bottom:.2rem">No Active Warnings</div>
           <div style="font-size:.78rem;color:#1a5228">All monitored districts are currently at safe or low risk. Stay alert and check back for updates.</div>
@@ -2093,14 +2423,14 @@ async function loadCitizenWarnings() {
   // Authority-issued alerts first (most authoritative)
   authAlerts.forEach(a => {
     const lvl = a.risk_category || 'High'
-    const ts  = a.created_at ? new Date(a.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}) : '—'
+    const ts  = a.created_at ? new Date(a.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}) : 'ΓÇö'
     const region = PRESETS?.find(p => p.name === a.district)
     html += `
       <div style="background:linear-gradient(135deg,${RISK_COLOR[lvl]}08,${RISK_COLOR[lvl]}04);border:2px solid ${RISK_COLOR[lvl]}60;border-radius:14px;padding:1.25rem;margin-bottom:.85rem">
         <div style="display:flex;align-items:flex-start;gap:1rem">
           <!-- Alert badge column -->
           <div style="background:linear-gradient(135deg,${RISK_COLOR[lvl]},${RISK_COLOR[lvl]}cc);border-radius:12px;padding:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <span style="font-size:1.8rem">${lvl === 'Critical' ? '🚨' : '⚠️'}</span>
+            <span style="font-size:1.8rem">${lvl === 'Critical' ? '≡ƒÜ¿' : 'ΓÜá∩╕Å'}</span>
           </div>
           <!-- Alert content -->
           <div style="flex:1;min-width:0">
@@ -2115,14 +2445,14 @@ async function loadCitizenWarnings() {
               </button>
               <button onclick="if(navigator.share){navigator.share({title:'BhuDrishti Alert',text:'${a.risk_category} landslide risk in ${a.district}: ${a.message}',url:window.location.href})}else{alert('Share this alert with your contacts:\\n${a.message}')}"
                 style="background:#f5f0e8;color:var(--text);border:1.5px solid #e0d0b8;border-radius:9px;padding:.5rem 1rem;font-size:.78rem;font-weight:700;font-family:Inter,sans-serif;cursor:pointer">
-                📤 Share Alert
+                ≡ƒôñ Share Alert
               </button>
             </div>
           </div>
         </div>
         <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid ${RISK_COLOR[lvl]}20;display:flex;align-items:center;gap:.5rem;font-size:.7rem;color:var(--muted)">
-          <span style="font-weight:700;color:${RISK_COLOR[lvl]};background:${RISK_COLOR[lvl]}15;padding:.12rem .55rem;border-radius:999px;border:1px solid ${RISK_COLOR[lvl]}30">● ACTIVE</span>
-          <span>🏛️ Issued by Authority</span>
+          <span style="font-weight:700;color:${RISK_COLOR[lvl]};background:${RISK_COLOR[lvl]}15;padding:.12rem .55rem;border-radius:999px;border:1px solid ${RISK_COLOR[lvl]}30">ΓùÅ ACTIVE</span>
+          <span>≡ƒÅ¢∩╕Å Issued by Authority</span>
         </div>
       </div>`
   })
@@ -2135,14 +2465,14 @@ async function loadCitizenWarnings() {
       <div style="background:linear-gradient(135deg,${RISK_COLOR[lvl]}08,${RISK_COLOR[lvl]}04);border:2px solid ${RISK_COLOR[lvl]}40;border-radius:14px;padding:1.25rem;margin-bottom:.85rem">
         <div style="display:flex;align-items:flex-start;gap:1rem">
           <div style="background:linear-gradient(135deg,${RISK_COLOR[lvl]},${RISK_COLOR[lvl]}cc);border-radius:12px;padding:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <span style="font-size:1.8rem">${lvl === 'Critical' ? '🚨' : '⚠️'}</span>
+            <span style="font-size:1.8rem">${lvl === 'Critical' ? '≡ƒÜ¿' : 'ΓÜá∩╕Å'}</span>
           </div>
           <div style="flex:1;min-width:0">
-            <div style="font-size:.68rem;font-weight:800;color:${RISK_COLOR[lvl]};text-transform:uppercase;letter-spacing:.08em;margin-bottom:.2rem">${lvl} RISK — AI ASSESSMENT</div>
+            <div style="font-size:.68rem;font-weight:800;color:${RISK_COLOR[lvl]};text-transform:uppercase;letter-spacing:.08em;margin-bottom:.2rem">${lvl} RISK ΓÇö AI ASSESSMENT</div>
             <div style="font-size:1rem;font-weight:900;color:var(--text);margin-bottom:.3rem">Landslide Risk in ${r.name}</div>
-            <div style="font-size:.72rem;color:var(--muted);margin-bottom:.55rem">Updated just now · 🤖 AI Model</div>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:.55rem">Updated just now ┬╖ ≡ƒñû AI Model</div>
             <div style="font-size:.82rem;color:var(--text);line-height:1.6;margin-bottom:.75rem">
-              Current rainfall of <strong>${r.rain} mm</strong> combined with steep terrain (slope ${r.slope}°) has elevated landslide susceptibility. Stay alert and avoid vulnerable routes.
+              Current rainfall of <strong>${r.rain} mm</strong> combined with steep terrain (slope ${r.slope}┬░) has elevated landslide susceptibility. Stay alert and avoid vulnerable routes.
             </div>
             <div style="display:flex;gap:.6rem;flex-wrap:wrap">
               <button onclick="alert('Safety guidelines:\\n\\n1. Avoid hilly slopes and valleys\\n2. Stay indoors during heavy rain\\n3. Contact helpline: 1077\\n4. Move to higher ground if advised')"
@@ -2151,14 +2481,14 @@ async function loadCitizenWarnings() {
               </button>
               <button onclick="if(navigator.share){navigator.share({title:'BhuDrishti Alert',text:'${r.risk} landslide risk in ${r.name}. Rainfall: ${r.rain}mm',url:window.location.href})}else{alert('Share: ${r.risk} landslide risk in ${r.name}. Rainfall: ${r.rain}mm')}"
                 style="background:#f5f0e8;color:var(--text);border:1.5px solid #e0d0b8;border-radius:9px;padding:.5rem 1rem;font-size:.78rem;font-weight:700;font-family:Inter,sans-serif;cursor:pointer">
-                📤 Share Alert
+                ≡ƒôñ Share Alert
               </button>
             </div>
           </div>
         </div>
         <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid ${RISK_COLOR[lvl]}20;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
-          <span style="font-size:.7rem;font-weight:700;color:${RISK_COLOR[lvl]};background:${RISK_COLOR[lvl]}15;padding:.12rem .55rem;border-radius:999px;border:1px solid ${RISK_COLOR[lvl]}30">● ACTIVE</span>
-          <span style="font-size:.7rem;color:var(--muted)">🤖 AI Risk Assessment · Rainfall ${r.rain}mm · Slope ${r.slope}°</span>
+          <span style="font-size:.7rem;font-weight:700;color:${RISK_COLOR[lvl]};background:${RISK_COLOR[lvl]}15;padding:.12rem .55rem;border-radius:999px;border:1px solid ${RISK_COLOR[lvl]}30">ΓùÅ ACTIVE</span>
+          <span style="font-size:.7rem;color:var(--muted)">≡ƒñû AI Risk Assessment ┬╖ Rainfall ${r.rain}mm ┬╖ Slope ${r.slope}┬░</span>
         </div>
       </div>`
   })
@@ -2178,7 +2508,7 @@ async function issueWarning() {
   // Auto-generate message if blank
   const finalMsg = message || `${level} landslide risk alert for ${district}. Take immediate precautions.`
 
-  btn.disabled = true; btn.textContent = '⏳ Issuing…'
+  btn.disabled = true; btn.textContent = 'ΓÅ│ IssuingΓÇª'
   hideWarnMsg()
 
   try {
@@ -2190,7 +2520,7 @@ async function issueWarning() {
     const data = await resp.json()
     if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
 
-    showWarnMsg(`✅ Warning issued for ${district}. Visible to all citizens now.`, 'success')
+    showWarnMsg(`Γ£à Warning issued for ${district}. Visible to all citizens now.`, 'success')
     document.getElementById('warn-message').value = ''
     document.getElementById('warn-district').value = ''
     document.getElementById('warn-msg-len').textContent = '0'
@@ -2201,9 +2531,9 @@ async function issueWarning() {
     const authAlerts = await loadAuthorityAlerts()
     renderAlertBanner(REGIONS, authAlerts)
   } catch (err) {
-    showWarnMsg(`⚠️ Failed: ${err.message}`, 'error')
+    showWarnMsg(`ΓÜá∩╕Å Failed: ${err.message}`, 'error')
   } finally {
-    btn.disabled = false; btn.textContent = '📡 Send Warning'
+    btn.disabled = false; btn.textContent = '≡ƒôí Send Warning'
   }
 }
 
@@ -2239,9 +2569,9 @@ function hideWarnMsg() {
   const el = document.getElementById('warn-issue-msg')
   if (el) el.style.display = 'none'
 }
-function renderWarningAIAlerts() { /* legacy — now handled by renderAIAlertsTable */ }
+function renderWarningAIAlerts() { /* legacy ΓÇö now handled by renderAIAlertsTable */ }
 
-/* ══ FIELD REPORTS ══ */
+/* ΓòÉΓòÉ FIELD REPORTS ΓòÉΓòÉ */
 async function initReports() {
   const grid = document.getElementById('rep-grid');
 
@@ -2273,12 +2603,12 @@ async function initReports() {
     }
 
     const ti = {
-      crack: '🪨',
-      blocked_road: '🚧',
-      landslide_occurred: '🏔️',
-      flooding: '🌊',
-      infrastructure_damage: '🏗️',
-      other: '📌'
+      crack: '≡ƒ¬¿',
+      blocked_road: '≡ƒÜº',
+      landslide_occurred: '≡ƒÅö∩╕Å',
+      flooding: '≡ƒîè',
+      infrastructure_damage: '≡ƒÅù∩╕Å',
+      other: '≡ƒôî'
     };
 
     const tn = {
@@ -2299,7 +2629,7 @@ async function initReports() {
     grid.innerHTML = reports.map(r => `
       <div class="rep-card" style="border-left:4px solid ${sc[r.severity] || '#c0541a'}">
         <div class="rc-hdr">
-          <span class="rc-icon">${ti[r.report_type] || '📌'}</span>
+          <span class="rc-icon">${ti[r.report_type] || '≡ƒôî'}</span>
 
           <div>
             <div class="rc-dist">${r.district || 'Location not specified'}</div>
@@ -2322,13 +2652,13 @@ async function initReports() {
             ${(r.severity || 'unknown').toUpperCase()}
           </span>
           <span class="rep-reporter">
-            👤 ${r.reporter_name || 'Citizen'}
+            ≡ƒæñ ${r.reporter_name || 'Citizen'}
           </span>
 
           ${
             r.verified
-              ? '<span class="verified">✓ Verified</span>'
-              : '<span style="font-size:.68rem;color:#c07a10;font-weight:700">⏳ Pending</span>'
+              ? '<span class="verified">Γ£ô Verified</span>'
+              : '<span style="font-size:.68rem;color:#c07a10;font-weight:700">ΓÅ│ Pending</span>'
           }
 
           ${
@@ -2347,7 +2677,7 @@ async function initReports() {
                     font-weight:700;
                   "
                 >
-                  ✅ Verify
+                  Γ£à Verify
                 </button>`
               : ''
           }
@@ -2366,7 +2696,7 @@ async function initReports() {
               font-weight:700;
             "
           >
-            🗑 Delete
+            ≡ƒùæ Delete
           </button>
           
 
@@ -2375,14 +2705,16 @@ async function initReports() {
       </div>
     `).join('');
 
-    // no auth — role UI not needed
+    // Re-apply role UI so dynamically rendered authority-only buttons show/hide correctly
+    const currentUser = getStoredUser()
+    if (currentUser) applyRoleUI(currentUser)
 
   } catch (error) {
     console.error('Failed to load field reports:', error);
 
     grid.innerHTML = `
       <div style="padding:1rem;color:#b91c1c;background:#fee2e2;border-radius:8px">
-        ✗ Failed to load field reports.
+        Γ£ù Failed to load field reports.
       </div>
     `;
   }
@@ -2426,7 +2758,7 @@ function showReportForm(){
   grid.innerHTML = `
     <div class="card" style="grid-column:1/-1;max-width:640px">
       <div class="card-title">
-        <div class="ct-icon" style="background:#e8f5ea">📝</div>
+        <div class="ct-icon" style="background:#e8f5ea">≡ƒô¥</div>
         Submit Field Report
       </div>
 
@@ -2434,13 +2766,13 @@ function showReportForm(){
         <div class="form-field" style="grid-column:span 2">
           <label>Report Type <span style="color:#b83020">*</span></label>
           <select id="report-type">
-            <option value="" disabled selected>— Select type —</option>
-            <option value="crack">🪨 Crack / Ground Movement</option>
-            <option value="blocked_road">🚧 Blocked Road</option>
-            <option value="landslide_occurred">🏔️ Landslide Occurred</option>
-            <option value="flooding">🌊 Flooding</option>
-            <option value="infrastructure_damage">🏗️ Infrastructure Damage</option>
-            <option value="other">📝 Other</option>
+            <option value="" disabled selected>ΓÇö Select type ΓÇö</option>
+            <option value="crack">≡ƒ¬¿ Crack / Ground Movement</option>
+            <option value="blocked_road">≡ƒÜº Blocked Road</option>
+            <option value="landslide_occurred">≡ƒÅö∩╕Å Landslide Occurred</option>
+            <option value="flooding">≡ƒîè Flooding</option>
+            <option value="infrastructure_damage">≡ƒÅù∩╕Å Infrastructure Damage</option>
+            <option value="other">≡ƒô¥ Other</option>
           </select>
         </div>
 
@@ -2471,13 +2803,13 @@ function showReportForm(){
 
         <div class="form-field" style="grid-column:span 2">
           <label>Image URL (optional)</label>
-          <input id="report-image" type="url" placeholder="https://…">
+          <input id="report-image" type="url" placeholder="https://ΓÇª">
         </div>
 
         <div class="form-field" style="grid-column:span 2">
           <label>Description</label>
           <textarea id="report-description"
-            placeholder="Describe what you observed — extent, affected structures, etc."
+            placeholder="Describe what you observed ΓÇö extent, affected structures, etc."
             rows="4"
             style="width:100%;background:linear-gradient(135deg,#fff8f0,#fffaf5);border:1.5px solid #e8c8a0;border-radius:9px;padding:.52rem .8rem;color:var(--text);font-size:.85rem;font-family:'Inter',sans-serif;resize:vertical;box-sizing:border-box"></textarea>
         </div>
@@ -2485,10 +2817,10 @@ function showReportForm(){
 
       <div style="display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap">
         <button class="btn btn-primary" onclick="submitFieldReport()">
-          📤 Submit Report
+          ≡ƒôñ Submit Report
         </button>
         <button class="btn btn-ghost" onclick="initReports()" style="border:1.5px solid #e8c8a0;color:#8a5020">
-          ✕ Cancel
+          Γ£ò Cancel
         </button>
       </div>
 
@@ -2507,17 +2839,17 @@ async function submitFieldReport() {
   const imageUrl  = (document.getElementById('report-image')?.value      || '').trim();
   const result    = document.getElementById('report-result');
 
-  // Validation — only report_type is required (matches backend)
+  // Validation ΓÇö only report_type is required (matches backend)
   if (!type) {
     result.innerHTML = `
       <div style="color:#b91c1c;padding:.7rem;background:#fee2e2;border-radius:8px;font-size:.82rem">
-        ⚠️ Please select a report type.
+        ΓÜá∩╕Å Please select a report type.
       </div>
     `;
     return;
   }
 
-  // Build payload — omit blank optional fields
+  // Build payload ΓÇö omit blank optional fields
   const payload = { report_type: type, severity };
   if (location)          payload.district    = location;
   if (desc)              payload.description = desc;
@@ -2527,7 +2859,7 @@ async function submitFieldReport() {
 
   result.innerHTML = `
     <div style="padding:.7rem;background:#fff7ed;border-radius:8px;font-size:.82rem;color:#8a5020">
-      ⏳ Submitting report…
+      ΓÅ│ Submitting reportΓÇª
     </div>
   `;
 
@@ -2553,10 +2885,10 @@ async function submitFieldReport() {
     // Show success then reload the reports list after a short delay
     result.innerHTML = `
       <div style="color:#166534;padding:.85rem;background:#dcfce7;border-radius:8px;font-size:.85rem;line-height:1.6">
-        ✅ <strong>Report submitted successfully!</strong><br>
+        Γ£à <strong>Report submitted successfully!</strong><br>
         <span style="font-size:.78rem;color:#14532d">
-          ID: ${data.id} &nbsp;·&nbsp;
-          Type: ${data.report_type} &nbsp;·&nbsp;
+          ID: ${data.id} &nbsp;┬╖&nbsp;
+          Type: ${data.report_type} &nbsp;┬╖&nbsp;
           ${data.created_at ? 'Submitted: ' + new Date(data.created_at).toLocaleString('en-IN') : ''}
         </span>
       </div>
@@ -2570,16 +2902,16 @@ async function submitFieldReport() {
 
     result.innerHTML = `
       <div style="color:#b91c1c;padding:.7rem;background:#fee2e2;border-radius:8px;font-size:.82rem">
-        ✗ Failed to submit report: ${error.message}
+        Γ£ù Failed to submit report: ${error.message}
       </div>
     `;
   }
 }
 
-/* ══ REFRESH ══ */
+/* ΓòÉΓòÉ REFRESH ΓòÉΓòÉ */
 function refreshAll(){
   // Re-fetch all data so the rainfall graph and stats reflect the latest values.
-  // Previously this only animated stat cards — the charts stayed stale/blank.
+  // Previously this only animated stat cards ΓÇö the charts stayed stale/blank.
   loadRealRiskData()
   loadRealStats()
   document.querySelectorAll('.stat-num').forEach(el=>{el.style.animation='none';void el.offsetWidth;el.style.animation='fsld .4s ease'})
@@ -2594,6 +2926,376 @@ function loadMeshStats() {
   })
 }
 
+/* ΓòÉΓòÉ AUTH ΓòÉΓòÉ */
+const AUTH_API = 'https://bhudrishti-backend-9mrh.onrender.com/api/auth'
+
+let _selectedRole = 'citizen'
+let _authMode     = 'signin'   // 'signin' | 'signup'
+let _authMethod   = 'email'    // 'email' | 'phone'
+let _otpTimer     = null       // interval handle for countdown
+let _otpContext   = null       // 'signin' | 'signup' ΓÇö which OTP is pending
+
+// ΓöÇΓöÇ Role step ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+function selectRole(role) {
+  _selectedRole = role
+  document.getElementById('role-citizen').classList.toggle('selected',   role === 'citizen')
+  document.getElementById('role-authority').classList.toggle('selected', role === 'authority')
+}
+
+function goToRoleStep() {
+  document.getElementById('auth-step-role').style.display = ''
+  document.getElementById('auth-step-auth').style.display = 'none'
+  clearAuthMsg()
+}
+
+function goToAuthStep() {
+  document.getElementById('auth-step-role').style.display = 'none'
+  document.getElementById('auth-step-auth').style.display = ''
+  const note = document.getElementById('auth-authority-note')
+  if (note) note.style.display = _selectedRole === 'authority' ? '' : 'none'
+  clearAuthMsg()
+  // Ensure clean state
+  switchMode('signin')
+  switchMethod('email')
+}
+
+// ΓöÇΓöÇ Mode / method tabs ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+function switchMode(mode) {
+  _authMode = mode
+  document.getElementById('tab-signin').classList.toggle('active', mode === 'signin')
+  document.getElementById('tab-signup').classList.toggle('active', mode === 'signup')
+  document.getElementById('signin-panel').style.display  = mode === 'signin' ? '' : 'none'
+  document.getElementById('signup-panel').style.display  = mode === 'signup' ? '' : 'none'
+  document.getElementById('forgot-panel').style.display  = 'none'
+  clearAuthMsg()
+}
+
+function switchMethod(method) {
+  _authMethod = method
+  document.getElementById('method-email').classList.toggle('active', method === 'email')
+  document.getElementById('method-phone').classList.toggle('active', method === 'phone')
+  // Sign-in panels
+  document.getElementById('si-email-panel').style.display = method === 'email' ? '' : 'none'
+  document.getElementById('si-phone-panel').style.display = method === 'phone' ? '' : 'none'
+  // Sign-up panels
+  document.getElementById('su-email-panel').style.display = method === 'email' ? '' : 'none'
+  document.getElementById('su-phone-panel').style.display = method === 'phone' ? '' : 'none'
+  clearAuthMsg()
+}
+
+// ΓöÇΓöÇ UI helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+function clearAuthMsg() {
+  const e = document.getElementById('auth-error')
+  const i = document.getElementById('auth-info')
+  if (e) e.style.display = 'none'
+  if (i) i.style.display = 'none'
+}
+
+function showAuthError(msg) {
+  const e = document.getElementById('auth-error')
+  if (e) { e.textContent = msg; e.style.display = '' }
+}
+
+function showAuthInfo(msg) {
+  const i = document.getElementById('auth-info')
+  if (i) { i.textContent = msg; i.style.display = '' }
+}
+
+function togglePw(id, btn) {
+  const inp = document.getElementById(id)
+  if (!inp) return
+  inp.type = inp.type === 'password' ? 'text' : 'password'
+  btn.textContent = inp.type === 'password' ? '≡ƒæü' : '≡ƒÖê'
+}
+
+function setBtnLoading(id, loading, label) {
+  const btn = document.getElementById(id)
+  if (!btn) return
+  btn.disabled = loading
+  btn.textContent = loading ? label : btn.getAttribute('data-label') || btn.textContent
+  if (!loading && btn.getAttribute('data-label')) btn.textContent = btn.getAttribute('data-label')
+}
+
+function startOtpTimer(timerElId, sendBtnId, seconds = 60) {
+  clearInterval(_otpTimer)
+  const timerEl = document.getElementById(timerElId)
+  const sendBtn = document.getElementById(sendBtnId)
+  if (sendBtn) sendBtn.disabled = true
+  let remaining = seconds
+  if (timerEl) timerEl.textContent = `Resend in ${remaining}s`
+  _otpTimer = setInterval(() => {
+    remaining--
+    if (remaining <= 0) {
+      clearInterval(_otpTimer)
+      if (timerEl) timerEl.textContent = ''
+      if (sendBtn) sendBtn.disabled = false
+    } else {
+      if (timerEl) timerEl.textContent = `Resend in ${remaining}s`
+    }
+  }, 1000)
+}
+
+// ΓöÇΓöÇ Forgot password ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+function showForgot() {
+  document.getElementById('signin-panel').style.display = 'none'
+  document.getElementById('forgot-panel').style.display = ''
+  clearAuthMsg()
+}
+
+function showSignIn() {
+  document.getElementById('forgot-panel').style.display = 'none'
+  document.getElementById('signin-panel').style.display = ''
+  clearAuthMsg()
+}
+
+async function doForgotPassword() {
+  const email = (document.getElementById('fp-email')?.value || '').trim()
+  if (!email) { showAuthError('Please enter your email address.'); return }
+  const btn = document.getElementById('fp-btn')
+  btn.disabled = true; btn.textContent = 'SendingΓÇª'
+  clearAuthMsg()
+  try {
+    const resp = await fetch(`${AUTH_API}/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    // Always show success to avoid email enumeration
+    showAuthInfo('If this email is registered, a reset link has been sent.')
+    document.getElementById('fp-email').value = ''
+  } catch {
+    showAuthInfo('If this email is registered, a reset link has been sent.')
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Reset Link'
+  }
+}
+
+// ΓöÇΓöÇ OTP ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+async function doSendOtp(ctx) {
+  _otpContext = ctx
+  const phoneEl = document.getElementById(ctx === 'signin' ? 'si-phone' : 'su-phone')
+  const phone = (phoneEl?.value || '').replace(/\D/g, '')
+  if (phone.length !== 10) { showAuthError('Enter a valid 10-digit mobile number.'); return }
+  const fullPhone = '+91' + phone
+  const sendBtnId = ctx === 'signin' ? 'si-send-otp-btn' : 'su-send-otp-btn'
+  const timerElId = ctx === 'signin' ? 'si-otp-timer' : 'su-otp-timer'
+  clearAuthMsg()
+  document.getElementById(sendBtnId).disabled = true
+  document.getElementById(sendBtnId).textContent = 'SendingΓÇª'
+  try {
+    const resp = await fetch(`${AUTH_API}/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: fullPhone }),
+    })
+    const data = await resp.json()
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
+    showAuthInfo(`OTP sent to +91 ${phone}. Valid for 10 minutes.`)
+    startOtpTimer(timerElId, sendBtnId, 60)
+  } catch (err) {
+    document.getElementById(sendBtnId).disabled = false
+    document.getElementById(sendBtnId).textContent = 'Send OTP'
+    showAuthError(err.message || 'Failed to send OTP. Please try again.')
+  }
+}
+
+async function doVerifyOtp(ctx) {
+  const phoneEl = document.getElementById(ctx === 'signin' ? 'si-phone' : 'su-phone')
+  const otpEl   = document.getElementById(ctx === 'signin' ? 'si-otp'   : 'su-otp')
+  const nameEl  = ctx === 'signup' ? document.getElementById('su-phone-name') : null
+  const phone   = '+91' + (phoneEl?.value || '').replace(/\D/g, '')
+  const otp     = (otpEl?.value || '').trim()
+  const name    = (nameEl?.value || '').trim()
+  if (!otp || otp.length < 6) { showAuthError('Enter the 6-digit OTP.'); return }
+  if (ctx === 'signup' && !name) { showAuthError('Please enter your full name.'); return }
+  const btnId = ctx === 'signin' ? 'si-phone-btn' : 'su-phone-btn'
+  const btn = document.getElementById(btnId)
+  btn.disabled = true; btn.textContent = 'VerifyingΓÇª'
+  clearAuthMsg()
+  try {
+    const endpoint = ctx === 'signup' ? '/register-phone' : '/login-phone'
+    const body = ctx === 'signup'
+      ? { phone, otp, name, role: _selectedRole === 'authority' ? 'district_admin' : 'citizen' }
+      : { phone, otp }
+    const resp = await fetch(`${AUTH_API}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const data = await resp.json()
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
+    if (data.token) {
+      handleAuthSuccess(data.token, data.user)
+    } else {
+      throw new Error('No token returned.')
+    }
+  } catch (err) {
+    btn.disabled = false; btn.textContent = ctx === 'signin' ? 'Verify & Sign In' : 'Create Account'
+    showAuthError(err.message || 'OTP verification failed.')
+  }
+}
+
+// ΓöÇΓöÇ Email sign-in ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+async function doSignIn() {
+  const email    = (document.getElementById('si-email')?.value || '').trim()
+  const password = (document.getElementById('si-password')?.value || '')
+  if (!email)    { showAuthError('Please enter your email address.'); return }
+  if (!password) { showAuthError('Please enter your password.'); return }
+  const btn = document.getElementById('si-email-btn')
+  btn.disabled = true; btn.textContent = 'Signing inΓÇª'
+  clearAuthMsg()
+
+  // Demo accounts ΓÇö work even when backend DB is empty
+  const DEMO = {
+    'citizen@bhudrishti.in':  { password: 'demo1234',  role: 'citizen',        name: 'Demo Citizen' },
+    'authority@bhudrishti.in':{ password: 'admin1234', role: 'district_admin', name: 'Authority Official' },
+  }
+
+  try {
+    let user = null, token = null
+
+    // Try real backend first
+    try {
+      const resp = await fetch(`${AUTH_API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await resp.json()
+      if (resp.ok && data.token) { token = data.token; user = data.user }
+      else throw new Error(data.error || `HTTP ${resp.status}`)
+    } catch (backendErr) {
+      // Backend unreachable or no account ΓÇö try demo fallback
+      const demo = DEMO[email.toLowerCase()]
+      if (demo && demo.password === password) {
+        const wantsAuth = _selectedRole === 'authority'
+        const isAuth    = ['field_officer','district_admin','superadmin'].includes(demo.role)
+        if (wantsAuth && !isAuth) throw new Error('This demo account is Citizen only. Use authority@bhudrishti.in')
+        if (!wantsAuth && isAuth) throw new Error('This is an authority account. Select Authority Official role.')
+        token = 'demo_' + btoa(JSON.stringify({ email, role: demo.role, name: demo.name }))
+        user  = { id: 'demo', email, role: demo.role, name: demo.name }
+      } else {
+        throw backendErr
+      }
+    }
+
+    // Role mismatch check (real backend)
+    if (user && _selectedRole === 'authority' && !isAuthority(user)) {
+      throw new Error('This account does not have authority access. Please select Citizen.')
+    }
+    handleAuthSuccess(token, user)
+  } catch (err) {
+    btn.disabled = false; btn.textContent = 'Sign In'
+    showAuthError(err.message || 'Sign in failed. Check your credentials.')
+  }
+}
+
+// ΓöÇΓöÇ Email sign-up ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+async function doSignUp() {
+  const name     = (document.getElementById('su-name')?.value || '').trim()
+  const email    = (document.getElementById('su-email')?.value || '').trim()
+  const password = (document.getElementById('su-password')?.value || '')
+  const confirm  = (document.getElementById('su-confirm')?.value || '')
+  if (!name)          { showAuthError('Please enter your full name.'); return }
+  if (!email)         { showAuthError('Please enter your email address.'); return }
+  if (password.length < 8) { showAuthError('Password must be at least 8 characters.'); return }
+  if (password !== confirm) { showAuthError('Passwords do not match.'); return }
+  const role = _selectedRole === 'authority' ? 'district_admin' : 'citizen'
+  const btn  = document.getElementById('su-email-btn')
+  btn.disabled = true; btn.textContent = 'Creating accountΓÇª'
+  clearAuthMsg()
+  try {
+    const resp = await fetch(`${AUTH_API}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password, role }),
+    })
+    const data = await resp.json()
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
+    if (!data.token) throw new Error('Registration failed.')
+    handleAuthSuccess(data.token, data.user)
+  } catch (err) {
+    btn.disabled = false; btn.textContent = 'Create Account'
+    showAuthError(err.message || 'Registration failed. Please try again.')
+  }
+}
+
+// ΓöÇΓöÇ Auth success ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+function handleAuthSuccess(token, user) {
+  localStorage.setItem('bhudrishti_token', token)
+  localStorage.setItem('bd_user', JSON.stringify(user))
+  const overlay = document.getElementById('login-overlay')
+  if (overlay) overlay.classList.add('hidden')
+  applyRoleUI(user)
+  startDashboard()
+}
+
+// ΓöÇΓöÇ Session helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+function getStoredUser() {
+  try { return JSON.parse(localStorage.getItem('bd_user') || 'null') } catch { return null }
+}
+
+function isAuthority(user) {
+  return user && ['field_officer', 'district_admin', 'superadmin'].includes(user.role)
+}
+
+function applyRoleUI(user) {
+  if (!user) return
+  const badge = document.getElementById('user-badge')
+  const logoutBtn = document.getElementById('logout-btn')
+  if (badge) {
+    badge.style.display = 'flex'
+    const nd = document.getElementById('user-name-display')
+    const rd = document.getElementById('user-role-display')
+    if (nd) nd.textContent = user.name || user.email || 'User'
+    if (rd) rd.textContent = isAuthority(user) ? 'Authority' : 'Citizen'
+  }
+  if (logoutBtn) logoutBtn.style.display = 'inline-block'
+  document.body.setAttribute('data-role', user.role)
+  document.querySelectorAll('.authority-only').forEach(el => {
+    el.classList.toggle('visible', isAuthority(user))
+  })
+  document.querySelectorAll('.authority-section').forEach(el => {
+    el.classList.toggle('visible', isAuthority(user))
+  })
+}
+
+function doLogout() {
+  localStorage.removeItem('bhudrishti_token')
+  localStorage.removeItem('bd_user')
+  clearInterval(_otpTimer)
+  const overlay = document.getElementById('login-overlay')
+  if (overlay) overlay.classList.remove('hidden')
+  // Reset to clean state
+  goToRoleStep()
+  const badge = document.getElementById('user-badge')
+  const logoutBtn = document.getElementById('logout-btn')
+  if (badge) badge.style.display = 'none'
+  if (logoutBtn) logoutBtn.style.display = 'none'
+  document.body.removeAttribute('data-role')
+}
+
+// ΓöÇΓöÇ Verify field report (authority-only) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+async function verifyFieldReport(id) {
+  const token = localStorage.getItem('bhudrishti_token')
+  const user  = getStoredUser()
+  if (!isAuthority(user)) {
+    alert('Access denied. Authority role required to verify reports.')
+    return
+  }
+  try {
+    const resp = await fetch(`https://bhudrishti-backend-9mrh.onrender.com/api/field-reports/${id}/verify`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+    })
+    const data = await resp.json()
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
+    alert('Report verified successfully.')
+    initReports()
+  } catch (err) {
+    alert(`Verification failed: ${err.message}`)
+  }
+}
 
 /* ══ COLD-START HELPER ══
    Render free-tier services sleep after inactivity.
@@ -2663,13 +3365,21 @@ async function startDashboard() {
   await loadRealStats()
   loadMeshStats()
   runPrediction()
-  // Run forecast lazily — don't block startup, only runs when user opens Forecast tab
+  runForecast()
   initReports()
 }
 
-/* ══ INIT ══ */
+/* ΓòÉΓòÉ INIT ΓòÉΓòÉ */
 window.onload = async () => {
-  await startDashboard()
+  const token = localStorage.getItem('bhudrishti_token')
+  const user  = getStoredUser()
+  if (token && user) {
+    const overlay = document.getElementById('login-overlay')
+    if (overlay) overlay.classList.add('hidden')
+    applyRoleUI(user)
+    await startDashboard()
+  }
+  // Otherwise login overlay is already visible ΓÇö user will go through auth flow
 }
 </script>
 </body>
