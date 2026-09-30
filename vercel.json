@@ -1,21 +1,8 @@
 {
-  "version": 2,
-  "headers": [
+  "rewrites": [
     {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
-      ]
-    }
-  ],
-  "routes": [
-    {
-      "src": "^/$",
-      "dest": "/dashboard_preview.html"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "https://bhudrishti-backend-9mrh.onrender.com/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://bhudrishti-backend-9mrh.onrender.com/api/:path*"
     }
   ]
 }

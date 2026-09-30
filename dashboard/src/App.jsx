@@ -67,7 +67,8 @@ export default function App() {
 
   // Show login/register screen if not authenticated
   if (!authed) {
-    return <AuthPage onAuth={handleAuth} />
+    // return <AuthPage onAuth={handleAuth} />
+    return <div style={{ fontSize: '200px' }}>AUTH PAGE IS HERE</div>
   }
 
   // return (
