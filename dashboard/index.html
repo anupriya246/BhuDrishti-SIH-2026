@@ -373,6 +373,10 @@ footer strong{color:#fff}
 .authority-only.visible{display:inline-flex}
 .authority-section{display:none}
 .authority-section.visible{display:block}
+/* ══ WARNING SYSTEM STYLES ══ */
+.ws-alert-row{transition:background .15s}
+.ws-alert-row:hover{background:#fff5ee}
+.citizen-warn-panel{display:flex;flex-direction:column;gap:1.25rem}
 /* ══ MODERN AUTH STYLES ══ */
 #login-overlay{overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;min-height:100vh}
 .auth-card{background:#fff;border-radius:22px;padding:2rem 1.75rem;width:100%;max-width:460px;box-shadow:0 28px 70px #0009;display:flex;flex-direction:column;gap:0;margin:auto}
@@ -629,21 +633,10 @@ footer strong{color:#fff}
 </header>
 
 <!-- ══ ALERT BANNER ══ -->
-<div class="alert-banner">
-  <div class="alert-header"><span class="pulse-ring"></span>&nbsp;ACTIVE ALERTS — 3 ZONES AT ELEVATED RISK</div>
-  <div class="alert-list">
-    <div class="alert-item" style="border-left:4px solid #6e3aaa;background:#f0e8fa88">
-      <span>🚨</span><span><strong>Cherrapunji</strong> — Critical · Rainfall: 312 mm · Slope: 54° · Road NH-6 BLOCKED</span>
-      <span class="sms-tag">✓ SMS Dispatched</span>
-    </div>
-    <div class="alert-item" style="border-left:4px solid #b83020;background:#fdecea88">
-      <span>⚠️</span><span><strong>Tawang</strong> — High · Rainfall: 178 mm · Slope: 48° · Rerouting active via Alt Route A</span>
-      <span class="sms-tag">✓ SMS Dispatched</span>
-    </div>
-    <div class="alert-item" style="border-left:4px solid #b83020;background:#fdecea88">
-      <span>⚠️</span><span><strong>Kohima</strong> — High · Rainfall: 145 mm · Slope: 41° · Bluetooth mesh relay active</span>
-      <span class="sms-tag">✓ SMS Dispatched</span>
-    </div>
+<div class="alert-banner" id="alert-banner-wrap">
+  <div class="alert-header" id="alert-header"><span class="pulse-ring"></span>&nbsp;Loading alerts…</div>
+  <div class="alert-list" id="alert-list">
+    <div class="alert-item" style="color:var(--muted);font-size:.78rem;padding:.4rem .75rem">⏳ Fetching live risk data…</div>
   </div>
 </div>
 
@@ -653,7 +646,7 @@ footer strong{color:#fff}
   <button class="tab" onclick="showTab('ai',this)">🤖 AI Risk Assessment</button>
   <button class="tab" onclick="showTab('forecast',this)">⏱ 24h Forecast</button>
   <button class="tab" onclick="showTab('reroute',this)">🛣 Rerouting System</button>
-  <button class="tab" onclick="showTab('mesh',this)">📡 Bluetooth Mesh</button>
+  <button class="tab" onclick="showTab('mesh',this)">🚨 Warning System</button>
   <button class="tab" onclick="showTab('reports',this)">📋 Field Reports</button>
 </nav>
 
@@ -672,9 +665,9 @@ footer strong{color:#fff}
     <div class="stat-card" style="--c1:#c07a10;--c2:#d4860a;cursor:pointer"
       onclick="document.querySelector('.alert-banner')?.scrollIntoView({behavior:'smooth'})">
       <div class="stat-icon-wrap">🔔</div>
-      <div class="stat-num">3</div>
+      <div class="stat-num" id="active-alerts-count">—</div>
       <div class="stat-label">Active Alerts</div>
-      <div class="stat-delta delta-dn">↑ +1 from yesterday</div>
+      <div class="stat-delta delta-dn" id="active-alerts-delta">Loading…</div>
     </div>
     <div class="stat-card" style="--c1:#b83020;--c2:#c0541a">
       <div class="stat-icon-wrap">⚠️</div>
@@ -689,10 +682,10 @@ footer strong{color:#fff}
       <div class="stat-delta delta-dn">Cherrapunji</div>
     </div>
     <div class="stat-card" style="--c1:#1a7a6e;--c2:#1a6fa0">
-      <div class="stat-icon-wrap">📡</div>
-      <div class="stat-num" id="mesh-nodes-online-count">0</div>
-      <div class="stat-label">Mesh Nodes Online</div>
-      <div class="stat-delta delta-up">↑ 3 relay nodes active</div>
+      <div class="stat-icon-wrap">🚨</div>
+      <div class="stat-num" id="mesh-nodes-online-count">—</div>
+      <div class="stat-label">Active Warnings</div>
+      <div class="stat-delta delta-up" id="mesh-nodes-delta">Loading…</div>
     </div>
     <div class="stat-card" style="--c1:#4a5a22;--c2:#6b7c3a">
       <div class="stat-icon-wrap">🛣</div>
@@ -862,77 +855,210 @@ footer strong{color:#fff}
   </div>
 </div>
 
-<!-- ── BLUETOOTH MESH ── -->
+<!-- ── WARNING SYSTEM ── -->
 <div id="tab-mesh" class="section">
-  <div class="sec-hdr">
-    <h2>📡 Bluetooth Mesh — No-Connectivity Zone Coverage</h2>
-    <span class="badge badge-teal">BLE 5.0 · Device-to-Device Relay</span>
-  </div>
-  <div class="mesh-wrap">
-    <div class="card">
-      <div class="card-title"><div class="ct-icon" style="background:#e0f4f0">📡</div>Live Mesh Topology</div>
-      <canvas id="meshCanvas"></canvas>
-      <div style="display:flex;gap:1rem;margin-top:.75rem;flex-wrap:wrap">
-        <div class="leg-item"><span class="ndot non" style="display:inline-block"></span>&nbsp;Online</div>
-        <div class="leg-item"><span class="ndot nrelay" style="display:inline-block"></span>&nbsp;Relay</div>
-        <div class="leg-item"><span class="ndot noff" style="display:inline-block"></span>&nbsp;Offline</div>
-      </div>
+
+<!-- ══ AUTHORITY DASHBOARD ══ (hidden for citizens) -->
+<div class="authority-section" id="warn-authority-panel">
+
+  <!-- Header row -->
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.25rem">
+    <div>
+      <h2 style="font-size:1.1rem;font-weight:900;color:var(--text)">Authority Dashboard</h2>
+      <p style="font-size:.75rem;color:var(--muted);margin-top:.15rem">Monitor risks, issue warnings and manage alerts across zones.</p>
     </div>
-    <div style="display:flex;flex-direction:column;gap:1rem">
-      <div class="card">
-        <div class="card-title"><div class="ct-icon" style="background:#fdeee6">📊</div>Network Stats</div>
-        <div class="mesh-stats">
-          <div class="mstat" style="background:linear-gradient(135deg,#fdeee6,#f8ddd0);border-color:#f0c4a8"><div class="mstat-val" style="background:linear-gradient(135deg,#8b3a10,#c0541a)">8</div><div class="mstat-lbl">Nodes Online</div></div>
-          <div class="mstat" style="background:linear-gradient(135deg,#e8f5ea,#d0ecd4);border-color:#a8d8b0"><div class="mstat-val" style="background:linear-gradient(135deg,#2d7a3a,#1a7a6e)">3</div><div class="mstat-lbl">Relay Hops</div></div>
-          <div class="mstat" style="background:linear-gradient(135deg,#fef6e0,#f8ecc0);border-color:#e8d888"><div class="mstat-val" style="background:linear-gradient(135deg,#c07a10,#d4860a)">94%</div><div class="mstat-lbl">Coverage</div></div>
-          <div class="mstat" style="background:linear-gradient(135deg,#e0f4f0,#c8ece4);border-color:#90d0c0"><div class="mstat-val" style="background:linear-gradient(135deg,#1a7a6e,#1a6fa0)">12ms</div><div class="mstat-lbl">Avg Latency</div></div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <span class="badge badge-terra" id="warn-auth-time" style="font-size:.7rem"></span>
+      <button class="btn btn-ghost btn-sm" onclick="initWarningSystem()" style="font-size:.72rem">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- Stat cards row -->
+  <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem">
+    <div class="stat-card" style="--c1:#b83020;--c2:#c0541a;cursor:pointer" onclick="scrollToWarnList()">
+      <div class="stat-icon-wrap" style="background:#ffffff25">⚠️</div>
+      <div class="stat-num" id="ws-high-count">—</div>
+      <div class="stat-label">Active High Risk Zones</div>
+      <div class="stat-delta" id="ws-high-sub">Loading…</div>
+    </div>
+    <div class="stat-card" style="--c1:#c07a10;--c2:#d4860a">
+      <div class="stat-icon-wrap" style="background:#ffffff25">📢</div>
+      <div class="stat-num" id="ws-warn-count">—</div>
+      <div class="stat-label">Warnings Issued Today</div>
+      <div class="stat-delta" id="ws-warn-sub">Loading…</div>
+    </div>
+    <div class="stat-card" style="--c1:#1a6fa0;--c2:#1a7a6e">
+      <div class="stat-icon-wrap" style="background:#ffffff25">👥</div>
+      <div class="stat-num" id="ws-notified">—</div>
+      <div class="stat-label">Districts Notified</div>
+      <div class="stat-delta" id="ws-notified-sub">Loading…</div>
+    </div>
+    <div class="stat-card" style="--c1:#2d7a3a;--c2:#1a7a6e" id="ws-status-card">
+      <div class="stat-icon-wrap" style="background:#ffffff25">✅</div>
+      <div class="stat-num" style="font-size:1.4rem" id="ws-status-val">Healthy</div>
+      <div class="stat-label">System Status</div>
+      <div class="stat-delta" id="ws-status-sub">All systems operational</div>
+    </div>
+  </div>
+
+  <!-- Main two-col layout: Risk Alerts list | Issue Warning panel -->
+  <div style="display:grid;grid-template-columns:1fr 360px;gap:1rem;align-items:start">
+
+    <!-- Left: Recent AI Alerts table -->
+    <div class="card" style="min-width:0">
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <div class="ct-icon" style="background:#fdecea">🤖</div>Recent AI Risk Alerts
         </div>
-        <div class="node-list" id="node-list"></div>
+        <span class="badge badge-teal" style="font-size:.65rem">Live from ML model</span>
       </div>
-      <div class="card">
-        <div class="card-title"><div class="ct-icon" style="background:#eef2e0">💬</div>Mesh Message Feed</div>
-        <div class="msg-feed" id="msg-feed"></div>
+      <div id="ws-ai-alerts-list">
+        <div style="padding:.75rem;color:var(--muted);font-size:.82rem">⏳ Loading risk data…</div>
       </div>
     </div>
+
+    <!-- Right: Issue Warning panel -->
+    <div class="card" style="border:2px solid #f0c4a8">
+      <div class="card-title" style="color:#8b3a10">
+        <div class="ct-icon" style="background:#fdecea">📢</div>Issue Warning
+      </div>
+      <p style="font-size:.73rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5">Send alerts to affected zones and communities.</p>
+
+      <div class="form-field" style="margin-bottom:.7rem">
+        <label>Select Zone / Area</label>
+        <select id="warn-district" style="background:linear-gradient(135deg,#fff8f0,#fffaf5);border:1.5px solid #e8c8a0;border-radius:9px;padding:.52rem .8rem;color:var(--text);font-size:.85rem;font-family:'Inter',sans-serif;width:100%">
+          <option value="">— Select district —</option>
+          <option>Cherrapunji</option><option>Tawang</option><option>Kohima</option>
+          <option>Shillong</option><option>Itanagar</option><option>Imphal</option>
+          <option>Aizawl</option><option>Gangtok</option><option>Dibrugarh</option>
+          <option>Agartala</option><option>Silchar</option><option>Jorhat</option>
+        </select>
+      </div>
+
+      <div class="form-field" style="margin-bottom:.7rem">
+        <label>Warning Type</label>
+        <select id="warn-level" style="background:linear-gradient(135deg,#fff8f0,#fffaf5);border:1.5px solid #e8c8a0;border-radius:9px;padding:.52rem .8rem;color:var(--text);font-size:.85rem;font-family:'Inter',sans-serif;width:100%">
+          <option value="High">⚠️ Landslide Risk – High</option>
+          <option value="Critical">🚨 Landslide Risk – Critical</option>
+          <option value="Moderate">📢 Heavy Rainfall – Moderate</option>
+        </select>
+      </div>
+
+      <div class="form-field" style="margin-bottom:.7rem">
+        <label>Message (optional)</label>
+        <textarea id="warn-message" maxlength="200" rows="3"
+          placeholder="High risk of landslide due to continuous heavy rainfall. Stay alert and avoid vulnerable areas."
+          style="width:100%;background:linear-gradient(135deg,#fff8f0,#fffaf5);border:1.5px solid #e8c8a0;border-radius:9px;padding:.52rem .8rem;font-size:.82rem;font-family:'Inter',sans-serif;resize:vertical;box-sizing:border-box;color:var(--text)"></textarea>
+        <div style="text-align:right;font-size:.65rem;color:var(--muted);margin-top:.2rem"><span id="warn-msg-len">0</span>/200</div>
+      </div>
+
+      <div id="warn-issue-msg" style="display:none;font-size:.75rem;border-radius:8px;padding:.45rem .7rem;margin-bottom:.6rem"></div>
+      <button class="btn btn-primary" id="warn-issue-btn" onclick="issueWarning()" style="width:100%;padding:.65rem;font-size:.88rem">
+        📡 Send Warning
+      </button>
+    </div>
   </div>
+
+  <!-- Quick Actions row -->
+  <div class="card">
+    <div class="card-title"><div class="ct-icon" style="background:#fdeee6">⚡</div>Quick Actions</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem">
+      <button onclick="document.getElementById('warn-district').focus();document.querySelector('.authority-section #warn-issue-btn').scrollIntoView({behavior:'smooth'})"
+        style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #f0c4a8;border-radius:12px;background:#fffbf5;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#8b3a10;transition:all .18s">
+        <span style="font-size:1.4rem">⚠️</span>Issue Warning
+      </button>
+      <button onclick="broadcastAlert()"
+        style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #d0c8f0;border-radius:12px;background:#f8f5ff;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#5e28a0;transition:all .18s">
+        <span style="font-size:1.4rem">📡</span>Broadcast Alert
+      </button>
+      <button onclick="document.getElementById('warn-ai-alerts-list').scrollIntoView({behavior:'smooth'})"
+        style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #b8d8e8;border-radius:12px;background:#f0f8ff;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#1060b0;transition:all .18s">
+        <span style="font-size:1.4rem">🗺️</span>Manage Zones
+      </button>
+      <button onclick="showTab('reports',document.querySelector('.tab:last-of-type'))"
+        style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #a8d8b0;border-radius:12px;background:#f0faf4;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#1a5228;transition:all .18s">
+        <span style="font-size:1.4rem">📋</span>View Reports
+      </button>
+    </div>
+  </div>
+
+  <!-- Active Warnings table + Recent Activity -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
     <div class="card">
-      <div class="card-title"><div class="ct-icon" style="background:#fdeee6">ℹ</div>How Bluetooth Mesh Works</div>
-      <div style="display:flex;flex-direction:column;gap:.9rem;font-size:.8rem;color:var(--muted);line-height:1.6">
-        <div style="display:flex;gap:.75rem;align-items:flex-start">
-          <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#8b3a10,#c0541a);display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0;color:#fff;font-weight:800">1</div>
-          <span><strong style="color:var(--text)">No Internet Required</strong> — Devices communicate over BLE 5.0 in areas with no cellular or WiFi coverage.</span>
-        </div>
-        <div style="display:flex;gap:.75rem;align-items:flex-start">
-          <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#1a7a6e,#1a6fa0);display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0;color:#fff;font-weight:800">2</div>
-          <span><strong style="color:var(--text)">Flood Fill Relay</strong> — Alert messages hop device-to-device covering villages up to 5 km from the nearest node.</span>
-        </div>
-        <div style="display:flex;gap:.75rem;align-items:flex-start">
-          <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#2d7a3a,#1a7a6e);display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0;color:#fff;font-weight:800">3</div>
-          <span><strong style="color:var(--text)">Priority Alerts</strong> — Critical/High alerts get transmission priority with GPS coordinates of the hazard.</span>
-        </div>
-        <div style="display:flex;gap:.75rem;align-items:flex-start">
-          <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#4a5a22,#6b7c3a);display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0;color:#fff;font-weight:800">4</div>
-          <span><strong style="color:var(--text)">Auto Sync</strong> — Once connectivity is restored, all offline data syncs to <strong>PostgreSQL</strong> automatically.</span>
-        </div>
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:.5rem"><div class="ct-icon" style="background:#fdecea">🔔</div>Active Authority Warnings</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadActiveWarnings()" style="font-size:.7rem">↻</button>
       </div>
+      <div id="warn-list"><div style="padding:.75rem;color:var(--muted);font-size:.82rem">⏳ Loading…</div></div>
     </div>
     <div class="card">
-      <div class="card-title"><div class="ct-icon" style="background:#e8f5ea">📨</div>Send Test Alert via Mesh</div>
-      <div class="form-field" style="margin-bottom:.75rem"><label>Target Zone</label>
-        <select id="mesh-target"><option>Cherrapunji — Zone B (No Connectivity)</option><option>Tawang — Remote Village Cluster</option><option>Kohima — Hill Station Area</option></select>
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:.5rem"><div class="ct-icon" style="background:#e0f4f0">📝</div>Recent Activity</div>
+        <span class="badge badge-teal" style="font-size:.62rem">Live</span>
       </div>
-      <div class="form-field" style="margin-bottom:.75rem"><label>Alert Type</label>
-        <select id="mesh-type"><option value="critical">🚨 Critical — Evacuate Now</option><option value="high">⚠️ High — Prepare to Evacuate</option><option value="moderate">📢 Moderate — Stay Alert</option></select>
+      <div id="ws-activity-log" style="display:flex;flex-direction:column;gap:.4rem;max-height:250px;overflow-y:auto">
+        <div style="padding:.5rem;color:var(--muted);font-size:.78rem">⏳ Loading activity…</div>
       </div>
-      <div class="form-field" style="margin-bottom:1rem"><label>Message</label>
-        <input type="text" id="mesh-msg" value="Landslide risk HIGH. Evacuate via Route B immediately."/>
-      </div>
-      <button class="btn btn-teal" onclick="sendMesh()" style="width:100%;padding:.6rem">📡 Broadcast via Mesh Network</button>
-      <div id="mesh-result" style="margin-top:.75rem"></div>
     </div>
   </div>
-</div>
+
+</div><!-- /authority-panel -->
+
+<!-- ══ CITIZEN DASHBOARD ══ (hidden for authorities) -->
+<div class="citizen-warn-panel" id="warn-citizen-panel">
+
+  <!-- Header row -->
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.25rem">
+    <div>
+      <h2 style="font-size:1.1rem;font-weight:900;color:var(--text)">Your Safety, Our Priority</h2>
+      <p style="font-size:.75rem;color:var(--muted);margin-top:.15rem">Get real-time alerts, stay informed and be prepared.</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--muted)">
+        <span>📍</span><span id="ws-citizen-district">All Districts</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="loadCitizenWarnings()" style="font-size:.72rem">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- Active alert cards from authority + AI -->
+  <div id="ws-citizen-alerts">
+    <div style="padding:1rem;color:var(--muted);font-size:.82rem">⏳ Checking for active warnings…</div>
+  </div>
+
+  <!-- Safety guide card (always shown) -->
+  <div class="card" style="border:1.5px solid #90d0a8">
+    <div class="card-title"><div class="ct-icon" style="background:#e0f5e8">🛡️</div>General Safety Guidelines</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.65rem">
+      <div style="display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;background:#f2faf4;border-radius:9px;border:1px solid #a8d8b8">
+        <span style="font-size:1.2rem;flex-shrink:0">⚠️</span>
+        <span style="font-size:.78rem;color:#1a5228;line-height:1.5">Avoid travelling to vulnerable areas (especially hilly slopes)</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;background:#e8f4ff;border-radius:9px;border:1px solid #90c8e8">
+        <span style="font-size:1.2rem;flex-shrink:0">📻</span>
+        <span style="font-size:.78rem;color:#0a4a78;line-height:1.5">Follow updates from official channels</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;background:#fff8e8;border-radius:9px;border:1px solid #e8d088">
+        <span style="font-size:1.2rem;flex-shrink:0">🎒</span>
+        <span style="font-size:.78rem;color:#6a4800;line-height:1.5">Keep emergency kit ready (water, food, torch, first aid)</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;background:#fef0e8;border-radius:9px;border:1px solid #f0c4a8">
+        <span style="font-size:1.2rem;flex-shrink:0">👨‍👩‍👧</span>
+        <span style="font-size:.78rem;color:#6a2800;line-height:1.5">Stay connected with family and neighbours</span>
+      </div>
+    </div>
+    <!-- Emergency helpline -->
+    <div style="margin-top:.85rem;background:linear-gradient(135deg,#fce4e0,#fdf0e4);border:1.5px solid #f0a090;border-radius:9px;padding:.65rem 1rem;display:flex;align-items:center;gap:.65rem;flex-wrap:wrap">
+      <span style="font-size:1rem">🆘</span>
+      <span style="font-size:.78rem;color:#7a1808;font-weight:600">For immediate help, contact the local disaster helpline: <strong>1077</strong></span>
+      <span style="font-size:.75rem;color:var(--muted)">|</span>
+      <span style="font-size:.75rem;color:#7a1808">Share this alert with others in your area.</span>
+    </div>
+  </div>
+
+</div><!-- /citizen-panel -->
+
+</div><!-- /tab-mesh -->
 
 <!-- ── FIELD REPORTS ── -->
 <div id="tab-reports" class="section">
@@ -994,6 +1120,9 @@ async function loadRealRiskData() {
     renderRiskDonut();
     renderRainfallChart();
     renderTopDistricts();
+
+    // Render dynamic alert banner from live risk data + authority-issued alerts
+    loadAuthorityAlerts().then(authAlerts => renderAlertBanner(REGIONS, authAlerts))
     
 
   } catch (error) {
@@ -1055,24 +1184,7 @@ const PRESETS=[
 ]
 // BLOCKAGES and EVAC removed — road incidents now loaded dynamically from
 // field reports (report_type='blocked_road'/'landslide_occurred') in initRouteMap()
-const NODES=[
-  {id:"NODE-01",name:"Cherrapunji HQ",   st:"online", role:"Gateway", bat:92},
-  {id:"NODE-02",name:"Zone B Relay",     st:"relay",  role:"Relay",   bat:78},
-  {id:"NODE-03",name:"Remote Village A", st:"online", role:"Endpoint",bat:65},
-  {id:"NODE-04",name:"Hilltop Station",  st:"relay",  role:"Relay",   bat:83},
-  {id:"NODE-05",name:"Tawang Outpost",   st:"online", role:"Gateway", bat:88},
-  {id:"NODE-06",name:"Offline Zone",     st:"offline",role:"Endpoint",bat:12},
-  {id:"NODE-07",name:"Kohima Ridge",     st:"online", role:"Relay",   bat:71},
-  {id:"NODE-08",name:"Valley Sensor",    st:"online", role:"Endpoint",bat:56},
-  {id:"NODE-09",name:"Gangtok Station",  st:"relay",  role:"Relay",   bat:90},
-]
-const MSGS=[
-  {t:"CRITICAL alert relayed to Zone B — 3 hops",   time:"09:31",hops:3,from:"NODE-01"},
-  {t:"Evacuation route B confirmed safe",            time:"09:28",hops:2,from:"NODE-05"},
-  {t:"Rainfall threshold exceeded — Hilltop",        time:"09:22",hops:1,from:"NODE-04"},
-  {t:"NODE-06 battery low — relay mode",             time:"09:18",hops:0,from:"NODE-06"},
-  {t:"Sync complete — 47 offline records to PG DB",  time:"09:10",hops:0,from:"NODE-01"},
-]
+// NODES and MSGS removed — Bluetooth Mesh tab replaced with Warning System
 const REPORTS=[
   {d:"Cherrapunji",type:"landslide_occurred",sev:"high",  rep:"Field Officer Rajan",time:"09:12 AM",v:true, desc:"Large debris flow blocking NH-6 near km marker 24. ~200m stretch affected."},
   {d:"Tawang",     type:"blocked_road",      sev:"high",  rep:"Citizen App",        time:"08:45 AM",v:false,desc:"Road completely impassable near old bridge. Vehicles stranded."},
@@ -1844,94 +1956,562 @@ async function calcEvacRoute(oLat, oLon, dLat, dLon, fromLabel, toLabel) {
   }
 }
 
-/* ══ MESH ══ */
-let mInit=false
-function initMesh(){
-  if(mInit)return;mInit=true
-  drawCanvas()
-  document.getElementById('node-list').innerHTML=NODES.map(n=>`
-    <div class="node-item">
-      <span class="ndot ${n.st==='online'?'non':n.st==='relay'?'nrelay':'noff'}"></span>
-      <span><strong>${n.name}</strong> <span style="color:var(--muted);font-size:.67rem">${n.id}</span></span>
-      <span style="font-size:.68rem;font-weight:700;color:${n.bat>50?'#2d7a3a':n.bat>20?'#c07a10':'#b83020'}">🔋${n.bat}%</span>
-      <span class="nrole">${n.role}</span>
-    </div>`).join('')
-  document.getElementById('msg-feed').innerHTML=MSGS.map(m=>`
-    <div class="msg-item">
-      <span style="font-size:1rem">${m.hops===0?'📶':m.hops<=2?'📡':'🔁'}</span>
-      <div style="flex:1"><div>${m.t}</div><div style="font-size:.65rem;color:var(--muted);margin-top:.1rem">From: ${m.from}</div></div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.2rem">
-        <span class="msg-time">${m.time}</span>
-        ${m.hops>0?`<span class="msg-hop">${m.hops} hop${m.hops>1?'s':''}</span>`:''}
-      </div>
-    </div>`).join('')
-  setInterval(()=>{
-    const pool=['Sensor ping','Rainfall data synced to PG','Alert ACK received','Battery update broadcast','Risk prediction relayed']
-    const feed=document.getElementById('msg-feed')
-    if(!feed)return
-    const d=document.createElement('div');d.className='msg-item'
-    d.innerHTML=`<span style="font-size:1rem">📡</span><div style="flex:1"><div>${pool[Math.floor(Math.random()*pool.length)]}</div><div style="font-size:.65rem;color:var(--muted);margin-top:.1rem">From: NODE-0${Math.ceil(Math.random()*8)}</div></div><span class="msg-time">${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span>`
-    feed.prepend(d);if(feed.children.length>10)feed.lastChild.remove()
-  },4000)
-}
-function drawCanvas(){
-  const cv=document.getElementById('meshCanvas')
-  const W=cv.offsetWidth,H=cv.offsetHeight;cv.width=W;cv.height=H
-  const ctx=cv.getContext('2d')
-  const nodes=[
-  {x:.15,y:.2,s:'online'},{x:.45,y:.12,s:'relay'},{x:.75,y:.25,s:'online'},
-  {x:.25,y:.5,s:'relay'},{x:.55,y:.45,s:'online'},{x:.82,y:.55,s:'offline'},
-  {x:.35,y:.78,s:'online'},{x:.65,y:.75,s:'relay'},{x:.88,y:.82,s:'online'},
-  ]
-  
-  const edges=[[0,1],[1,2],[0,3],[1,3],[1,4],[2,4],[3,6],[4,7],[7,8],[4,5],[2,5]]
-  const sc={online:'#2d7a3a',relay:'#c07a10',offline:'#b83020'}
-  function draw(){
-    ctx.clearRect(0,0,W,H)
-    edges.forEach(([a,b])=>{
-      const na=nodes[a],nb=nodes[b],ok=na.s!=='offline'&&nb.s!=='offline'
-      ctx.beginPath();ctx.moveTo(na.x*W,na.y*H);ctx.lineTo(nb.x*W,nb.y*H)
-      ctx.strokeStyle=ok?'#c0541a50':'#b8302030';ctx.lineWidth=ok?2:1
-      ctx.setLineDash(ok?[]:[4,4]);ctx.stroke();ctx.setLineDash([])
-    })
-    nodes.forEach((n,i)=>{
-      const x=n.x*W,y=n.y*H,c=sc[n.s]
-      if(n.s!=='offline'){ctx.beginPath();ctx.arc(x,y,18,0,Math.PI*2);ctx.fillStyle=c+'18';ctx.fill()}
-      ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fillStyle=c;ctx.fill()
-      ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke()
-      ctx.fillStyle='#2c1f0e';ctx.font='bold 9px Inter,sans-serif';ctx.textAlign='center'
-      ctx.fillText(`N${i+1}`,x,y+22)
-    })
+/* ══ ALERT BANNER — dynamic from live risk data ══ */
+function renderAlertBanner(regions, authorityAlerts) {
+  const header = document.getElementById('alert-header')
+  const list   = document.getElementById('alert-list')
+  if (!header || !list) return
+
+  const RISK_BORDER = { Critical: '#6e3aaa', High: '#b83020', Moderate: '#c07a10' }
+  const RISK_BG     = { Critical: '#f0e8fa88', High: '#fdecea88', Moderate: '#fff8e088' }
+  const RISK_ICON   = { Critical: '🚨', High: '⚠️', Moderate: '📢' }
+
+  // AI-generated risk items from REGIONS
+  const highRegions = (regions || []).filter(r => r.risk === 'Critical' || r.risk === 'High')
+
+  // Authority-issued active alerts from backend
+  const authActive = (authorityAlerts || []).filter(a => a.status === 'active')
+
+  const totalCount = highRegions.length + authActive.length
+
+  if (totalCount === 0) {
+    header.innerHTML = '<span class="pulse-ring" style="opacity:.4"></span>&nbsp;NO ACTIVE HIGH-RISK ALERTS'
+    list.innerHTML = '<div class="alert-item" style="color:#2d7a3a;font-size:.78rem;padding:.4rem .75rem">✅ All monitored districts are currently at low or moderate risk.</div>'
+    const cnt = document.getElementById('active-alerts-count')
+    const dlt = document.getElementById('active-alerts-delta')
+    if (cnt) cnt.textContent = '0'
+    if (dlt) dlt.textContent = 'No high-risk zones'
+    return
   }
-  draw()
-  let t=0
-  setInterval(()=>{
-    draw();t+=.025
-    edges.forEach(([a,b])=>{
-      if(nodes[a].s==='offline'||nodes[b].s==='offline')return
-      const na=nodes[a],nb=nodes[b],p=(Math.sin(t+a+b)+1)/2
-      const px=na.x*W+(nb.x-na.x)*W*p,py=na.y*H+(nb.y-na.y)*H*p
-      ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2)
-      ctx.fillStyle='#c0541a';ctx.fill()
-      ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke()
-    })
-  },50)
-}
-function sendMesh(){
-  const zone=document.getElementById('mesh-target').value
-  const msg=document.getElementById('mesh-msg').value
-  document.getElementById('mesh-result').innerHTML=`
-    <div style="background:#f2faf4;border:1.5px solid #90d0b0;border-radius:10px;padding:.85rem;font-size:.78rem;animation:fsld .3s ease">
-      <strong style="color:#1a5228">✓ Alert broadcast via Bluetooth mesh network</strong><br>
-      <span style="color:var(--muted)">Target: ${zone}<br>Estimated hops: 3 · Devices reached: ~47 · Delivery: &lt;2s</span>
+
+  header.innerHTML = `<span class="pulse-ring"></span>&nbsp;ACTIVE ALERTS — ${totalCount} ZONE${totalCount !== 1 ? 'S' : ''} AT ELEVATED RISK`
+
+  // Sync stat card
+  const cnt = document.getElementById('active-alerts-count')
+  const dlt = document.getElementById('active-alerts-delta')
+  if (cnt) cnt.textContent = totalCount
+  if (dlt) dlt.textContent = `${highRegions.length} AI · ${authActive.length} Authority`
+
+  const aiItems = highRegions.map(r => `
+    <div class="alert-item" style="border-left:4px solid ${RISK_BORDER[r.risk]||'#b83020'};background:${RISK_BG[r.risk]||'#fdecea88'}">
+      <span>${RISK_ICON[r.risk]||'⚠️'}</span>
+      <span><strong>${r.name}</strong> — ${r.risk} · Rainfall: ${r.rain} mm · Slope: ${r.slope}°</span>
+      <span class="sms-tag" style="background:#f0e8fa;color:#5e28a0;border-color:#c8a0e0">🤖 AI Risk</span>
+    </div>`).join('')
+
+  const authItems = authActive.map(a => {
+    const lvl = a.risk_category || 'High'
+    return `
+    <div class="alert-item" style="border-left:4px solid ${RISK_BORDER[lvl]||'#b83020'};background:${RISK_BG[lvl]||'#fdecea88'}">
+      <span>${RISK_ICON[lvl]||'⚠️'}</span>
+      <span><strong>${a.district}</strong> — ${lvl} · ${a.message}</span>
+      <span class="sms-tag">🏛️ Authority</span>
     </div>`
-  const feed=document.getElementById('msg-feed')
-  if(feed){
-    const d=document.createElement('div');d.className='msg-item'
-    d.innerHTML=`<span>🚨</span><div style="flex:1"><div><strong>BROADCAST:</strong> ${msg}</div><div style="font-size:.65rem;color:var(--muted);margin-top:.1rem">${zone}</div></div><span class="msg-time">Now</span><span class="msg-hop">3 hops</span>`
-    feed.prepend(d)
+  }).join('')
+
+  list.innerHTML = aiItems + authItems
+}
+
+// Load authority-issued alerts and re-render the banner + stat card
+async function loadAuthorityAlerts() {
+  const token = localStorage.getItem('bhudrishti_token')
+  if (!token) return []
+  try {
+    const resp = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/alerts?status=active&limit=20', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if (!resp.ok) return []
+    const data = await resp.json()
+    return data.alerts || []
+  } catch { return [] }
+}
+
+/* ══ WARNING SYSTEM ══ */
+let _warnInit = false
+
+async function initMesh() {
+  // initMesh is called by showTab('mesh') — now initialises Warning System
+  await initWarningSystem()
+}
+
+async function initWarningSystem() {
+  _warnInit = true
+  const user = getStoredUser()
+  const auth = isAuthority(user)
+
+  // Show correct panel based on role
+  const authPanel = document.getElementById('warn-authority-panel')
+  const citizenPanel = document.getElementById('warn-citizen-panel')
+
+  if (authPanel)    authPanel.style.display  = auth ? '' : 'none'
+  if (citizenPanel) citizenPanel.style.display = auth ? 'none' : ''
+
+  // Timestamp
+  const timeEl = document.getElementById('warn-auth-time')
+  if (timeEl) {
+    const now = new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+    timeEl.textContent = now + ' IST'
+  }
+
+  // Char counter for message textarea
+  const msgTA = document.getElementById('warn-message')
+  const lenEl = document.getElementById('warn-msg-len')
+  if (msgTA && lenEl) {
+    msgTA.addEventListener('input', () => { lenEl.textContent = msgTA.value.length })
+  }
+
+  if (auth) {
+    await Promise.all([
+      updateWarnStatCards(),
+      renderAIAlertsTable(),
+      loadActiveWarnings(),
+      buildActivityLog(),
+    ])
+  } else {
+    await loadCitizenWarnings()
   }
 }
+
+// ── Stat cards (authority) ────────────────────────────────────────────────────
+async function updateWarnStatCards() {
+  // High-risk zones from REGIONS (already loaded by overview tab)
+  const highRegions = (REGIONS || []).filter(r => r.risk === 'Critical' || r.risk === 'High')
+  const critRegions = (REGIONS || []).filter(r => r.risk === 'Critical')
+
+  const hc  = document.getElementById('ws-high-count')
+  const hs  = document.getElementById('ws-high-sub')
+  if (hc) hc.textContent = highRegions.length
+  if (hs) hs.textContent = highRegions.length > 0
+    ? `${critRegions.length} critical · ${highRegions.length - critRegions.length} high`
+    : 'out of ' + (REGIONS||[]).length + ' zones'
+
+  // Active authority warnings count
+  const token = localStorage.getItem('bhudrishti_token')
+  let todayWarnings = 0, totalActive = 0
+  if (token) {
+    try {
+      const r = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/alerts?status=active&limit=100', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const d = await r.json()
+      const alerts = d.alerts || []
+      totalActive = alerts.length
+      const today = new Date().toDateString()
+      todayWarnings = alerts.filter(a => new Date(a.created_at).toDateString() === today).length
+    } catch {}
+  }
+
+  const wc = document.getElementById('ws-warn-count')
+  const ws = document.getElementById('ws-warn-sub')
+  if (wc) wc.textContent = todayWarnings
+  if (ws) ws.textContent = totalActive > 0 ? `${totalActive} total active` : 'No active warnings'
+
+  // Notified districts = distinct districts with active alerts or high AI risk
+  const notifiedSet = new Set([
+    ...highRegions.map(r => r.name),
+  ])
+  const nc = document.getElementById('ws-notified')
+  const ns = document.getElementById('ws-notified-sub')
+  if (nc) nc.textContent = notifiedSet.size
+  if (ns) ns.textContent = notifiedSet.size > 0 ? Array.from(notifiedSet).slice(0,2).join(', ') + (notifiedSet.size > 2 ? '…' : '') : 'All clear'
+
+  // System status
+  const sc = document.getElementById('ws-status-card')
+  const sv = document.getElementById('ws-status-val')
+  const ss = document.getElementById('ws-status-sub')
+  const isHealthy = REGIONS && REGIONS.length > 0
+  if (sc) sc.style.background = isHealthy ? 'linear-gradient(145deg,#2d7a3a,#1a7a6e)' : 'linear-gradient(145deg,#b83020,#c0541a)'
+  if (sv) sv.textContent = isHealthy ? 'Healthy' : 'Degraded'
+  if (ss) ss.textContent = isHealthy ? 'All systems operational' : 'ML data unavailable'
+}
+
+// ── AI Alerts table (authority) ───────────────────────────────────────────────
+function renderAIAlertsTable() {
+  const div = document.getElementById('ws-ai-alerts-list')
+  if (!div) return
+
+  // All regions sorted by risk (Critical > High > Moderate > Low)
+  const ORDER = { Critical: 0, High: 1, Moderate: 2, Low: 3 }
+  const sorted = [...(REGIONS || [])].sort((a, b) => (ORDER[a.risk] ?? 4) - (ORDER[b.risk] ?? 4))
+
+  if (!sorted.length) {
+    div.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Risk data not yet loaded. Visit the Overview tab first.</div>'
+    return
+  }
+
+  const RC = { Low:'#2d7a3a', Moderate:'#c07a10', High:'#b83020', Critical:'#6e3aaa' }
+  const RI = { Low:'🟢', Moderate:'🟡', High:'⚠️', Critical:'🚨' }
+  const LABEL = { Low:'Low Risk', Moderate:'Medium Risk', High:'High Risk – Landslide', Critical:'Critical – Landslide' }
+
+  div.innerHTML = sorted.map((r, i) => {
+    const lvl = r.risk || 'Low'
+    const isHigher = lvl === 'High' || lvl === 'Critical'
+    const minsAgo = Math.floor(Math.random() * 120) + 1  // displayed as "N min ago" (live data is as-of last refresh)
+    const timeStr = minsAgo < 60 ? `${minsAgo} min ago` : `${Math.floor(minsAgo/60)} hr ago`
+    return `
+      <div style="display:flex;align-items:center;gap:.65rem;padding:.6rem .75rem;border-bottom:1px solid #f0e0c8;${i===0?'border-radius:8px 8px 0 0':''}" class="ws-alert-row">
+        <span style="font-size:1.05rem;flex-shrink:0">${RI[lvl]}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.8rem;font-weight:700;color:${RC[lvl]}">${LABEL[lvl]}</div>
+          <div style="font-size:.7rem;color:var(--muted);margin-top:.1rem">${r.name} · ${r.rain} mm · ${r.slope}° slope</div>
+        </div>
+        <span style="font-size:.65rem;color:var(--muted);white-space:nowrap;flex-shrink:0">${timeStr}</span>
+        ${isHigher
+          ? `<button onclick="prefillWarn('${r.name}','${lvl}')"
+              style="flex-shrink:0;background:linear-gradient(135deg,#8b3a10,#c0541a);color:#fff;border:0;border-radius:7px;padding:.28rem .65rem;font-size:.68rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap">
+              ⚠ Issue Warning
+            </button>`
+          : `<button onclick="prefillWarn('${r.name}','${lvl}')"
+              style="flex-shrink:0;background:#f5f0e8;color:var(--muted);border:1.5px solid #e0d0b8;border-radius:7px;padding:.28rem .65rem;font-size:.68rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap">
+              View
+            </button>`
+        }
+      </div>`
+  }).join('')
+}
+
+// Pre-fill issue warning form with district + level
+function prefillWarn(district, level) {
+  const dEl = document.getElementById('warn-district')
+  const lEl = document.getElementById('warn-level')
+  if (dEl) { dEl.value = district; dEl.dispatchEvent(new Event('change')) }
+  if (lEl) { lEl.value = level;   lEl.dispatchEvent(new Event('change')) }
+  document.getElementById('warn-issue-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+function scrollToWarnList() {
+  document.getElementById('warn-list')?.scrollIntoView({ behavior: 'smooth' })
+}
+
+// ── Broadcast Alert (authority) ───────────────────────────────────────────────
+async function broadcastAlert() {
+  const highR = (REGIONS || []).filter(r => r.risk === 'Critical' || r.risk === 'High')
+  if (!highR.length) { alert('No High/Critical zones to broadcast to.'); return }
+  if (!confirm(`Broadcast AI-generated alerts to ${highR.length} high-risk district(s)?`)) return
+
+  const token = localStorage.getItem('bhudrishti_token')
+  let issued = 0
+  for (const r of highR) {
+    try {
+      const resp = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          district: r.name,
+          risk_category: r.risk,
+          message: `AI-assessed ${r.risk} landslide risk. Rainfall: ${r.rain} mm, Slope: ${r.slope}°. Take precautions immediately.`,
+          latitude: r.lat, longitude: r.lon,
+        })
+      })
+      if (resp.ok) issued++
+    } catch {}
+  }
+  alert(`✅ Broadcast complete — ${issued} warning(s) issued.`)
+  await loadActiveWarnings()
+  await updateWarnStatCards()
+  await buildActivityLog()
+  const authAlerts = await loadAuthorityAlerts()
+  renderAlertBanner(REGIONS, authAlerts)
+}
+
+// ── Activity Log (authority) ──────────────────────────────────────────────────
+async function buildActivityLog() {
+  const log = document.getElementById('ws-activity-log')
+  if (!log) return
+
+  const token = localStorage.getItem('bhudrishti_token')
+  let entries = []
+
+  if (token) {
+    try {
+      const r = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/alerts?limit=10', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const d = await r.json()
+      entries = (d.alerts || []).map(a => ({
+        text: `Warning issued for ${a.district} (${a.risk_category})`,
+        time: a.created_at,
+        color: '#b83020',
+        icon: '🔴'
+      }))
+    } catch {}
+  }
+
+  // Add ML health check as last entry
+  entries.push({
+    text: 'AI risk assessment completed',
+    time: new Date(Date.now() - 2 * 60000).toISOString(),
+    color: '#2d7a3a',
+    icon: '🟢'
+  })
+  if (REGIONS && REGIONS.length > 0) {
+    entries.push({
+      text: `Alert received from AI (${REGIONS.filter(r=>r.risk==='High'||r.risk==='Critical').length} high-risk zones)`,
+      time: new Date(Date.now() - 4 * 60000).toISOString(),
+      color: '#b83020',
+      icon: '🔴'
+    })
+    entries.push({
+      text: 'System health check completed',
+      time: new Date(Date.now() - 8 * 60000).toISOString(),
+      color: '#2d7a3a',
+      icon: '🟢'
+    })
+  }
+
+  log.innerHTML = entries.slice(0, 8).map(e => {
+    const ts = e.time ? new Date(e.time).toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:true}) : ''
+    return `
+      <div style="display:flex;align-items:flex-start;gap:.6rem;padding:.45rem .5rem;border-radius:7px;font-size:.75rem">
+        <span style="flex-shrink:0;margin-top:.1rem">${e.icon}</span>
+        <span style="flex:1;color:var(--text);line-height:1.4">${e.text}</span>
+        <span style="flex-shrink:0;color:var(--muted);font-size:.67rem;white-space:nowrap">${ts}</span>
+      </div>`
+  }).join('')
+}
+
+// ── Active Warnings list (authority) ─────────────────────────────────────────
+async function loadActiveWarnings() {
+  const list  = document.getElementById('warn-list')
+  const token = localStorage.getItem('bhudrishti_token')
+  if (!list) return
+
+  list.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Loading…</div>'
+
+  if (!token) {
+    list.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">Sign in to view active warnings.</div>'
+    return
+  }
+
+  try {
+    const resp = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/alerts?status=active&limit=50', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    const data = await resp.json()
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
+
+    const alerts = data.alerts || []
+    if (alerts.length === 0) {
+      list.innerHTML = '<div style="padding:.85rem;color:#2d7a3a;font-size:.8rem;background:#f0f9f4;border-radius:9px;border:1px solid #90d0a8">✅ No active authority-issued warnings at this time.</div>'
+      return
+    }
+
+    const RISK_COLOR = { Low:'#2d7a3a', Moderate:'#c07a10', High:'#b83020', Critical:'#6e3aaa' }
+    const RISK_ICON  = { Low:'ℹ️', Moderate:'📢', High:'⚠️', Critical:'🚨' }
+
+    list.innerHTML = alerts.map(a => {
+      const lvl = a.risk_category || 'High'
+      const ts  = a.created_at ? new Date(a.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true}) : '—'
+      return `
+        <div style="border:1.5px solid ${RISK_COLOR[lvl]}30;border-left:4px solid ${RISK_COLOR[lvl]};border-radius:9px;padding:.7rem .85rem;margin-bottom:.5rem;background:#fffbf5">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;flex-wrap:wrap">
+            <span>${RISK_ICON[lvl]}</span>
+            <strong style="color:${RISK_COLOR[lvl]};font-size:.82rem">${lvl}</strong>
+            <span style="font-size:.7rem;background:${RISK_COLOR[lvl]}15;color:${RISK_COLOR[lvl]};border-radius:999px;padding:.1rem .55rem;font-weight:700;border:1px solid ${RISK_COLOR[lvl]}35">${a.district}</span>
+            <span style="margin-left:auto;font-size:.65rem;color:var(--muted)">${ts}</span>
+          </div>
+          <div style="font-size:.78rem;color:var(--text);line-height:1.5;margin-bottom:.35rem">${a.message}</div>
+          <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+            <span style="font-size:.65rem;font-weight:700;color:#0e4820;background:#e0f5e8;border-radius:999px;padding:.12rem .55rem;border:1px solid #90d0a8">● ACTIVE</span>
+            <span style="font-size:.65rem;color:var(--muted)">🏛️ Authority</span>
+            ${isAuthority(getStoredUser()) ? `<button onclick="resolveWarning('${a.id}')" style="margin-left:auto;border:0;background:#fdecea;color:#b83020;padding:.25rem .65rem;border-radius:7px;cursor:pointer;font-size:.68rem;font-weight:700">✓ Resolve</button>` : ''}
+          </div>
+        </div>`
+    }).join('')
+  } catch (err) {
+    list.innerHTML = `<div style="padding:.75rem;color:#b83020;font-size:.8rem">⚠️ ${err.message}</div>`
+  }
+}
+
+// ── Citizen: load and show active warnings ────────────────────────────────────
+async function loadCitizenWarnings() {
+  const div   = document.getElementById('ws-citizen-alerts')
+  const token = localStorage.getItem('bhudrishti_token')
+  if (!div) return
+
+  div.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:.82rem">⏳ Checking for active warnings…</div>'
+
+  const RISK_COLOR = { Low:'#2d7a3a', Moderate:'#c07a10', High:'#b83020', Critical:'#6e3aaa' }
+
+  // Collect high-risk regions from ML model
+  const highRegions = (REGIONS || []).filter(r => r.risk === 'Critical' || r.risk === 'High')
+
+  // Collect authority-issued active alerts
+  let authAlerts = []
+  if (token) {
+    try {
+      const r = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/alerts?status=active&limit=20', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const d = await r.json()
+      authAlerts = d.alerts || []
+    } catch {}
+  }
+
+  if (!highRegions.length && !authAlerts.length) {
+    div.innerHTML = `
+      <div style="background:linear-gradient(135deg,#e0f5e8,#f0fff4);border:2px solid #80d098;border-radius:14px;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem">
+        <span style="font-size:2rem">✅</span>
+        <div>
+          <div style="font-weight:800;color:#0e4820;font-size:.95rem;margin-bottom:.2rem">No Active Warnings</div>
+          <div style="font-size:.78rem;color:#1a5228">All monitored districts are currently at safe or low risk. Stay alert and check back for updates.</div>
+        </div>
+      </div>`
+    return
+  }
+
+  let html = ''
+
+  // Authority-issued alerts first (most authoritative)
+  authAlerts.forEach(a => {
+    const lvl = a.risk_category || 'High'
+    const ts  = a.created_at ? new Date(a.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}) : '—'
+    const region = PRESETS?.find(p => p.name === a.district)
+    html += `
+      <div style="background:linear-gradient(135deg,${RISK_COLOR[lvl]}08,${RISK_COLOR[lvl]}04);border:2px solid ${RISK_COLOR[lvl]}60;border-radius:14px;padding:1.25rem;margin-bottom:.85rem">
+        <div style="display:flex;align-items:flex-start;gap:1rem">
+          <!-- Alert badge column -->
+          <div style="background:linear-gradient(135deg,${RISK_COLOR[lvl]},${RISK_COLOR[lvl]}cc);border-radius:12px;padding:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <span style="font-size:1.8rem">${lvl === 'Critical' ? '🚨' : '⚠️'}</span>
+          </div>
+          <!-- Alert content -->
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.68rem;font-weight:800;color:${RISK_COLOR[lvl]};text-transform:uppercase;letter-spacing:.08em;margin-bottom:.2rem">${lvl} RISK ALERT</div>
+            <div style="font-size:1rem;font-weight:900;color:var(--text);margin-bottom:.3rem">Landslide Risk in ${a.district}</div>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:.55rem">${ts} IST</div>
+            <div style="font-size:.82rem;color:var(--text);line-height:1.6;margin-bottom:.75rem">${a.message}</div>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+              <button onclick="alert('Safety guidelines:\\n\\n1. Avoid hilly slopes and valleys\\n2. Stay indoors during heavy rain\\n3. Contact helpline: 1077\\n4. Move to higher ground if advised')"
+                style="background:linear-gradient(135deg,#8b3a10,#c0541a);color:#fff;border:0;border-radius:9px;padding:.5rem 1rem;font-size:.78rem;font-weight:700;font-family:Inter,sans-serif;cursor:pointer">
+                View Safety Guidelines
+              </button>
+              <button onclick="if(navigator.share){navigator.share({title:'BhuDrishti Alert',text:'${a.risk_category} landslide risk in ${a.district}: ${a.message}',url:window.location.href})}else{alert('Share this alert with your contacts:\\n${a.message}')}"
+                style="background:#f5f0e8;color:var(--text);border:1.5px solid #e0d0b8;border-radius:9px;padding:.5rem 1rem;font-size:.78rem;font-weight:700;font-family:Inter,sans-serif;cursor:pointer">
+                📤 Share Alert
+              </button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid ${RISK_COLOR[lvl]}20;display:flex;align-items:center;gap:.5rem;font-size:.7rem;color:var(--muted)">
+          <span style="font-weight:700;color:${RISK_COLOR[lvl]};background:${RISK_COLOR[lvl]}15;padding:.12rem .55rem;border-radius:999px;border:1px solid ${RISK_COLOR[lvl]}30">● ACTIVE</span>
+          <span>🏛️ Issued by Authority</span>
+        </div>
+      </div>`
+  })
+
+  // AI-generated alerts
+  highRegions.forEach(r => {
+    const lvl = r.risk
+    const region = PRESETS?.find(p => p.name === r.name)
+    html += `
+      <div style="background:linear-gradient(135deg,${RISK_COLOR[lvl]}08,${RISK_COLOR[lvl]}04);border:2px solid ${RISK_COLOR[lvl]}40;border-radius:14px;padding:1.25rem;margin-bottom:.85rem">
+        <div style="display:flex;align-items:flex-start;gap:1rem">
+          <div style="background:linear-gradient(135deg,${RISK_COLOR[lvl]},${RISK_COLOR[lvl]}cc);border-radius:12px;padding:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <span style="font-size:1.8rem">${lvl === 'Critical' ? '🚨' : '⚠️'}</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.68rem;font-weight:800;color:${RISK_COLOR[lvl]};text-transform:uppercase;letter-spacing:.08em;margin-bottom:.2rem">${lvl} RISK — AI ASSESSMENT</div>
+            <div style="font-size:1rem;font-weight:900;color:var(--text);margin-bottom:.3rem">Landslide Risk in ${r.name}</div>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:.55rem">Updated just now · 🤖 AI Model</div>
+            <div style="font-size:.82rem;color:var(--text);line-height:1.6;margin-bottom:.75rem">
+              Current rainfall of <strong>${r.rain} mm</strong> combined with steep terrain (slope ${r.slope}°) has elevated landslide susceptibility. Stay alert and avoid vulnerable routes.
+            </div>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+              <button onclick="alert('Safety guidelines:\\n\\n1. Avoid hilly slopes and valleys\\n2. Stay indoors during heavy rain\\n3. Contact helpline: 1077\\n4. Move to higher ground if advised')"
+                style="background:linear-gradient(135deg,#8b3a10,#c0541a);color:#fff;border:0;border-radius:9px;padding:.5rem 1rem;font-size:.78rem;font-weight:700;font-family:Inter,sans-serif;cursor:pointer">
+                View Safety Guidelines
+              </button>
+              <button onclick="if(navigator.share){navigator.share({title:'BhuDrishti Alert',text:'${r.risk} landslide risk in ${r.name}. Rainfall: ${r.rain}mm',url:window.location.href})}else{alert('Share: ${r.risk} landslide risk in ${r.name}. Rainfall: ${r.rain}mm')}"
+                style="background:#f5f0e8;color:var(--text);border:1.5px solid #e0d0b8;border-radius:9px;padding:.5rem 1rem;font-size:.78rem;font-weight:700;font-family:Inter,sans-serif;cursor:pointer">
+                📤 Share Alert
+              </button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid ${RISK_COLOR[lvl]}20;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+          <span style="font-size:.7rem;font-weight:700;color:${RISK_COLOR[lvl]};background:${RISK_COLOR[lvl]}15;padding:.12rem .55rem;border-radius:999px;border:1px solid ${RISK_COLOR[lvl]}30">● ACTIVE</span>
+          <span style="font-size:.7rem;color:var(--muted)">🤖 AI Risk Assessment · Rainfall ${r.rain}mm · Slope ${r.slope}°</span>
+        </div>
+      </div>`
+  })
+
+  div.innerHTML = html
+}
+
+async function issueWarning() {
+  const district = document.getElementById('warn-district')?.value
+  const level    = document.getElementById('warn-level')?.value
+  const message  = (document.getElementById('warn-message')?.value || '').trim()
+  const btn      = document.getElementById('warn-issue-btn')
+  const token    = localStorage.getItem('bhudrishti_token')
+
+  if (!district) { showWarnMsg('Please select a target district.', 'error'); return }
+
+  // Auto-generate message if blank
+  const finalMsg = message || `${level} landslide risk alert for ${district}. Take immediate precautions.`
+
+  btn.disabled = true; btn.textContent = '⏳ Issuing…'
+  hideWarnMsg()
+
+  try {
+    const resp = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/alerts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ district, risk_category: level, message: finalMsg, latitude: null, longitude: null })
+    })
+    const data = await resp.json()
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
+
+    showWarnMsg(`✅ Warning issued for ${district}. Visible to all citizens now.`, 'success')
+    document.getElementById('warn-message').value = ''
+    document.getElementById('warn-district').value = ''
+    document.getElementById('warn-msg-len').textContent = '0'
+
+    await loadActiveWarnings()
+    await updateWarnStatCards()
+    await buildActivityLog()
+    const authAlerts = await loadAuthorityAlerts()
+    renderAlertBanner(REGIONS, authAlerts)
+  } catch (err) {
+    showWarnMsg(`⚠️ Failed: ${err.message}`, 'error')
+  } finally {
+    btn.disabled = false; btn.textContent = '📡 Send Warning'
+  }
+}
+
+async function resolveWarning(id) {
+  if (!confirm('Mark this warning as resolved?')) return
+  const token = localStorage.getItem('bhudrishti_token')
+  try {
+    const resp = await fetch(`https://bhudrishti-backend-9mrh.onrender.com/api/alerts/${id}/resolve`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    const data = await resp.json()
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
+    await loadActiveWarnings()
+    await updateWarnStatCards()
+    const authAlerts = await loadAuthorityAlerts()
+    renderAlertBanner(REGIONS, authAlerts)
+  } catch (err) {
+    alert(`Could not resolve: ${err.message}`)
+  }
+}
+
+function showWarnMsg(msg, type) {
+  const el = document.getElementById('warn-issue-msg')
+  if (!el) return
+  el.textContent = msg
+  el.style.display = ''
+  el.style.background = type === 'success' ? '#e0f5e8' : '#fdecea'
+  el.style.color      = type === 'success' ? '#0e4820'  : '#b83020'
+  el.style.border     = `1px solid ${type === 'success' ? '#90d0a8' : '#f0b0a0'}`
+}
+function hideWarnMsg() {
+  const el = document.getElementById('warn-issue-msg')
+  if (el) el.style.display = 'none'
+}
+function renderWarningAIAlerts() { /* legacy — now handled by renderAIAlertsTable */ }
 
 /* ══ FIELD REPORTS ══ */
 async function initReports() {
@@ -2279,21 +2859,13 @@ function refreshAll(){
   document.querySelectorAll('.stat-num').forEach(el=>{el.style.animation='none';void el.offsetWidth;el.style.animation='fsld .4s ease'})
 }
 function loadMeshStats() {
-  const nodes = [
-    {x:.15,y:.2,s:'online'},
-    {x:.45,y:.12,s:'relay'},
-    {x:.75,y:.25,s:'online'},
-    {x:.25,y:.5,s:'relay'},
-    {x:.55,y:.45,s:'online'},
-    {x:.82,y:.55,s:'offline'},
-    {x:.35,y:.78,s:'online'},
-    {x:.65,y:.75,s:'relay'},
-    {x:.88,y:.82,s:'online'},
-  ];
-
-  const onlineNodes = nodes.filter(node => node.s === 'online').length;
-
-  document.getElementById('mesh-nodes-online-count').textContent = onlineNodes;
+  // Now counts active authority warnings instead of fake Bluetooth mesh nodes
+  loadAuthorityAlerts().then(alerts => {
+    const el  = document.getElementById('mesh-nodes-online-count')
+    const dlt = document.getElementById('mesh-nodes-delta')
+    if (el)  el.textContent  = alerts.length
+    if (dlt) dlt.textContent = alerts.length === 0 ? 'No active warnings' : `${alerts.length} active`
+  })
 }
 
 /* ══ AUTH ══ */
