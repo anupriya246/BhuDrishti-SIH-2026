@@ -2627,55 +2627,15 @@ function hideWakeUpBanner() {
   if (el) el.style.display = 'none'
 }
 
-function fetchWithTimeout(url, ms) {
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), ms)
-  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer))
-}
-
-async function pingUntilAlive(url, maxWaitMs = 75000) {
-  const deadline = Date.now() + maxWaitMs
-  while (Date.now() < deadline) {
-    try {
-      const r = await fetchWithTimeout(url, 12000)
-      if (r.ok) return true
-    } catch (_) { /* still waking */ }
-    await new Promise(r => setTimeout(r, 4000))
-  }
-  return false
-}
-
-async function warmUpServices() {
-  // Quick optimistic check — if both respond in 3 s they are already warm
-  const quickML  = fetchWithTimeout(`${ML_BASE}/health`,     3000).then(r => r.ok).catch(() => false)
-  const quickAPI = fetchWithTimeout(`${BACKEND_BASE}/health`, 3000).then(r => r.ok).catch(() => false)
-  const [mlOk, apiOk] = await Promise.all([quickML, quickAPI])
-  if (mlOk && apiOk) return  // both warm — skip banner entirely
-
-  showWakeUpBanner('☁️ Services are waking up on Render… this may take up to 60 seconds on the first visit.')
-
-  // Wait for both in parallel (don't block each other)
-  await Promise.allSettled([
-    pingUntilAlive(`${ML_BASE}/health`),
-    pingUntilAlive(`${BACKEND_BASE}/health`),
-  ])
-
-  hideWakeUpBanner()
-}
-
 async function startDashboard() {
-  await warmUpServices()          // wait for Render cold-start before loading data
-  await loadRealRiskData()
-  await loadRealStats()
+  loadRealRiskData()
+  loadRealStats()
   loadMeshStats()
-  // runPrediction() is triggered by district selection or when the AI tab opens — not on startup
   initReports()
 }
 
 /* ══ INIT ══ */
-window.onload = async () => {
-  await startDashboard()
-}
+window.onload = () => { startDashboard() }
 </script>
 </body>
 </html>
