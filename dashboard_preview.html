@@ -476,8 +476,7 @@ footer strong{color:#fff}
 
     <!-- Authority notice (shown only for authority role) -->
     <div class="auth-authority-note" id="auth-authority-note" style="display:none">
-      🏛️ <strong>Authority access</strong> is verified server-side against registered official accounts.
-      Contact your district administrator if you need access.
+      🏛️ <strong>Authority Official</strong> — Registration requires an invite code issued by your district administrator. Sign In if you already have an account.
     </div>
 
     <!-- Error / info -->
@@ -497,25 +496,19 @@ footer strong{color:#fff}
       <div id="si-email-panel">
         <div class="auth-field">
           <label for="si-email">Email address</label>
-          <input type="email" id="si-email" placeholder="authority@bhudrishti.in" autocomplete="username"
+          <input type="email" id="si-email" placeholder="Enter your email" autocomplete="username"
                  oninput="clearAuthMsg()" onkeydown="if(event.key==='Enter')doSignIn()"/>
         </div>
         <div class="auth-field">
           <label for="si-password">Password</label>
           <div class="auth-field-wrap">
-            <input type="password" id="si-password" placeholder="admin1234" autocomplete="current-password"
+            <input type="password" id="si-password" placeholder="Enter your password" autocomplete="current-password"
                    class="has-toggle" oninput="clearAuthMsg()" onkeydown="if(event.key==='Enter')doSignIn()"/>
             <button class="pw-toggle" type="button" onclick="togglePw('si-password',this)" tabindex="-1">👁</button>
           </div>
         </div>
         <button class="auth-forgot" onclick="showForgot()">Forgot password?</button>
         <button class="auth-submit" id="si-email-btn" onclick="doSignIn()">Sign In</button>
-        <!-- Demo credentials hint -->
-        <div style="margin-top:.75rem;background:#fffbf0;border:1px solid #e8d0a0;border-radius:9px;padding:.6rem .85rem;font-size:.72rem;color:#8a5020;line-height:1.7">
-          <strong style="color:#c0541a">Demo credentials</strong><br>
-          👤 Citizen &nbsp;— <strong>citizen@bhudrishti.in</strong> / <strong>demo1234</strong><br>
-          🏛️ Authority — <strong>authority@bhudrishti.in</strong> / <strong>admin1234</strong>
-        </div>
       </div>
 
       <!-- Phone sign-in -->
@@ -566,6 +559,15 @@ footer strong{color:#fff}
             <option>Aizawl</option><option>Gangtok</option><option>Dibrugarh</option>
             <option>Agartala</option><option>Silchar</option><option>Jorhat</option>
           </select>
+        </div>
+        <!-- Authority invite code — required for authority role, hidden for citizen -->
+        <div class="auth-field" id="su-authority-code-wrap" style="display:none">
+          <label for="su-authority-code">Authority Invite Code</label>
+          <div class="auth-field-wrap">
+            <input type="password" id="su-authority-code" placeholder="Issued by your district administrator"
+                   class="has-toggle" autocomplete="off" oninput="clearAuthMsg()"/>
+            <button class="pw-toggle" type="button" onclick="togglePw('su-authority-code',this)" tabindex="-1">👁</button>
+          </div>
         </div>
         <div class="auth-field">
           <label for="su-password">Password</label>
@@ -2944,9 +2946,11 @@ function goToAuthStep() {
   // Show authority note only for authority role
   const note = document.getElementById('auth-authority-note')
   if (note) note.style.display = _selectedRole === 'authority' ? 'block' : 'none'
-  // Show district field on signup for authority, hide for citizen
+  // Show district + invite code fields on signup for authority, hide for citizen
   const distWrap = document.getElementById('su-district-wrap')
   if (distWrap) distWrap.style.display = _selectedRole === 'authority' ? 'flex' : 'none'
+  const codeWrap = document.getElementById('su-authority-code-wrap')
+  if (codeWrap) codeWrap.style.display = _selectedRole === 'authority' ? 'flex' : 'none'
   clearAuthMsg()
   // Start with Sign In tab and Email method
   switchMode('signin')
@@ -3032,13 +3036,13 @@ function startOtpTimer(timerElId, sendBtnId, seconds = 60) {
 // ── Forgot password ───────────────────────────────────────────────────────────
 function showForgot() {
   document.getElementById('signin-panel').style.display = 'none'
-  document.getElementById('forgot-panel').style.display = ''
+  document.getElementById('forgot-panel').style.display = 'block'
   clearAuthMsg()
 }
 
 function showSignIn() {
   document.getElementById('forgot-panel').style.display = 'none'
-  document.getElementById('signin-panel').style.display = ''
+  document.getElementById('signin-panel').style.display = 'block'
   clearAuthMsg()
 }
 
@@ -3054,8 +3058,9 @@ async function doForgotPassword() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     })
-    // Always show success to avoid email enumeration
-    showAuthInfo('If this email is registered, a reset link has been sent.')
+    const data = await resp.json()
+    // Always show the same message regardless of outcome to prevent email enumeration
+    showAuthInfo(data.message || 'If this email is registered, a reset link has been sent.')
     document.getElementById('fp-email').value = ''
   } catch {
     showAuthInfo('If this email is registered, a reset link has been sent.')
@@ -3072,7 +3077,7 @@ async function doSendOtp(ctx) {
   if (phone.length !== 10) { showAuthError('Enter a valid 10-digit mobile number.'); return }
   const fullPhone = '+91' + phone
   const sendBtnId = ctx === 'signin' ? 'si-send-otp-btn' : 'su-send-otp-btn'
-  const timerElId = ctx === 'signin' ? 'si-otp-timer' : 'su-otp-timer'
+  const timerElId = ctx === 'signin' ? 'si-otp-timer'    : 'su-otp-timer'
   clearAuthMsg()
   document.getElementById(sendBtnId).disabled = true
   document.getElementById(sendBtnId).textContent = 'Sending…'
@@ -3083,7 +3088,7 @@ async function doSendOtp(ctx) {
       body: JSON.stringify({ phone: fullPhone }),
     })
     const data = await resp.json()
-    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
+    if (!resp.ok) throw new Error(data.error || 'Failed to send OTP.')
     showAuthInfo(`OTP sent to +91 ${phone}. Valid for 10 minutes.`)
     startOtpTimer(timerElId, sendBtnId, 60)
   } catch (err) {
@@ -3100,16 +3105,28 @@ async function doVerifyOtp(ctx) {
   const phone   = '+91' + (phoneEl?.value || '').replace(/\D/g, '')
   const otp     = (otpEl?.value || '').trim()
   const name    = (nameEl?.value || '').trim()
-  if (!otp || otp.length < 6) { showAuthError('Enter the 6-digit OTP.'); return }
+
+  if (!otp || otp.length !== 6) { showAuthError('Enter the 6-digit OTP.'); return }
   if (ctx === 'signup' && !name) { showAuthError('Please enter your full name.'); return }
+
+  const role          = _selectedRole === 'authority' ? 'district_admin' : 'citizen'
+  const authorityCode = ctx === 'signup' && _selectedRole === 'authority'
+    ? (document.getElementById('su-authority-code')?.value || '').trim()
+    : undefined
+
+  if (ctx === 'signup' && _selectedRole === 'authority' && !authorityCode) {
+    showAuthError('Please enter your authority invite code.'); return
+  }
+
   const btnId = ctx === 'signin' ? 'si-phone-btn' : 'su-phone-btn'
-  const btn = document.getElementById(btnId)
+  const btn   = document.getElementById(btnId)
   btn.disabled = true; btn.textContent = 'Verifying…'
   clearAuthMsg()
+
   try {
     const endpoint = ctx === 'signup' ? '/register-phone' : '/login-phone'
     const body = ctx === 'signup'
-      ? { phone, otp, name, role: _selectedRole === 'authority' ? 'district_admin' : 'citizen' }
+      ? { phone, otp, name, role, ...(authorityCode ? { authorityCode } : {}) }
       : { phone, otp }
     const resp = await fetch(`${AUTH_API}${endpoint}`, {
       method: 'POST',
@@ -3117,14 +3134,12 @@ async function doVerifyOtp(ctx) {
       body: JSON.stringify(body),
     })
     const data = await resp.json()
-    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
-    if (data.token) {
-      handleAuthSuccess(data.token, data.user)
-    } else {
-      throw new Error('No token returned.')
-    }
+    if (!resp.ok) throw new Error(data.error || 'OTP verification failed.')
+    if (!data.token) throw new Error('No token returned.')
+    handleAuthSuccess(data.token, data.user)
   } catch (err) {
-    btn.disabled = false; btn.textContent = ctx === 'signin' ? 'Verify & Sign In' : 'Create Account'
+    btn.disabled = false
+    btn.textContent = ctx === 'signin' ? 'Verify & Sign In' : 'Create Account'
     showAuthError(err.message || 'OTP verification failed.')
   }
 }
@@ -3135,52 +3150,36 @@ async function doSignIn() {
   const password = (document.getElementById('si-password')?.value || '')
   if (!email)    { showAuthError('Please enter your email address.'); return }
   if (!password) { showAuthError('Please enter your password.'); return }
+
   const btn = document.getElementById('si-email-btn')
   btn.disabled = true; btn.textContent = 'Signing in…'
   clearAuthMsg()
 
-  // Demo accounts — work even when backend DB is empty
-  const DEMO = {
-    'citizen@bhudrishti.in':  { password: 'demo1234',  role: 'citizen',        name: 'Demo Citizen' },
-    'authority@bhudrishti.in':{ password: 'admin1234', role: 'district_admin', name: 'Authority Official' },
-  }
-
   try {
-    let user = null, token = null
+    const resp = await fetch(`${AUTH_API}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    const data = await resp.json()
+    if (!resp.ok) throw new Error(data.error || 'Sign in failed. Check your credentials.')
 
-    // Try real backend first
-    try {
-      const resp = await fetch(`${AUTH_API}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-      const data = await resp.json()
-      if (resp.ok && data.token) { token = data.token; user = data.user }
-      else throw new Error(data.error || `HTTP ${resp.status}`)
-    } catch (backendErr) {
-      // Backend unreachable or no account — try demo fallback
-      const demo = DEMO[email.toLowerCase()]
-      if (demo && demo.password === password) {
-        const wantsAuth = _selectedRole === 'authority'
-        const isAuth    = ['field_officer','district_admin','superadmin'].includes(demo.role)
-        if (wantsAuth && !isAuth) throw new Error('This demo account is Citizen only. Use authority@bhudrishti.in')
-        if (!wantsAuth && isAuth) throw new Error('This is an authority account. Select Authority Official role.')
-        token = 'demo_' + btoa(JSON.stringify({ email, role: demo.role, name: demo.name }))
-        user  = { id: 'demo', email, role: demo.role, name: demo.name }
-      } else {
-        throw backendErr
-      }
+    const { token, user } = data
+    if (!token || !user) throw new Error('Invalid response from server.')
+
+    // Role mismatch: user picked Authority but account is citizen
+    if (_selectedRole === 'authority' && !isAuthority(user)) {
+      throw new Error('This account does not have authority access. Please select Citizen and sign in again.')
+    }
+    // Role mismatch: user picked Citizen but account is authority
+    if (_selectedRole === 'citizen' && isAuthority(user)) {
+      throw new Error('This is an authority account. Please select Authority Official and sign in again.')
     }
 
-    // Role mismatch check (real backend)
-    if (user && _selectedRole === 'authority' && !isAuthority(user)) {
-      throw new Error('This account does not have authority access. Please select Citizen.')
-    }
     handleAuthSuccess(token, user)
   } catch (err) {
     btn.disabled = false; btn.textContent = 'Sign In'
-    showAuthError(err.message || 'Sign in failed. Check your credentials.')
+    showAuthError(err.message || 'Sign in failed. Please try again.')
   }
 }
 
@@ -3190,31 +3189,43 @@ async function doSignUp() {
   const email    = (document.getElementById('su-email')?.value || '').trim()
   const password = (document.getElementById('su-password')?.value || '')
   const confirm  = (document.getElementById('su-confirm')?.value || '')
-  if (!name)          { showAuthError('Please enter your full name.'); return }
-  if (!email)         { showAuthError('Please enter your email address.'); return }
+
+  if (!name)               { showAuthError('Please enter your full name.'); return }
+  if (!email)              { showAuthError('Please enter your email address.'); return }
   if (password.length < 8) { showAuthError('Password must be at least 8 characters.'); return }
   if (password !== confirm) { showAuthError('Passwords do not match.'); return }
+
   const role     = _selectedRole === 'authority' ? 'district_admin' : 'citizen'
   const district = _selectedRole === 'authority'
     ? (document.getElementById('su-district')?.value || '').trim()
     : undefined
-  if (_selectedRole === 'authority' && !district) {
-    showAuthError('Please select your district.'); return
+  const authorityCode = _selectedRole === 'authority'
+    ? (document.getElementById('su-authority-code')?.value || '').trim()
+    : undefined
+
+  if (_selectedRole === 'authority') {
+    if (!district)       { showAuthError('Please select your district.'); return }
+    if (!authorityCode)  { showAuthError('Please enter your authority invite code.'); return }
   }
-  const btn  = document.getElementById('su-email-btn')
+
+  const btn = document.getElementById('su-email-btn')
   btn.disabled = true; btn.textContent = 'Creating account…'
   clearAuthMsg()
+
   try {
     const body = { name, email, password, role }
-    if (district) body.district = district
+    if (district)      body.district      = district
+    if (authorityCode) body.authorityCode = authorityCode
+
     const resp = await fetch(`${AUTH_API}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
     const data = await resp.json()
-    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
+    if (!resp.ok) throw new Error(data.error || 'Registration failed. Please try again.')
     if (!data.token) throw new Error('Registration failed.')
+
     handleAuthSuccess(data.token, data.user)
   } catch (err) {
     btn.disabled = false; btn.textContent = 'Create Account'
