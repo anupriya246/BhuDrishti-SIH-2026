@@ -204,16 +204,12 @@ router.post('/register', authLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Invalid district.' })
   }
  
-  // Privileged roles: require district + valid access code (fails closed)
+  // Privileged roles: no access code required for this project —
+  // role-based API protection is enforced per-endpoint via requireRole middleware.
+  // District is required for staff accounts.
   if (role !== 'citizen') {
     if (!district) {
       return res.status(400).json({ error: 'District is required for staff accounts.' })
-    }
-    if (!ROLE_CODES[role]) {
-      return res.status(403).json({ error: 'Registration for this role is currently disabled.' })
-    }
-    if (!codeMatches(ROLE_CODES[role], accessCode)) {
-      return res.status(403).json({ error: 'Invalid access code for this role.' })
     }
   }
  

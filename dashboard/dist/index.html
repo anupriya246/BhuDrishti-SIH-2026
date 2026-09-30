@@ -373,6 +373,7 @@ footer strong{color:#fff}
 .authority-only.visible{display:inline-flex}
 .authority-section{display:none}
 .authority-section.visible{display:block}
+.district-risk-row:hover{background:#fff5ee !important}
 /* ══ WARNING SYSTEM STYLES ══ */
 .ws-alert-row{transition:background .15s}
 .ws-alert-row:hover{background:#fff5ee}
@@ -555,6 +556,17 @@ footer strong{color:#fff}
           <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email"
                  oninput="clearAuthMsg()"/>
         </div>
+        <!-- District — required for Authority, hidden for Citizen -->
+        <div class="auth-field" id="su-district-wrap" style="display:none">
+          <label for="su-district">Your District</label>
+          <select id="su-district" style="background:linear-gradient(135deg,#fff8f0,#fffaf5);border:1.5px solid #e8c8a0;border-radius:9px;padding:.56rem .82rem;color:var(--text);font-size:.88rem;font-family:'Inter',sans-serif;width:100%;box-sizing:border-box">
+            <option value="">— Select your district —</option>
+            <option>Cherrapunji</option><option>Tawang</option><option>Kohima</option>
+            <option>Shillong</option><option>Itanagar</option><option>Imphal</option>
+            <option>Aizawl</option><option>Gangtok</option><option>Dibrugarh</option>
+            <option>Agartala</option><option>Silchar</option><option>Jorhat</option>
+          </select>
+        </div>
         <div class="auth-field">
           <label for="su-password">Password</label>
           <div class="auth-field-wrap">
@@ -703,11 +715,22 @@ footer strong{color:#fff}
 
   <div class="charts-row">
     <div class="card">
-      <div class="card-title"><div class="ct-icon" style="background:#fdeee6">📊</div>Rainfall by District (mm)</div>
-      <canvas id="rainfallChart" height="85"></canvas>
-      <div style="margin-top:1.1rem;border-top:1px solid #e8e0d0;padding-top:.9rem">
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.65rem">⚠️ District Risk Summary</div>
-        <ul id="top-districts-list" style="list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:.45rem"></ul>
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+        <div style="display:flex;align-items:center;gap:.5rem"><div class="ct-icon" style="background:#fdecea">🗂️</div>District-wise Risk Status</div>
+        <div style="position:relative;display:flex;align-items:center">
+          <span style="position:absolute;left:.55rem;font-size:.82rem;color:var(--muted)">🔍</span>
+          <input id="district-search" type="text" placeholder="Search district…"
+            oninput="filterDistrictList(this.value)"
+            style="padding:.35rem .7rem .35rem 1.85rem;border:1.5px solid #e8c8a0;border-radius:999px;font-size:.76rem;font-family:'Inter',sans-serif;background:#fffbf5;color:var(--text);outline:none;width:170px"/>
+        </div>
+      </div>
+      <!-- Table header -->
+      <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;padding:.4rem .75rem;border-bottom:2px solid #f0e0c8;margin-bottom:.2rem">
+        <span style="font-size:.68rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">District</span>
+        <span style="font-size:.68rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Risk Status</span>
+      </div>
+      <div id="district-risk-list" style="display:flex;flex-direction:column;gap:0;max-height:420px;overflow-y:auto">
+        <div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Loading district risk data…</div>
       </div>
     </div>
     <div class="card">
@@ -1079,7 +1102,7 @@ footer strong{color:#fff}
 
 <!-- ══ FOOTER ══ -->
 <footer>
-  <span><strong>BhuDrishti</strong> — Team InnoVision · Smart India Hackathon 2026 · IGDTUW</span>
+  <span><strong>BhuDrishti</strong> — Team Inno_Vision · Smart India Hackathon 2026 · IGDTUW</span>
   <span>Stack: Python · scikit-learn · Flask · Node.js · Express · <strong>PostgreSQL</strong> · React · Leaflet · Chart.js</span>
 </footer>
 </div>
@@ -1237,89 +1260,80 @@ L.polyline([[25.30,91.70],[25.20,91.80]],{color:'#b83020',weight:5,dashArray:'8,
 L.polyline([[25.30,91.70],[25.40,91.60],[25.20,91.80]],{color:'#2d7a3a',weight:3,dashArray:'6,4'}).bindTooltip('✅ Alt Route A').addTo(map)
 
 /* ══ CHARTS ══ */
-let _rainfallChart = null   // guard: destroy before recreating to prevent Chart.js "canvas in use" error
 
-function renderRainfallChart(){
-  // Destroy any existing instance on this canvas before creating a new one.
-  // Without this, Chart.js 4.x refuses to render on a canvas it already owns,
-  // causing the bar chart to stay blank on any re-render (e.g. after a cold-start retry).
-  if (_rainfallChart) {
-    _rainfallChart.destroy()
-    _rainfallChart = null
+// District Risk List (replaces rainfall bar chart)
+function renderRainfallChart() {
+  renderDistrictRiskList()
+}
+
+function renderDistrictRiskList() {
+  const container = document.getElementById('district-risk-list')
+  if (!container) return
+
+  if (!REGIONS || !REGIONS.length) {
+    container.innerHTML = '<div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Loading…</div>'
+    return
   }
-  const hasLive = REGIONS.some(r => r.rainLive)
-  _rainfallChart = new Chart(document.getElementById('rainfallChart'),{
-    type:'bar',
-    data:{
-      labels:REGIONS.map(r=>r.name),
-      datasets:[{
-        label: hasLive ? 'Live Rainfall (mm)' : 'Avg Rainfall (mm)',
-        data:REGIONS.map(r=>r.rain),
-        backgroundColor:REGIONS.map(r=>RC[r.risk]+'99'),
-        borderColor:REGIONS.map(r=>RC[r.risk]),
-        borderWidth:2,
-        borderRadius:7,
-        borderSkipped:false,
-      }]
-    },
-    options:{
-      responsive:true,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            label:c=>{
-              const reg=REGIONS[c.dataIndex]
-              const src=reg&&reg.rainLive?'🟢 live':'📌 avg'
-              return ` ${c.raw} mm (${src})`
-            }
-          }
-        }
-      },
-      scales:{
-        x:{
-          ticks:{
-            color:'#7a6a55',
-            maxRotation:35,
-            font:{size:10}
-          },
-          grid:{color:'#ede9e0'}
-        },
-        y:{
-          beginAtZero:true,
-          suggestedMax: Math.max(...REGIONS.map(r=>r.rain), 50) * 1.15,
-          ticks:{
-            color:'#7a6a55',
-            font:{size:10}
-          },
-          grid:{color:'#ede9e0'}
-        }
-      }
-    }
+
+  const RISK_COLOR = { Low:'#2d7a3a', Moderate:'#c07a10', High:'#b83020', Critical:'#6e3aaa' }
+  const RISK_BG    = { Low:'#e0f5e8', Moderate:'#fef0d0', High:'#fce8e4', Critical:'#ece0fa' }
+  const RISK_ICON  = { Low:'🟢', Moderate:'🟡', High:'🔴', Critical:'🚨' }
+  const ORDER      = { Critical:0, High:1, Moderate:2, Low:3 }
+
+  // Sort: Critical first, then High, Moderate, Low
+  const sorted = [...REGIONS].sort((a,b) => (ORDER[a.risk]??4) - (ORDER[b.risk]??4))
+
+  container.innerHTML = sorted.map((r,i) => `
+    <div class="district-risk-row" data-name="${r.name.toLowerCase()}"
+      style="display:grid;grid-template-columns:1fr auto;align-items:center;gap:.5rem;
+        padding:.52rem .75rem;border-bottom:1px solid #f0e8d8;transition:background .15s;cursor:default">
+      <div style="display:flex;align-items:center;gap:.55rem">
+        <span style="font-size:.78rem;color:var(--muted);font-weight:600;min-width:1.4rem">${i+1}</span>
+        <span style="font-size:.84rem;font-weight:700;color:var(--text)">${r.name}</span>
+        <span style="font-size:.68rem;color:var(--muted)">· ${r.rain} mm · ${r.slope}°</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <span style="font-size:.72rem;font-weight:800;padding:.22rem .75rem;border-radius:999px;
+          background:${RISK_BG[r.risk]};color:${RISK_COLOR[r.risk]};
+          border:1px solid ${RISK_COLOR[r.risk]}40;white-space:nowrap">
+          ${RISK_ICON[r.risk]} ${r.risk}
+        </span>
+        <span style="color:#c0a070;font-size:.75rem">›</span>
+      </div>
+    </div>`).join('')
+}
+
+function filterDistrictList(query) {
+  const q = query.toLowerCase().trim()
+  document.querySelectorAll('.district-risk-row').forEach(row => {
+    row.style.display = (!q || row.dataset.name.includes(q)) ? '' : 'none'
   })
 }
+
+let _riskDonut = null
 function renderRiskDonut(){
-  const cnt={Low:0,Moderate:0,High:0,Critical:0}
+  const cnt = { Low:0, Moderate:0, High:0, Critical:0 }
+  REGIONS.forEach(r => { if (cnt[r.risk] !== undefined) cnt[r.risk]++ })
 
-  REGIONS.forEach(r=>{
-    cnt[r.risk]++;
-  })
+  if (_riskDonut) { _riskDonut.destroy(); _riskDonut = null }
 
-  new Chart(document.getElementById('riskDonut'), {
+  _riskDonut = new Chart(document.getElementById('riskDonut'), {
     type:'doughnut',
     data:{
       labels:['Low','Moderate','High','Critical'],
       datasets:[{
-        data:[cnt.Low,cnt.Moderate,cnt.High,cnt.Critical]
+        data:[cnt.Low, cnt.Moderate, cnt.High, cnt.Critical],
+        backgroundColor:['#2d7a3a99','#c07a1099','#b8302099','#6e3aaa99'],
+        borderColor:    ['#2d7a3a',  '#c07a10',  '#b83020',  '#6e3aaa'],
+        borderWidth:2,
       }]
     },
     options:{
       responsive:true,
       cutout:'62%',
       plugins:{
-        legend:{
-          position:'bottom'
-        }
+        legend:{ position:'bottom', labels:{ color:'#7a6a55', font:{size:11}, padding:10 } },
+        tooltip:{ callbacks:{ label: c => ` ${c.label}: ${c.raw} district${c.raw!==1?'s':''}` } }
       }
     }
   })
@@ -1365,33 +1379,7 @@ function renderRiskMarkers(){
 }
 
 /* ══ TOP RISK DISTRICTS LIST ══ */
-function renderTopDistricts(){
-  const order={Critical:0,High:1,Moderate:2,Low:3};
-
-  const sorted=[...REGIONS].sort(
-    (a,b)=>order[a.risk]-order[b.risk] || b.rain-a.rain
-  );
-
-  const ul=document.getElementById('top-districts-list');
-
-  ul.innerHTML='';
-
-  sorted.slice(0,5).forEach((r,i)=>{
-    const li=document.createElement('li');
-
-    li.innerHTML=`
-      <div>
-        <strong>${i+1}. ${r.name}</strong>
-        <small>${r.risk} Risk · ${r.rain} mm rainfall</small>
-      </div>
-      <span style="color:${RC[r.risk]};font-weight:700">
-        ${r.risk}
-      </span>
-    `;
-
-    ul.appendChild(li);
-  });
-}
+function renderTopDistricts(){ /* now handled by renderDistrictRiskList */ }
 
 /* ══ AI PREDICTION — calls real Flask API ══ */
 const RCONF={
