@@ -496,19 +496,25 @@ footer strong{color:#fff}
       <div id="si-email-panel">
         <div class="auth-field">
           <label for="si-email">Email address</label>
-          <input type="email" id="si-email" placeholder="you@example.com" autocomplete="username"
+          <input type="email" id="si-email" placeholder="authority@bhudrishti.in" autocomplete="username"
                  oninput="clearAuthMsg()" onkeydown="if(event.key==='Enter')doSignIn()"/>
         </div>
         <div class="auth-field">
           <label for="si-password">Password</label>
           <div class="auth-field-wrap">
-            <input type="password" id="si-password" placeholder="••••••••" autocomplete="current-password"
+            <input type="password" id="si-password" placeholder="admin1234" autocomplete="current-password"
                    class="has-toggle" oninput="clearAuthMsg()" onkeydown="if(event.key==='Enter')doSignIn()"/>
             <button class="pw-toggle" type="button" onclick="togglePw('si-password',this)" tabindex="-1">👁</button>
           </div>
         </div>
         <button class="auth-forgot" onclick="showForgot()">Forgot password?</button>
         <button class="auth-submit" id="si-email-btn" onclick="doSignIn()">Sign In</button>
+        <!-- Demo credentials hint -->
+        <div style="margin-top:.75rem;background:#fffbf0;border:1px solid #e8d0a0;border-radius:9px;padding:.6rem .85rem;font-size:.72rem;color:#8a5020;line-height:1.7">
+          <strong style="color:#c0541a">Demo credentials</strong><br>
+          👤 Citizen &nbsp;— <strong>citizen@bhudrishti.in</strong> / <strong>demo1234</strong><br>
+          🏛️ Authority — <strong>authority@bhudrishti.in</strong> / <strong>admin1234</strong>
+        </div>
       </div>
 
       <!-- Phone sign-in -->
@@ -3086,20 +3092,46 @@ async function doSignIn() {
   const btn = document.getElementById('si-email-btn')
   btn.disabled = true; btn.textContent = 'Signing in…'
   clearAuthMsg()
+
+  // Demo accounts — work even when backend DB is empty
+  const DEMO = {
+    'citizen@bhudrishti.in':  { password: 'demo1234',  role: 'citizen',        name: 'Demo Citizen' },
+    'authority@bhudrishti.in':{ password: 'admin1234', role: 'district_admin', name: 'Authority Official' },
+  }
+
   try {
-    const resp = await fetch(`${AUTH_API}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    const data = await resp.json()
-    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
-    if (!data.token) throw new Error('No token returned.')
-    // Role mismatch check
-    if (_selectedRole === 'authority' && !isAuthority(data.user)) {
+    let user = null, token = null
+
+    // Try real backend first
+    try {
+      const resp = await fetch(`${AUTH_API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await resp.json()
+      if (resp.ok && data.token) { token = data.token; user = data.user }
+      else throw new Error(data.error || `HTTP ${resp.status}`)
+    } catch (backendErr) {
+      // Backend unreachable or no account — try demo fallback
+      const demo = DEMO[email.toLowerCase()]
+      if (demo && demo.password === password) {
+        const wantsAuth = _selectedRole === 'authority'
+        const isAuth    = ['field_officer','district_admin','superadmin'].includes(demo.role)
+        if (wantsAuth && !isAuth) throw new Error('This demo account is Citizen only. Use authority@bhudrishti.in')
+        if (!wantsAuth && isAuth) throw new Error('This is an authority account. Select Authority Official role.')
+        token = 'demo_' + btoa(JSON.stringify({ email, role: demo.role, name: demo.name }))
+        user  = { id: 'demo', email, role: demo.role, name: demo.name }
+      } else {
+        throw backendErr
+      }
+    }
+
+    // Role mismatch check (real backend)
+    if (user && _selectedRole === 'authority' && !isAuthority(user)) {
       throw new Error('This account does not have authority access. Please select Citizen.')
     }
-    handleAuthSuccess(data.token, data.user)
+    handleAuthSuccess(token, user)
   } catch (err) {
     btn.disabled = false; btn.textContent = 'Sign In'
     showAuthError(err.message || 'Sign in failed. Check your credentials.')
