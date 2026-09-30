@@ -1,12 +1,23 @@
 {
+  "version": 2,
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "installCommand": "",
+  "framework": null,
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://bhudrishti-backend-9mrh.onrender.com/api/:path*"
+    }
+  ],
+  "routes": [
+    {
+      "src": "^/$",
+      "dest": "/dashboard_preview.html"
     },
     {
-      "source": "/",
-      "destination": "/dashboard_preview.html"
+      "src": "/api/(.*)",
+      "dest": "https://bhudrishti-backend-9mrh.onrender.com/api/$1"
     }
   ]
 }
