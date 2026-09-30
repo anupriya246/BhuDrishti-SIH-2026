@@ -1607,54 +1607,45 @@ async function runForecast(){
     const futureHours = allHours.filter(h => h.time >= nowISTStr).slice(0, 24)
     if (!futureHours.length) throw new Error('No future hourly data available.')
 
-    if (reqId !== _fcReqId) return
+    // ── Step 2: run ALL 24 ML predictions in PARALLEL (not sequential) ──
+    const tord = { low:0, moderate:1, high:2, critical:3 }
+    const zc   = { low:RC.Low, moderate:RC.Moderate, high:RC.High, critical:RC.Critical }
 
     out.innerHTML = `
       <div class="fc-summary fc-safe">
         <div class="fc-icon">⚙️</div>
-        <strong>Running AI model for 24 hours (${futureHours.length} slots)…</strong>
+        <strong>Running AI model for ${futureHours.length} hours in parallel…</strong>
       </div>`
 
-    // ── Step 2: run ML predict for each hour ──
-    const tord = { low:0, moderate:1, high:2, critical:3 }
-    const zc   = { low:RC.Low, moderate:RC.Moderate, high:RC.High, critical:RC.Critical }
-    const LABEL_MAP = { 0:'low', 1:'moderate', 2:'high', 3:'critical' }
-
-    const hours = []
-    for (let i = 0; i < futureHours.length; i++) {
-      if (reqId !== _fcReqId) return
-      const hw = futureHours[i]
+    const hours = await Promise.all(futureHours.map(async (hw, i) => {
       try {
         const predResp = await fetch('https://bhudrishti-ml.onrender.com/predict', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            slope:        preset.slope,
-            elevation:    preset.elevation,
-            curvature:    preset.curvature,
-            aspect:       preset.aspect,
+            slope:         preset.slope,
+            elevation:     preset.elevation,
+            curvature:     preset.curvature,
+            aspect:        preset.aspect,
             precipitation: hw.precipitation,
-            ndvi:         preset.ndvi,
+            ndvi:          preset.ndvi,
             soil_moisture: hw.soil_moisture,
-            soil_type:    preset.soil_type,
-            lulc:         preset.lulc,
-            dist_road:    preset.dist_road,
-            dist_fault:   preset.dist_fault,
+            soil_type:     preset.soil_type,
+            lulc:          preset.lulc,
+            dist_road:     preset.dist_road,
+            dist_fault:    preset.dist_fault,
           })
         })
         const pred = await predResp.json()
-        hours.push({
-          hour:          i,
-          time:          hw.time,
-          precipitation: hw.precipitation,
-          temperature:   hw.temperature,
+        return {
+          hour: i, time: hw.time,
+          precipitation: hw.precipitation, temperature: hw.temperature,
           predicted_zone: (pred.risk_category || 'Moderate').toLowerCase(),
-        })
+        }
       } catch {
-        // If one predict fails, use moderate as fallback for that hour
-        hours.push({ hour: i, time: hw.time, precipitation: hw.precipitation, temperature: hw.temperature, predicted_zone: 'moderate' })
+        return { hour: i, time: hw.time, precipitation: hw.precipitation, temperature: hw.temperature, predicted_zone: 'moderate' }
       }
-    }
+    }))
 
     if (reqId !== _fcReqId) return
 
@@ -2204,8 +2195,7 @@ function renderAIAlertsTable() {
   div.innerHTML = sorted.map((r, i) => {
     const lvl = r.risk || 'Low'
     const isHigher = lvl === 'High' || lvl === 'Critical'
-    const minsAgo = Math.floor(Math.random() * 120) + 1  // displayed as "N min ago" (live data is as-of last refresh)
-    const timeStr = minsAgo < 60 ? `${minsAgo} min ago` : `${Math.floor(minsAgo/60)} hr ago`
+    const timeStr = 'just now'
     return `
       <div style="display:flex;align-items:center;gap:.65rem;padding:.6rem .75rem;border-bottom:1px solid #f0e0c8;${i===0?'border-radius:8px 8px 0 0':''}" class="ws-alert-row">
         <span style="font-size:1.05rem;flex-shrink:0">${RI[lvl]}</span>
@@ -2943,18 +2933,22 @@ function selectRole(role) {
 }
 
 function goToRoleStep() {
-  document.getElementById('auth-step-role').style.display = ''
+  document.getElementById('auth-step-role').style.display = 'block'
   document.getElementById('auth-step-auth').style.display = 'none'
   clearAuthMsg()
 }
 
 function goToAuthStep() {
   document.getElementById('auth-step-role').style.display = 'none'
-  document.getElementById('auth-step-auth').style.display = ''
+  document.getElementById('auth-step-auth').style.display = 'block'
+  // Show authority note only for authority role
   const note = document.getElementById('auth-authority-note')
-  if (note) note.style.display = _selectedRole === 'authority' ? '' : 'none'
+  if (note) note.style.display = _selectedRole === 'authority' ? 'block' : 'none'
+  // Show district field on signup for authority, hide for citizen
+  const distWrap = document.getElementById('su-district-wrap')
+  if (distWrap) distWrap.style.display = _selectedRole === 'authority' ? 'flex' : 'none'
   clearAuthMsg()
-  // Ensure clean state
+  // Start with Sign In tab and Email method
   switchMode('signin')
   switchMethod('email')
 }
@@ -2964,8 +2958,8 @@ function switchMode(mode) {
   _authMode = mode
   document.getElementById('tab-signin').classList.toggle('active', mode === 'signin')
   document.getElementById('tab-signup').classList.toggle('active', mode === 'signup')
-  document.getElementById('signin-panel').style.display  = mode === 'signin' ? '' : 'none'
-  document.getElementById('signup-panel').style.display  = mode === 'signup' ? '' : 'none'
+  document.getElementById('signin-panel').style.display  = mode === 'signin' ? 'block' : 'none'
+  document.getElementById('signup-panel').style.display  = mode === 'signup' ? 'block' : 'none'
   document.getElementById('forgot-panel').style.display  = 'none'
   clearAuthMsg()
 }
@@ -2975,11 +2969,11 @@ function switchMethod(method) {
   document.getElementById('method-email').classList.toggle('active', method === 'email')
   document.getElementById('method-phone').classList.toggle('active', method === 'phone')
   // Sign-in panels
-  document.getElementById('si-email-panel').style.display = method === 'email' ? '' : 'none'
-  document.getElementById('si-phone-panel').style.display = method === 'phone' ? '' : 'none'
+  document.getElementById('si-email-panel').style.display = method === 'email' ? 'block' : 'none'
+  document.getElementById('si-phone-panel').style.display = method === 'phone' ? 'block' : 'none'
   // Sign-up panels
-  document.getElementById('su-email-panel').style.display = method === 'email' ? '' : 'none'
-  document.getElementById('su-phone-panel').style.display = method === 'phone' ? '' : 'none'
+  document.getElementById('su-email-panel').style.display = method === 'email' ? 'block' : 'none'
+  document.getElementById('su-phone-panel').style.display = method === 'phone' ? 'block' : 'none'
   clearAuthMsg()
 }
 
@@ -2987,18 +2981,18 @@ function switchMethod(method) {
 function clearAuthMsg() {
   const e = document.getElementById('auth-error')
   const i = document.getElementById('auth-info')
-  if (e) e.style.display = 'none'
-  if (i) i.style.display = 'none'
+  if (e) { e.style.display = 'none'; e.textContent = '' }
+  if (i) { i.style.display = 'none'; i.textContent = '' }
 }
 
 function showAuthError(msg) {
   const e = document.getElementById('auth-error')
-  if (e) { e.textContent = msg; e.style.display = '' }
+  if (e) { e.textContent = msg; e.style.display = 'block' }
 }
 
 function showAuthInfo(msg) {
   const i = document.getElementById('auth-info')
-  if (i) { i.textContent = msg; i.style.display = '' }
+  if (i) { i.textContent = msg; i.style.display = 'block' }
 }
 
 function togglePw(id, btn) {
@@ -3200,15 +3194,23 @@ async function doSignUp() {
   if (!email)         { showAuthError('Please enter your email address.'); return }
   if (password.length < 8) { showAuthError('Password must be at least 8 characters.'); return }
   if (password !== confirm) { showAuthError('Passwords do not match.'); return }
-  const role = _selectedRole === 'authority' ? 'district_admin' : 'citizen'
+  const role     = _selectedRole === 'authority' ? 'district_admin' : 'citizen'
+  const district = _selectedRole === 'authority'
+    ? (document.getElementById('su-district')?.value || '').trim()
+    : undefined
+  if (_selectedRole === 'authority' && !district) {
+    showAuthError('Please select your district.'); return
+  }
   const btn  = document.getElementById('su-email-btn')
   btn.disabled = true; btn.textContent = 'Creating account…'
   clearAuthMsg()
   try {
+    const body = { name, email, password, role }
+    if (district) body.district = district
     const resp = await fetch(`${AUTH_API}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, role }),
+      body: JSON.stringify(body),
     })
     const data = await resp.json()
     if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
@@ -3302,7 +3304,7 @@ async function startDashboard() {
   await loadRealStats()
   loadMeshStats()
   runPrediction()
-  runForecast()
+  // Run forecast lazily — don't block startup, only runs when user opens Forecast tab
   initReports()
 }
 

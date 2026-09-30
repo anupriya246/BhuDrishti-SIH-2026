@@ -9,7 +9,7 @@ export default defineConfig({
       // All /api/* calls → Node.js/Express backend (3001)
       // Node backend internally proxies ML calls to Flask (5000)
       '/api': {
-        target: 'https://bhudrishti-backend-9mrh.onrender.com',
+        target: 'http://localhost:3001',
         changeOrigin: true,
       },
     },
