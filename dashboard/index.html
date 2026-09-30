@@ -2595,7 +2595,70 @@ function loadMeshStats() {
 }
 
 
+/* ══ COLD-START HELPER ══
+   Render free-tier services sleep after inactivity.
+   We ping /health on both services, show a user-friendly banner while
+   they wake up, then hide it and kick off the real data loads.
+*/
+const ML_BASE      = 'https://bhudrishti-ml.onrender.com'
+const BACKEND_BASE = 'https://bhudrishti-backend-9mrh.onrender.com'
+
+function showWakeUpBanner(msg) {
+  let el = document.getElementById('wakeup-banner')
+  if (!el) {
+    el = document.createElement('div')
+    el.id = 'wakeup-banner'
+    el.style.cssText = [
+      'position:fixed','bottom:1.2rem','left:50%','transform:translateX(-50%)',
+      'background:linear-gradient(135deg,#1a3a6e,#1a6fa0)',
+      'color:#fff','padding:.75rem 1.5rem','border-radius:12px',
+      'font-size:.82rem','font-weight:600','z-index:9999',
+      'box-shadow:0 6px 24px #00000040','display:flex','align-items:center','gap:.65rem',
+      'max-width:90vw','text-align:center'
+    ].join(';')
+    document.body.appendChild(el)
+  }
+  el.innerHTML = `<span style="animation:ldot 1.2s infinite;display:inline-block;width:9px;height:9px;border-radius:50%;background:#a8e6b0;flex-shrink:0"></span>${msg}`
+  el.style.display = 'flex'
+}
+
+function hideWakeUpBanner() {
+  const el = document.getElementById('wakeup-banner')
+  if (el) el.style.display = 'none'
+}
+
+async function pingUntilAlive(url, maxWaitMs = 75000) {
+  const deadline = Date.now() + maxWaitMs
+  while (Date.now() < deadline) {
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(12000) })
+      if (r.ok) return true
+    } catch (_) { /* still waking */ }
+    await new Promise(r => setTimeout(r, 4000))
+  }
+  return false
+}
+
+async function warmUpServices() {
+  // Quick optimistic check — if both respond in 3 s they are already warm
+  const quickML  = fetch(`${ML_BASE}/health`,      { signal: AbortSignal.timeout(3000) }).then(r => r.ok).catch(() => false)
+  const quickAPI = fetch(`${BACKEND_BASE}/health`,  { signal: AbortSignal.timeout(3000) }).then(r => r.ok).catch(() => false)
+  const [mlOk, apiOk] = await Promise.all([quickML, quickAPI])
+  if (mlOk && apiOk) return  // both warm — skip banner entirely
+
+  showWakeUpBanner('☁️ Services are waking up on Render… this may take up to 60 seconds on the first visit.')
+
+  // Wait for both in parallel (don't block each other)
+  await Promise.allSettled([
+    pingUntilAlive(`${ML_BASE}/health`),
+    pingUntilAlive(`${BACKEND_BASE}/health`),
+  ])
+
+  hideWakeUpBanner()
+}
+
 async function startDashboard() {
+  await warmUpServices()          // wait for Render cold-start before loading data
   await loadRealRiskData()
   await loadRealStats()
   loadMeshStats()
