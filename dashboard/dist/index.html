@@ -1127,8 +1127,16 @@ async function loadRealRiskData() {
     renderRainfallChart();
     renderTopDistricts();
 
-    // Render dynamic alert banner from live risk data + authority-issued alerts
+    // Show AI-risk alerts immediately (no auth needed) then merge authority alerts
+    renderAlertBanner(REGIONS, [])
     loadAuthorityAlerts().then(authAlerts => renderAlertBanner(REGIONS, authAlerts))
+
+    // Auto-refresh banner every 5 minutes
+    clearInterval(window._alertBannerTimer)
+    window._alertBannerTimer = setInterval(async () => {
+      const authAlerts = await loadAuthorityAlerts()
+      renderAlertBanner(REGIONS, authAlerts)
+    }, 5 * 60 * 1000)
     
 
   } catch (error) {
