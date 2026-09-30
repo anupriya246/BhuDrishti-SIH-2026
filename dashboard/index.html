@@ -681,11 +681,11 @@ footer strong{color:#fff}
         style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #d0c8f0;border-radius:12px;background:#f8f5ff;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#5e28a0;transition:all .18s">
         <span style="font-size:1.4rem">📡</span>Broadcast Alert
       </button>
-      <button onclick="document.getElementById('warn-ai-alerts-list').scrollIntoView({behavior:'smooth'})"
+      <button onclick="document.getElementById('ws-ai-alerts-list').scrollIntoView({behavior:'smooth'})"
         style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #b8d8e8;border-radius:12px;background:#f0f8ff;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#1060b0;transition:all .18s">
         <span style="font-size:1.4rem">🗺️</span>Manage Zones
       </button>
-      <button onclick="showTab('reports',document.querySelector('.tab:last-of-type'))"
+      <button onclick="showTab('reports',document.querySelector('nav.tabs .tab:last-child'))"
         style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #a8d8b0;border-radius:12px;background:#f0faf4;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#1a5228;transition:all .18s">
         <span style="font-size:1.4rem">📋</span>View Reports
       </button>
@@ -859,7 +859,7 @@ async function loadRealStats() {
 
     console.log('Real ML stats loaded:', stats);
     const reportsResponse = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/field-reports');
-    const reportsData = await reportsResponse.json();
+    const reportsData = reportsResponse.ok ? await reportsResponse.json() : { reports: [] };
 
     const blockedRoads = (reportsData.reports || []).filter(
       report => report.report_type === 'blocked_road'
@@ -2627,11 +2627,17 @@ function hideWakeUpBanner() {
   if (el) el.style.display = 'none'
 }
 
+function fetchWithTimeout(url, ms) {
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), ms)
+  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer))
+}
+
 async function pingUntilAlive(url, maxWaitMs = 75000) {
   const deadline = Date.now() + maxWaitMs
   while (Date.now() < deadline) {
     try {
-      const r = await fetch(url, { signal: AbortSignal.timeout(12000) })
+      const r = await fetchWithTimeout(url, 12000)
       if (r.ok) return true
     } catch (_) { /* still waking */ }
     await new Promise(r => setTimeout(r, 4000))
@@ -2641,8 +2647,8 @@ async function pingUntilAlive(url, maxWaitMs = 75000) {
 
 async function warmUpServices() {
   // Quick optimistic check — if both respond in 3 s they are already warm
-  const quickML  = fetch(`${ML_BASE}/health`,      { signal: AbortSignal.timeout(3000) }).then(r => r.ok).catch(() => false)
-  const quickAPI = fetch(`${BACKEND_BASE}/health`,  { signal: AbortSignal.timeout(3000) }).then(r => r.ok).catch(() => false)
+  const quickML  = fetchWithTimeout(`${ML_BASE}/health`,     3000).then(r => r.ok).catch(() => false)
+  const quickAPI = fetchWithTimeout(`${BACKEND_BASE}/health`, 3000).then(r => r.ok).catch(() => false)
   const [mlOk, apiOk] = await Promise.all([quickML, quickAPI])
   if (mlOk && apiOk) return  // both warm — skip banner entirely
 
@@ -2662,8 +2668,7 @@ async function startDashboard() {
   await loadRealRiskData()
   await loadRealStats()
   loadMeshStats()
-  runPrediction()
-  // Run forecast lazily — don't block startup, only runs when user opens Forecast tab
+  // runPrediction() is triggered by district selection or when the AI tab opens — not on startup
   initReports()
 }
 
