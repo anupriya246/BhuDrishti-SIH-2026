@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -308,6 +308,7 @@ footer strong{color:#fff}
 <body>
 <div class="app">
 
+
 <!-- ΓòÉΓòÉ HEADER ΓòÉΓòÉ -->
 <header>
   <div class="brand">
@@ -320,7 +321,12 @@ footer strong{color:#fff}
   <div class="header-right">
     <div class="live-badge"><span class="live-dot"></span>Live Monitoring</div>
     <span class="hdr-time" id="hdr-clock"></span>
+    <div class="user-badge" id="user-badge" style="display:none">
+      <span id="user-name-display">User</span>
+      <span class="user-role-pill" id="user-role-display">ΓÇö</span>
+    </div>
     <button class="btn-hdr" onclick="refreshAll()">Γå╗ Refresh</button>
+    <button class="btn-hdr" id="logout-btn" onclick="doLogout()" style="display:none;background:#ffffff22;border-color:#ffffff60">ΓÅÅ Sign Out</button>
   </div>
 </header>
 
@@ -674,11 +680,11 @@ footer strong{color:#fff}
         style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #d0c8f0;border-radius:12px;background:#f8f5ff;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#5e28a0;transition:all .18s">
         <span style="font-size:1.4rem">≡ƒôí</span>Broadcast Alert
       </button>
-      <button onclick="document.getElementById('warn-ai-alerts-list').scrollIntoView({behavior:'smooth'})"
+      <button onclick="document.getElementById('ws-ai-alerts-list').scrollIntoView({behavior:'smooth'})"
         style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #b8d8e8;border-radius:12px;background:#f0f8ff;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#1060b0;transition:all .18s">
         <span style="font-size:1.4rem">≡ƒù║∩╕Å</span>Manage Zones
       </button>
-      <button onclick="showTab('reports',document.querySelector('.tab:last-of-type'))"
+      <button onclick="showTab('reports',document.querySelector('nav.tabs .tab:last-child'))"
         style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:1.5px solid #a8d8b0;border-radius:12px;background:#f0faf4;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:#1a5228;transition:all .18s">
         <span style="font-size:1.4rem">≡ƒôï</span>View Reports
       </button>
@@ -852,7 +858,7 @@ async function loadRealStats() {
 
     console.log('Real ML stats loaded:', stats);
     const reportsResponse = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/field-reports');
-    const reportsData = await reportsResponse.json();
+const reportsData = reportsResponse.ok ? await reportsResponse.json() : { reports: [] };
 
     const blockedRoads = (reportsData.reports || []).filter(
       report => report.report_type === 'blocked_road'
@@ -1768,7 +1774,8 @@ async function initMesh() {
 
 async function initWarningSystem() {
   _warnInit = true
-  const auth = false  // no login
+  const user = getStoredUser()
+  const auth = isAuthority(user)
 
   // Show correct panel based on role
   const authPanel = document.getElementById('warn-authority-panel')
@@ -2045,7 +2052,7 @@ async function loadActiveWarnings() {
           <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
             <span style="font-size:.65rem;font-weight:700;color:#0e4820;background:#e0f5e8;border-radius:999px;padding:.12rem .55rem;border:1px solid #90d0a8">ΓùÅ ACTIVE</span>
             <span style="font-size:.65rem;color:var(--muted)">≡ƒÅ¢∩╕Å Authority</span>
-
+            ${isAuthority(getStoredUser()) ? `<button onclick="resolveWarning('${a.id}')" style="margin-left:auto;border:0;background:#fdecea;color:#b83020;padding:.25rem .65rem;border-radius:7px;cursor:pointer;font-size:.68rem;font-weight:700">Γ£ô Resolve</button>` : ''}
           </div>
         </div>`
     }).join('')
@@ -2334,6 +2341,26 @@ async function initReports() {
               : '<span style="font-size:.68rem;color:#c07a10;font-weight:700">ΓÅ│ Pending</span>'
           }
 
+          ${
+            !r.verified
+              ? `<button
+                  class="authority-only"
+                  onclick="verifyFieldReport('${r.id}')"
+                  style="
+                    border:0;
+                    background:#dcfce7;
+                    color:#166534;
+                    padding:.35rem .6rem;
+                    border-radius:6px;
+                    cursor:pointer;
+                    font-size:.7rem;
+                    font-weight:700;
+                  "
+                >
+                  Γ£à Verify
+                </button>`
+              : ''
+          }
 
           <button
             onclick="deleteFieldReport('${r.id}')"
@@ -2359,6 +2386,8 @@ async function initReports() {
     `).join('');
 
     // Re-apply role UI so dynamically rendered authority-only buttons show/hide correctly
+    const currentUser = getStoredUser()
+    if (currentUser) applyRoleUI(currentUser)
 
   } catch (error) {
     console.error('Failed to load field reports:', error);
@@ -2577,11 +2606,8 @@ function loadMeshStats() {
   })
 }
 
-    alert(`Verification failed: ${err.message}`)
-  }
-}
-
 async function startDashboard() {
+  await warmUpServices()          // wait for Render cold-start before loading data
   await loadRealRiskData()
   await loadRealStats()
   loadMeshStats()
@@ -2590,9 +2616,10 @@ async function startDashboard() {
   initReports()
 }
 
-/* ══ INIT ══ */
-window.onload = async () => {
-  await startDashboard()
+/* ΓòÉΓòÉ INIT ΓòÉΓòÉ */
+window.onload = () => { startDashboard() }
+  // Otherwise login overlay is already visible ΓÇö user will go through auth flow
 }
+</script>
 </body>
 </html>
