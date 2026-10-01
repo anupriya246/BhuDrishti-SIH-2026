@@ -325,20 +325,9 @@ footer strong{color:#fff}
 
 <!-- ══ ALERT BANNER ══ -->
 <div class="alert-banner">
-  <div class="alert-header"><span class="pulse-ring"></span>&nbsp;ACTIVE ALERTS — 3 ZONES AT ELEVATED RISK</div>
-  <div class="alert-list">
-    <div class="alert-item" style="border-left:4px solid #6e3aaa;background:#f0e8fa88">
-      <span>🚨</span><span><strong>Cherrapunji</strong> — Critical · Rainfall: 312 mm · Slope: 54° · Road NH-6 BLOCKED</span>
-      <span class="sms-tag">✓ SMS Dispatched</span>
-    </div>
-    <div class="alert-item" style="border-left:4px solid #b83020;background:#fdecea88">
-      <span>⚠️</span><span><strong>Tawang</strong> — High · Rainfall: 178 mm · Slope: 48° · Rerouting active via Alt Route A</span>
-      <span class="sms-tag">✓ SMS Dispatched</span>
-    </div>
-    <div class="alert-item" style="border-left:4px solid #b83020;background:#fdecea88">
-      <span>⚠️</span><span><strong>Kohima</strong> — High · Rainfall: 145 mm · Slope: 41° · Bluetooth mesh relay active</span>
-      <span class="sms-tag">✓ SMS Dispatched</span>
-    </div>
+  <div class="alert-header" id="alert-header"><span class="pulse-ring"></span>&nbsp;LOADING LIVE RISK DATA…</div>
+  <div class="alert-list" id="alert-list">
+    <div class="alert-item" style="color:var(--muted);font-size:.78rem;padding:.4rem .75rem">⏳ Fetching live data from Open-Meteo…</div>
   </div>
 </div>
 
@@ -430,31 +419,35 @@ footer strong{color:#fff}
   <div class="card">
     <div class="card-title">
       <div class="ct-icon" style="background:#fdeee6">🤖</div>AI Risk Assessment
-      &nbsp;<span class="badge badge-terra">Random Forest Classifier</span>
+      &nbsp;<span class="badge badge-terra">Gradient Boosting Classifier</span>
     </div>
     <p style="font-size:.8rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.65;max-width:780px">
-      Enter terrain and weather parameters. The trained <strong style="color:var(--terracotta)">Random Forest model</strong> analyses
-      14 features — terrain morphology, rainfall intensity, soil properties, fault proximity — and predicts
-      landslide risk with a probability breakdown across 4 classes.
+      Select a district — live precipitation and soil moisture are fetched automatically from <strong style="color:var(--teal)">Open-Meteo</strong>, terrain parameters are loaded from the district profile, and the <strong style="color:var(--terracotta)">Gradient Boosting model</strong> runs instantly. No manual entry needed.
     </p>
     <div class="form-grid">
-      <div class="form-field"><label>Slope (°)</label><input type="number" id="f-slope" value="42" min="0" max="90" step="0.1"/></div>
-      <div class="form-field"><label>Elevation (m)</label><input type="number" id="f-elev" value="1200"/></div>
-      <div class="form-field"><label>Curvature</label><input type="number" id="f-curv" value="2.1" step="0.1"/></div>
-      <div class="form-field"><label>Aspect (°)</label><input type="number" id="f-aspect" value="180"/></div>
-      <div class="form-field"><label>Precipitation (mm)</label><input type="number" id="f-rain" value="150"/></div>
-      <div class="form-field"><label>NDVI</label><input type="number" id="f-ndvi" value="0.15" step="0.01"/></div>
-      <div class="form-field"><label>Soil Moisture (0–1)</label><input type="number" id="f-moist" value="0.70" step="0.01"/></div>
-      <div class="form-field"><label>Dist. to Road (m)</label><input type="number" id="f-road" value="300"/></div>
-      <div class="form-field"><label>Dist. to Fault (m)</label><input type="number" id="f-fault" value="4000"/></div>
+      <div class="form-field"><label>District <span style="color:#c0541a;font-size:.7rem;font-weight:700">▸ select to auto-load</span></label>
+        <select id="f-district" onchange="fetchWeatherAndPredict(this.value)" style="border-color:#c0541a;font-weight:700">
+          <option value="">— Select district —</option>
+          <option>Cherrapunji</option><option>Tawang</option><option>Kohima</option>
+          <option>Shillong</option><option>Itanagar</option><option>Imphal</option>
+          <option>Aizawl</option><option>Gangtok</option><option>Dibrugarh</option>
+          <option>Agartala</option><option>Silchar</option><option>Jorhat</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Precipitation (mm) <span id="f-rain-src" style="font-size:.65rem;color:#1a7a6e;font-weight:700"></span></label><input type="number" id="f-rain" value="150" step="0.1" readonly style="background:#f0faf4"/></div>
+      <div class="form-field"><label>Soil Moisture (0–1) <span id="f-moist-src" style="font-size:.65rem;color:#1a7a6e;font-weight:700"></span></label><input type="number" id="f-moist" value="0.70" step="0.01" readonly style="background:#f0faf4"/></div>
+      <div class="form-field"><label>Slope (°)</label><input type="number" id="f-slope" value="42" min="0" max="90" step="0.1" readonly/></div>
+      <div class="form-field"><label>Elevation (m)</label><input type="number" id="f-elev" value="1200" readonly/></div>
+      <div class="form-field"><label>Curvature</label><input type="number" id="f-curv" value="2.1" step="0.1" readonly/></div>
+      <div class="form-field"><label>Aspect (°)</label><input type="number" id="f-aspect" value="180" readonly/></div>
+      <div class="form-field"><label>NDVI</label><input type="number" id="f-ndvi" value="0.15" step="0.01" readonly/></div>
+      <div class="form-field"><label>Dist. to Road (m)</label><input type="number" id="f-droad" value="300" readonly/></div>
+      <div class="form-field"><label>Dist. to Fault (m)</label><input type="number" id="f-dfault" value="4000" readonly/></div>
       <div class="form-field"><label>Soil Type</label>
-        <select id="f-soil"><option value="0">Sandy</option><option value="1">Loamy</option><option value="2" selected>Clay</option><option value="3">Rocky</option></select>
+        <select id="f-soil" disabled><option value="0">Sandy</option><option value="1">Loamy</option><option value="2" selected>Clay</option><option value="3">Rocky</option></select>
       </div>
       <div class="form-field"><label>Land Use / Cover</label>
-        <select id="f-lulc"><option value="0">Forest</option><option value="1" selected>Agriculture</option><option value="2">Barren</option><option value="3">Urban</option></select>
-      </div>
-      <div class="form-field"><label>District</label>
-        <select id="f-district"><option>Cherrapunji</option><option>Tawang</option><option>Kohima</option><option>Shillong</option><option>Itanagar</option><option>Imphal</option><option>Aizawl</option><option>Gangtok</option></select>
+        <select id="f-lulc" disabled><option value="0">Forest</option><option value="1" selected>Agriculture</option><option value="2">Barren</option><option value="3">Urban</option></select>
       </div>
     </div>
     <button class="btn btn-primary" onclick="runPrediction()" id="pred-btn" style="font-size:.9rem;padding:.6rem 1.5rem">🤖 Run AI Prediction</button>
@@ -662,8 +655,8 @@ async function loadLiveRegions(){
     const res=await fetch(ML_API+'/region-risks',{signal:AbortSignal.timeout(12000)})
     if(!res.ok)throw new Error('API '+res.status)
     const json=await res.json()
-    REGIONS=json.regions.map(r=>({name:r.name,lat:r.lat,lon:r.lon,risk:r.risk_category,rain:r.rainfall_mm,slope:r.slope_avg}))
-    refreshMap();refreshCharts();refreshStatCards()
+    REGIONS=json.regions.map(r=>({name:r.name,lat:r.lat,lon:r.lon,risk:r.risk_category,rain:Number(r.rainfall_mm)>0?Number(r.rainfall_mm):(r.profile_precipitation_mm||50),slope:r.slope_avg}))
+    refreshMap();refreshCharts();refreshStatCards();renderAlertBanner()
   }catch(e){console.warn('[BhuDrishti] region-risks fallback. Reason:',e.message)}
 }
 function refreshMap(){
@@ -703,6 +696,27 @@ function refreshStatCards(){
     if(hEl)hEl.textContent=high
     if(cEl)cEl.textContent=crit
   }catch(e){}
+}
+function renderAlertBanner(){
+  const header=document.getElementById('alert-header')
+  const list=document.getElementById('alert-list')
+  if(!header||!list)return
+  const RISK_BORDER={Critical:'#6e3aaa',High:'#b83020',Moderate:'#c07a10'}
+  const RISK_BG={Critical:'#f0e8fa88',High:'#fdecea88',Moderate:'#fff8e088'}
+  const RISK_ICON={Critical:'🚨',High:'⚠️',Moderate:'📢'}
+  const highRegions=REGIONS.filter(r=>r.risk==='Critical'||r.risk==='High')
+  if(!highRegions.length){
+    header.innerHTML='<span class="pulse-ring" style="opacity:.4"></span>&nbsp;NO ACTIVE HIGH-RISK ALERTS'
+    list.innerHTML='<div class="alert-item" style="color:#2d7a3a;font-size:.78rem;padding:.4rem .75rem">✅ All monitored districts are currently at low or moderate risk.</div>'
+    return
+  }
+  header.innerHTML=`<span class="pulse-ring"></span>&nbsp;ACTIVE ALERTS — ${highRegions.length} ZONE${highRegions.length!==1?'S':''} AT ELEVATED RISK`
+  list.innerHTML=highRegions.map(r=>`
+    <div class="alert-item" style="border-left:4px solid ${RISK_BORDER[r.risk]};background:${RISK_BG[r.risk]}">
+      <span>${RISK_ICON[r.risk]}</span>
+      <span><strong>${r.name}</strong> — ${r.risk} · Rainfall: ${r.rain} mm · Slope: ${r.slope}°</span>
+      <span class="sms-tag" style="background:#f0e8fa;color:#5e28a0;border-color:#c8a0e0">🤖 AI Risk</span>
+    </div>`).join('')
 }
 const BLOCKAGES=[
   {road:"NH-6 Cherrapunji Bypass",st:"blocked",cause:"Landslide debris",alt:"Alt Route A (NH-44)",delay:"+22 min"},
@@ -808,6 +822,8 @@ window._riskDonut=new Chart(document.getElementById('riskDonut'),{
 })
 // Fetch live data — updates map, charts, stat cards when API responds
 loadLiveRegions()
+// Render alert banner immediately with fallback static data, then again after live load
+renderAlertBanner()
 
 /* ══ AI PREDICTION — real Flask ML API ══ */
 const RCONF={
@@ -815,6 +831,47 @@ const RCONF={
   Moderate:{c1:'#c07a10',c2:'#d4860a',bg:'#fef8e8',border:'#e8d080',emo:'📢'},
   High:   {c1:'#b83020',c2:'#c0541a',bg:'#fdf0ec',border:'#e8a090',emo:'⚠️'},
   Critical:{c1:'#6e3aaa',c2:'#8b3a10',bg:'#f6f0fa',border:'#c8a0e0',emo:'🚨'},
+}
+/* ══ AI PREDICTION — live weather auto-load from Open-Meteo, then ML API ══ */
+let _wxReqId=0
+async function fetchWeatherAndPredict(districtName){
+  if(!districtName)return
+  const out =document.getElementById('predict-result')
+  const btn =document.getElementById('pred-btn')
+  const reqId=++_wxReqId
+  out.innerHTML=`<div style="padding:1rem;color:var(--muted);font-size:.85rem;display:flex;align-items:center;gap:.6rem"><span style="font-size:1.1rem">🌐</span>Fetching live meteorological data for <strong style="color:var(--text)">${districtName}</strong>…</div>`
+  btn.disabled=true
+  try{
+    const resp=await fetch(`${ML_API}/weather?district=${encodeURIComponent(districtName)}`)
+    if(reqId!==_wxReqId)return
+    if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error||`HTTP ${resp.status}`)}
+    const w=await resp.json()
+    if(reqId!==_wxReqId)return
+    if(w.error)throw new Error(w.error)
+    // Populate form fields with live data
+    document.getElementById('f-rain').value  =w.precipitation
+    document.getElementById('f-moist').value =w.soil_moisture
+    document.getElementById('f-slope').value =w.slope
+    document.getElementById('f-elev').value  =w.elevation
+    document.getElementById('f-curv').value  =w.curvature
+    document.getElementById('f-aspect').value=w.aspect
+    document.getElementById('f-ndvi').value  =w.ndvi
+    document.getElementById('f-droad').value =w.dist_road
+    document.getElementById('f-dfault').value=w.dist_fault
+    document.getElementById('f-soil').value  =w.soil_type
+    document.getElementById('f-lulc').value  =w.lulc
+    const liveTag=w.live_data?'🟢 live':'⚠️ fallback'
+    const rs=document.getElementById('f-rain-src')
+    const ms=document.getElementById('f-moist-src')
+    if(rs)rs.textContent=liveTag
+    if(ms)ms.textContent=liveTag
+    out.innerHTML=`<div style="padding:.75rem 1rem;background:#e0f4f0;border-radius:9px;font-size:.8rem;color:#0e4820;display:flex;align-items:center;gap:.6rem"><span>✅</span><span>${w.live_data?`Live data for <strong>${w.district}</strong> — precipitation: <strong>${w.precipitation} mm</strong>, soil moisture: <strong>${w.soil_moisture}</strong>`:`Static profile for <strong>${w.district}</strong> (Open-Meteo unavailable — using district defaults)`}</span></div>`
+    await runPrediction()
+  }catch(err){
+    if(reqId!==_wxReqId)return
+    out.innerHTML=`<div style="padding:.85rem 1rem;background:#fdecea;border:1.5px solid #f0a090;border-radius:9px;font-size:.82rem;color:#8b1a10">⚠️ <strong>Unable to fetch live data for ${districtName}.</strong> Please try again.<br><span style="font-size:.75rem;color:#a03020">${err.message}</span></div>`
+    btn.disabled=false
+  }
 }
 async function runPrediction(){
   const btn=document.getElementById('pred-btn')
@@ -868,71 +925,113 @@ async function runPrediction(){
   btn.textContent='🤖 Run AI Prediction';btn.disabled=false
 }
 
-/* ══ FORECAST — real Open-Meteo via Flask API ══ */
+/* ══ FORECAST — Open-Meteo live rainfall → ML API per-hour predict ══ */
 function selPreset(){
   const i=+document.getElementById('fc-preset').value
   const p=PRESET_PROFILES[i]
   document.getElementById('fc-lat').value=p.lat
   document.getElementById('fc-lon').value=p.lon
 }
+let _fcReqId=0
 async function runForecast(){
   const btn=document.querySelector('[onclick="runForecast()"]')||document.getElementById('fc-btn')
   if(btn){btn.textContent='⏳ Fetching…';btn.disabled=true}
-  const thresh=document.getElementById('fc-thresh').value
-  const lat=+document.getElementById('fc-lat').value
-  const lon=+document.getElementById('fc-lon').value
-  const presetIdx=+document.getElementById('fc-preset').value
-  const p=PRESET_PROFILES[presetIdx]||PRESET_PROFILES[0]
-  const tord={low:0,moderate:1,high:2,critical:3},tr=tord[thresh]
-  const zc={low:RC.Low,moderate:RC.Moderate,high:RC.High,critical:RC.Critical}
+  const thresh    =document.getElementById('fc-thresh').value
+  const lat       =+document.getElementById('fc-lat').value
+  const lon       =+document.getElementById('fc-lon').value
+  const presetIdx =+document.getElementById('fc-preset').value
+  const p         =PRESET_PROFILES[presetIdx]||PRESET_PROFILES[0]
+  const reqId     =++_fcReqId
+  const tord      ={low:0,moderate:1,high:2,critical:3}
+  const zc        ={low:RC.Low,moderate:RC.Moderate,high:RC.High,critical:RC.Critical}
+  const out       =document.getElementById('forecast-result')
+
+  out.innerHTML=`<div class="fc-summary fc-safe"><div class="fc-icon">⏳</div><strong>Fetching live weather for ${p.label} from Open-Meteo…</strong></div>`
+
   try{
-    // Fetch 24h hourly forecast + past 6h from Open-Meteo directly
-    const res=await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
-      `&hourly=precipitation,precipitation_probability,soil_moisture_0_to_1cm`+
-      `&past_hours=6&forecast_hours=24&timezone=Asia%2FKolkata`
-    )
-    if(!res.ok)throw new Error('Open-Meteo '+res.status)
-    const data=await res.json()
-    const times=data.hourly.time||[]
-    const rains=data.hourly.precipitation||[]
-    const probs=data.hourly.precipitation_probability||[]
-    const moistures=data.hourly.soil_moisture_0_to_1cm||[]
-    const now=new Date()
-    // Compute risk per hour
-    const hours=times.map((t,i)=>{
-      const rain=parseFloat((rains[i]||0).toFixed(1))
-      const prob=probs[i]||0
-      const moist=parseFloat((moistures[i]||0.3).toFixed(3))
-      const slope=p.slope||30
-      const ndvi=p.ndvi||0.3
-      // Use rain probability to scale effective rainfall for risk calc
-      const effectiveRain=rain+(prob/100)*2
-      let s=(slope/75)*.30+(effectiveRain/600)*.22+moist*.16+(1-ndvi)*.10+.12
-      s=Math.min(1,Math.max(0,s))
-      const zone=s<.25?'low':s<.5?'moderate':s<.75?'high':'critical'
-      const hr=new Date(t)
-      const isPast=hr<now
-      return{hour:i,time:t,rain,prob,zone,isPast}
-    })
-    // Only look for alert in future hours
-    const futureHours=hours.filter(h=>!h.isPast)
-    const ah=futureHours.find(h=>tord[h.zone]>=tr)
+    // Step 1: fetch 24h hourly data directly from Open-Meteo (free, no key, CORS open)
+    const omUrl=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
+      `&hourly=precipitation,soil_moisture_0_to_1cm,temperature_2m`+
+      `&forecast_days=2&timezone=Asia%2FKolkata`
+    const omResp=await fetch(omUrl)
+    if(reqId!==_fcReqId)return
+    if(!omResp.ok)throw new Error(`Open-Meteo HTTP ${omResp.status}`)
+    const omData=await omResp.json()
+    if(reqId!==_fcReqId)return
+
+    const hourly=omData.hourly
+    if(!hourly||!hourly.time?.length)throw new Error('Open-Meteo returned no data.')
+
+    // Slice to next 24 hours from current IST time
+    const nowISTStr=new Date().toLocaleString('sv-SE',{timeZone:'Asia/Kolkata'}).slice(0,16).replace(' ','T')
+    const allHours=hourly.time.map((t,i)=>({
+      time:          t,
+      precipitation: Number(hourly.precipitation[i]??0),
+      soil_moisture: Number(hourly.soil_moisture_0_to_1cm[i]??0.3),
+      temperature:   Number(hourly.temperature_2m[i]??20),
+    }))
+    const futureHours=allHours.filter(h=>h.time>=nowISTStr).slice(0,24)
+    if(!futureHours.length)throw new Error('No future hourly data available.')
+    if(reqId!==_fcReqId)return
+
+    out.innerHTML=`<div class="fc-summary fc-safe"><div class="fc-icon">⚙️</div><strong>Running AI model for ${futureHours.length} hours…</strong></div>`
+
+    // Step 2: run ML predict for each hour using live precipitation + static terrain
+    const hours=[]
+    for(let i=0;i<futureHours.length;i++){
+      if(reqId!==_fcReqId)return
+      const hw=futureHours[i]
+      try{
+        const predResp=await fetch(ML_API+'/predict',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            slope:        p.slope,
+            elevation:    p.elevation,
+            curvature:    p.curvature,
+            aspect:       p.aspect,
+            precipitation:hw.precipitation,   // ← live from Open-Meteo
+            ndvi:         p.ndvi,
+            soil_moisture:hw.soil_moisture,   // ← live from Open-Meteo
+            soil_type:    p.soil_type,
+            lulc:         p.lulc,
+            dist_road:    p.dist_road,
+            dist_fault:   p.dist_fault,
+          })
+        })
+        const pred=await predResp.json()
+        hours.push({
+          hour:i,time:hw.time,
+          precipitation:hw.precipitation,
+          temperature:hw.temperature,
+          predicted_zone:(pred.risk_category||'Moderate').toLowerCase(),
+        })
+      }catch{
+        hours.push({hour:i,time:hw.time,precipitation:hw.precipitation,temperature:hw.temperature,predicted_zone:'moderate'})
+      }
+    }
+    if(reqId!==_fcReqId)return
+
+    const tr=tord[thresh]||2
+    const ah=hours.find(h=>tord[h.predicted_zone]>=tr)
     const sum=ah
-      ?`<div class="fc-summary fc-alert"><div class="fc-icon">🚨</div><div><strong>Alert expected at ${ah.time.split('T')[1]}</strong><br><span style="font-size:.8rem">Risk: <strong style="color:${zc[ah.zone]}">${ah.zone.toUpperCase()}</strong> · Rain: ${ah.rain}mm · Prob: ${ah.prob}%</span></div></div>`
+      ?`<div class="fc-summary fc-alert"><div class="fc-icon">🚨</div><div><strong>Alert expected at ${ah.time.split('T')[1]}</strong><br><span style="font-size:.8rem">Risk: <strong style="color:${zc[ah.predicted_zone]}">${ah.predicted_zone.toUpperCase()}</strong> · Rain: ${ah.precipitation.toFixed(1)} mm</span></div></div>`
       :`<div class="fc-summary fc-safe"><div class="fc-icon">✅</div><strong>No ${thresh} alert expected in next 24 hours</strong></div>`
+
     const tl=hours.map(h=>`
-      <div class="tl-item" style="--zc:${zc[h.zone]};opacity:${h.isPast?'.5':'1'}">
-        <div class="tl-hr">${h.isPast?'–':''}${h.time.split('T')[1].slice(0,5)}</div>
-        <div class="tl-rain">🌧${h.rain}mm</div>
-        <div class="tl-rain" style="color:#1060b0;font-size:.6rem">${h.prob}%</div>
-        <div class="tl-zone" style="color:${zc[h.zone]}">${h.zone}</div>
+      <div class="tl-item" style="--zc:${zc[h.predicted_zone]}">
+        <div class="tl-hr">${h.time.split('T')[1].slice(0,5)}</div>
+        <div class="tl-rain">🌧${h.precipitation.toFixed(1)}mm</div>
+        <div class="tl-zone" style="color:${zc[h.predicted_zone]}">${h.predicted_zone}</div>
       </div>`).join('')
-    document.getElementById('forecast-result').innerHTML=
-      `<p style="font-size:.72rem;color:var(--muted);margin-bottom:.5rem">Dimmed = past hours · % = rain probability · Source: Open-Meteo</p>`
+
+    out.innerHTML=
+      `<p style="font-size:.72rem;color:var(--muted);margin-bottom:.5rem">Source: Open-Meteo live · ML: Gradient Boosting</p>`
       +sum+`<div class="timeline">${tl}</div>`
+
   }catch(e){
-    document.getElementById('forecast-result').innerHTML=`<div class="fc-summary" style="background:#fdf0ec;border-radius:10px;padding:1rem"><strong>⚠️ Forecast fetch failed.</strong><br><span style="font-size:.8rem;color:#888">${e.message}</span></div>`
+    if(reqId!==_fcReqId)return
+    out.innerHTML=`<div class="fc-summary" style="background:#fdf0ec;border-radius:10px;padding:1rem"><strong>⚠️ Forecast unavailable.</strong><br><span style="font-size:.8rem;color:#888">${e.message}</span></div>`
   }
   if(btn){btn.textContent='▶ Run Forecast';btn.disabled=false}
 }

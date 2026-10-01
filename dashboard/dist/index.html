@@ -1120,6 +1120,8 @@ async function loadRealRiskData() {
       elevation: Number(r.elevation || 0),
       soilMoisture: Number(r.soil_moisture || 0)
     }));
+    // Record exact fetch timestamp so renderAIAlertsTable can show accurate "N min ago"
+    window._regionsLoadedAt = Date.now();
 
     console.log('Real ML risk data loaded:', REGIONS);
     renderRiskMarkers();
@@ -2250,8 +2252,10 @@ function renderAIAlertsTable() {
   div.innerHTML = sorted.map((r, i) => {
     const lvl = r.risk || 'Low'
     const isHigher = lvl === 'High' || lvl === 'Critical'
-    const minsAgo = Math.floor(Math.random() * 120) + 1  // displayed as "N min ago" (live data is as-of last refresh)
-    const timeStr = minsAgo < 60 ? `${minsAgo} min ago` : `${Math.floor(minsAgo/60)} hr ago`
+    // Show time elapsed since REGIONS data was last fetched (set by loadRealRiskData)
+    const fetchedAt = window._regionsLoadedAt || Date.now()
+    const minsAgo   = Math.max(0, Math.round((Date.now() - fetchedAt) / 60000))
+    const timeStr   = minsAgo < 1 ? 'just now' : minsAgo < 60 ? `${minsAgo} min ago` : `${Math.floor(minsAgo/60)} hr ago`
     return `
       <div style="display:flex;align-items:center;gap:.65rem;padding:.6rem .75rem;border-bottom:1px solid #f0e0c8;${i===0?'border-radius:8px 8px 0 0':''}" class="ws-alert-row">
         <span style="font-size:1.05rem;flex-shrink:0">${RI[lvl]}</span>
