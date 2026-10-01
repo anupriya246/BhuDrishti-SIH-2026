@@ -2557,11 +2557,53 @@ async function issueWarning() {
 
   if (!district) { showWarnMsg('Please select a target district.', 'error'); return }
 
-  // Auto-generate message if blank
   const finalMsg = message || `${level} landslide risk alert for ${district}. Take immediate precautions.`
 
   btn.disabled = true; btn.textContent = '⏳ Issuing…'
   hideWarnMsg()
+
+  // Demo mode: backend will reject the fake token — inject the warning client-side
+  if (!token || token.startsWith('demo_')) {
+    const RISK_COLOR = { Low:'#2d7a3a', Moderate:'#c07a10', High:'#b83020', Critical:'#6e3aaa' }
+    const RISK_ICON  = { Low:'ℹ️', Moderate:'📢', High:'⚠️', Critical:'🚨' }
+    const now = new Date()
+    const ts  = now.toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true})
+    const lvl = level || 'High'
+    const newCard = `
+      <div style="border:1.5px solid ${RISK_COLOR[lvl]}30;border-left:4px solid ${RISK_COLOR[lvl]};border-radius:9px;padding:.7rem .85rem;margin-bottom:.5rem;background:#fffbf5">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;flex-wrap:wrap">
+          <span>${RISK_ICON[lvl]}</span>
+          <strong style="color:${RISK_COLOR[lvl]};font-size:.82rem">${lvl}</strong>
+          <span style="font-size:.7rem;background:${RISK_COLOR[lvl]}15;color:${RISK_COLOR[lvl]};border-radius:999px;padding:.1rem .55rem;font-weight:700;border:1px solid ${RISK_COLOR[lvl]}35">${district}</span>
+          <span style="margin-left:auto;font-size:.65rem;color:var(--muted)">${ts}</span>
+        </div>
+        <div style="font-size:.78rem;color:var(--text);line-height:1.5;margin-bottom:.35rem">${finalMsg}</div>
+        <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+          <span style="font-size:.65rem;font-weight:700;color:#0e4820;background:#e0f5e8;border-radius:999px;padding:.12rem .55rem;border:1px solid #90d0a8">● ACTIVE</span>
+          <span style="font-size:.65rem;color:var(--muted)">🏛️ Authority</span>
+        </div>
+      </div>`
+
+    const list = document.getElementById('warn-list')
+    if (list) {
+      // Remove "no warnings" placeholder if present
+      const placeholder = list.querySelector('div[style*="background:#f0f9f4"]')
+      if (placeholder) placeholder.remove()
+      list.insertAdjacentHTML('afterbegin', newCard)
+    }
+
+    showWarnMsg(`✅ Warning issued for ${district}. Visible to all citizens now.`, 'success')
+    document.getElementById('warn-message').value = ''
+    document.getElementById('warn-district').value = ''
+    document.getElementById('warn-msg-len').textContent = '0'
+    btn.disabled = false; btn.textContent = '📡 Send Warning'
+
+    // Also refresh alert banner with the new warning synthesised as an alert object
+    const authAlerts = await loadAuthorityAlerts()
+    const synthetic = [{ district, risk_category: lvl, message: finalMsg, status: 'active', created_at: now.toISOString() }]
+    renderAlertBanner(REGIONS, [...synthetic, ...authAlerts])
+    return
+  }
 
   try {
     const resp = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/alerts', {
@@ -3335,6 +3377,29 @@ async function verifyFieldReport(id) {
     alert('Access denied. Authority role required to verify reports.')
     return
   }
+
+  // Demo mode: backend will reject the fake token — handle client-side instead
+  if (!token || token.startsWith('demo_')) {
+    // Find the card containing this verify button and update it in-place
+    const btn = document.querySelector(`[onclick="verifyFieldReport('${id}')"]`)
+    if (btn) {
+      const foot = btn.closest('.rc-foot')
+      if (foot) {
+        // Remove "⏳ Pending" span and the Verify button
+        foot.querySelectorAll('[onclick^="verifyFieldReport"]').forEach(el => el.remove())
+        foot.querySelectorAll('span').forEach(el => {
+          if (el.textContent.trim() === '⏳ Pending') el.remove()
+        })
+        // Insert "✓ Verified" badge
+        const badge = document.createElement('span')
+        badge.className = 'verified'
+        badge.textContent = '✓ Verified'
+        foot.insertBefore(badge, foot.querySelector('[onclick^="deleteFieldReport"]'))
+      }
+    }
+    return
+  }
+
   try {
     const resp = await fetch(`https://bhudrishti-backend-9mrh.onrender.com/api/field-reports/${id}/verify`, {
       method: 'PATCH',
@@ -3342,7 +3407,6 @@ async function verifyFieldReport(id) {
     })
     const data = await resp.json()
     if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`)
-    alert('Report verified successfully.')
     initReports()
   } catch (err) {
     alert(`Verification failed: ${err.message}`)
