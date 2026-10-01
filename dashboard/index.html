@@ -1728,7 +1728,7 @@ let _routeLayers = null
 let rmInit = false
 
 // ── initRouteMap ──────────────────────────────────────────────────────────────
-// Creates the route map and loads live incident data from field reports.
+// Creates the route map and derives road risk incidents from the ML model.
 // Called once when the Rerouting tab is first opened.
 async function initRouteMap() {
   if (rmInit) {
@@ -1757,143 +1757,210 @@ async function initRouteMap() {
     }).bindTooltip(`${r.name} — ${r.risk}`).addTo(rm)
   })
 
-  // Load live incidents from field reports
+  // Derive road incidents from ML model risk data
   await loadIncidentsAndTable()
 }
 
-// ── loadIncidentsAndTable ────────────────────────────────────────────────────
-// Fetches real field reports (blocked_road / landslide_occurred) from the
-// BhuDrishti backend and populates the road blockage table + map markers.
-async function loadIncidentsAndTable() {
-  const tbody      = document.getElementById('blk-body')
-  const evacDiv    = document.getElementById('evac-routes')
-  const rm         = window._rm
+// ── buildMLIncidents ─────────────────────────────────────────────────────────
+// Derives road impact incidents from the ML model's REGIONS data.
+// High and Critical risk districts are treated as affected road zones.
+// Road status and cause are inferred from the district's terrain + rainfall data.
+function buildMLIncidents() {
+  const RISK_ORDER = { Low: 0, Moderate: 1, High: 2, Critical: 3 }
 
-  tbody.innerHTML = `<tr><td colspan="4" style="padding:.6rem;color:var(--muted);font-size:.8rem">⏳ Loading incidents…</td></tr>`
-  evacDiv.innerHTML = `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Loading route recommendations…</div>`
+  return (REGIONS || [])
+    .filter(r => r.risk === 'High' || r.risk === 'Critical')
+    .map(r => {
+      // Determine road status from ML risk level
+      const roadStatus = r.risk === 'Critical' ? 'blocked' : 'caution'
 
-  try {
-    const resp = await fetch('https://bhudrishti-backend-9mrh.onrender.com/api/field-reports?limit=50')
-    const data = await resp.json()
+      // Derive a cause description from terrain + rainfall features
+      const causes = []
+      if (r.rain >= 100)         causes.push(`Heavy rainfall (${r.rain} mm)`)
+      else if (r.rain >= 50)     causes.push(`Moderate rainfall (${r.rain} mm)`)
+      if (r.slope >= 45)         causes.push(`steep slope (${r.slope}°)`)
+      else if (r.slope >= 30)    causes.push(`high slope (${r.slope}°)`)
+      if (r.soilMoisture >= 0.6) causes.push(`saturated soil (${(r.soilMoisture * 100).toFixed(0)}%)`)
+      const cause = causes.length ? causes.join(', ') : `ML risk score: ${r.risk}`
 
-    const reports = (data.reports || []).filter(r =>
-      r.report_type === 'blocked_road' || r.report_type === 'landslide_occurred'
-    )
+      return {
+        district:   r.name,
+        latitude:   r.lat,
+        longitude:  r.lon,
+        risk:       r.risk,
+        roadStatus: roadStatus,
+        cause:      cause,
+        rain:       r.rain,
+        slope:      r.slope,
+        confidence: r.confidence,
+      }
+    })
+    .sort((a, b) => RISK_ORDER[b.risk] - RISK_ORDER[a.risk])  // Critical first
+}
 
-    if (reports.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" style="padding:.6rem;color:#2d7a3a;font-size:.8rem">✅ No active road incidents reported.</td></tr>`
-      evacDiv.innerHTML = `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">No active incidents — all routes nominal.</div>`
-      return
-    }
+// ── findSafestDestination ────────────────────────────────────────────────────
+// Finds the best evacuation destination from PRESETS for a given incident.
+// Prefers Low/Moderate-risk districts, weighted by risk level + proximity.
+function findSafestDestination(incidentDistrict, incidentLat, incidentLon) {
+  const RISK_ORDER = { Low: 0, Moderate: 1, High: 2, Critical: 3 }
 
-    // Render incident table
-    tbody.innerHTML = reports.map((r, i) => {
-      const label   = r.report_type === 'blocked_road' ? '⛔ Blocked' : '⚠️ Landslide'
-      const pill    = r.report_type === 'blocked_road' ? 'rblocked' : 'rcaution'
-      const loc     = r.district || (r.latitude ? `${Number(r.latitude).toFixed(3)},${Number(r.longitude).toFixed(3)}` : 'Unknown')
-      const cause   = r.description ? r.description.slice(0, 60) + (r.description.length > 60 ? '…' : '') : r.report_type.replace('_', ' ')
-      const canRoute = r.latitude && r.longitude
-      return `<tr>
-        <td><strong>${loc}</strong></td>
-        <td><span class="rpill ${pill}">${label}</span></td>
-        <td style="color:var(--muted);font-size:.75rem">${cause}</td>
-        <td>${canRoute
-          ? `<button class="rbtn" onclick="showReroute(${i})">Reroute</button>`
-          : '<span style="color:var(--muted);font-size:.74rem">No coords</span>'
-        }</td>
-      </tr>`
-    }).join('')
+  let best = null, bestScore = Infinity
 
-    // Plot incident markers on map
-    if (rm) {
-      reports.forEach(r => {
-        if (!r.latitude || !r.longitude) return
-        const icon = r.report_type === 'blocked_road' ? '🚧' : '🏔️'
-        L.marker([r.latitude, r.longitude], {
-          icon: L.divIcon({
-            className: '',
-            html: `<div style="font-size:1.4rem;filter:drop-shadow(0 1px 2px #0008)">${icon}</div>`,
-            iconAnchor: [12, 12]
-          })
-        }).bindPopup(`<strong>${r.district || 'Incident'}</strong><br>${r.description || r.report_type}<br><small>Severity: ${r.severity}</small>`)
-          .addTo(rm)
-      })
-    }
+  ;(PRESETS || []).forEach(p => {
+    if (p.name === incidentDistrict) return   // skip the incident district itself
 
-    // Store reports for showReroute to reference
-    window._incidents = reports
+    // Look up this district's current ML risk level
+    const region = (REGIONS || []).find(r => r.name === p.name)
+    const riskLevel = region ? region.risk : 'Moderate'
+    const riskScore = RISK_ORDER[riskLevel] ?? 1
 
-    // Update stat counters
-    const blockedCount = reports.filter(r => r.report_type === 'blocked_road').length
-    const el = id => document.getElementById(id)
-    if (el('rt-blocked'))   el('rt-blocked').textContent   = blockedCount
-    if (el('rt-incidents')) el('rt-incidents').textContent = reports.length
-    if (el('rt-alts'))      el('rt-alts').textContent      = '—' // updated after first route calc
+    // Only consider Low or Moderate risk districts as safe destinations
+    if (riskScore >= 2) return   // skip High/Critical districts
 
-    // Evacuation recommendation — nearest safe district from each incident
-    renderEvacRecommendations(reports)
+    const geoDist = Math.hypot(p.lat - incidentLat, p.lon - incidentLon)
+    // Score: weight risk heavily, then proximity as tiebreaker
+    const score = riskScore * 10 + geoDist
+    if (score < bestScore) { bestScore = score; best = p }
+  })
 
-  } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="4" style="padding:.6rem;color:#b83020;font-size:.8rem">⚠️ Could not load incidents: ${err.message}</td></tr>`
-    evacDiv.innerHTML = ''
+  // Fallback: if no Low/Moderate district found, take the least-risky available
+  if (!best) {
+    ;(PRESETS || []).forEach(p => {
+      if (p.name === incidentDistrict) return
+      const region = (REGIONS || []).find(r => r.name === p.name)
+      const riskScore = RISK_ORDER[region?.risk ?? 'Moderate'] ?? 1
+      const geoDist   = Math.hypot(p.lat - incidentLat, p.lon - incidentLon)
+      const score     = riskScore * 10 + geoDist
+      if (score < bestScore) { bestScore = score; best = p }
+    })
   }
+
+  return best
+}
+
+// ── loadIncidentsAndTable ────────────────────────────────────────────────────
+// Derives road risk incidents from the ML model (REGIONS) and populates
+// the road blockage table + map markers. No field-report API call needed.
+function loadIncidentsAndTable() {
+  const tbody   = document.getElementById('blk-body')
+  const evacDiv = document.getElementById('evac-routes')
+  const rm      = window._rm
+
+  tbody.innerHTML  = `<tr><td colspan="4" style="padding:.6rem;color:var(--muted);font-size:.8rem">⏳ Analysing ML risk data…</td></tr>`
+  evacDiv.innerHTML = `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">⏳ Computing route recommendations…</div>`
+
+  // If ML data hasn't loaded yet, retry once it's available
+  if (!REGIONS || !REGIONS.length) {
+    setTimeout(loadIncidentsAndTable, 1500)
+    return
+  }
+
+  const incidents = buildMLIncidents()
+
+  if (incidents.length === 0) {
+    tbody.innerHTML  = `<tr><td colspan="4" style="padding:.6rem;color:#2d7a3a;font-size:.8rem">✅ No high-risk districts — all roads nominal.</td></tr>`
+    evacDiv.innerHTML = `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">No high-risk zones detected — all routes nominal.</div>`
+    const el = id => document.getElementById(id)
+    if (el('rt-blocked'))   el('rt-blocked').textContent   = '0'
+    if (el('rt-incidents')) el('rt-incidents').textContent = '0'
+    return
+  }
+
+  const pillClass = { blocked: 'rblocked', caution: 'rcaution' }
+  const pillLabel = { blocked: '⛔ Blocked', caution: '⚠️ Caution' }
+
+  // Populate road blockage table
+  tbody.innerHTML = incidents.map((inc, i) => `<tr>
+    <td>
+      <strong>${inc.district}</strong>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:.1rem">
+        🤖 ML · <span style="color:${RC[inc.risk]};font-weight:700">${inc.risk} Risk</span>
+        · ${(inc.confidence * 100).toFixed(0)}% confidence
+      </div>
+    </td>
+    <td><span class="rpill ${pillClass[inc.roadStatus]}">${pillLabel[inc.roadStatus]}</span></td>
+    <td style="color:var(--muted);font-size:.75rem">${inc.cause}</td>
+    <td><button class="rbtn" onclick="showReroute(${i})">Reroute</button></td>
+  </tr>`).join('')
+
+  // Plot ML risk markers on the route map
+  if (rm) {
+    incidents.forEach(inc => {
+      const icon = inc.roadStatus === 'blocked' ? '🚧' : '⚠️'
+      L.marker([inc.latitude, inc.longitude], {
+        icon: L.divIcon({
+          className: '',
+          html: `<div style="font-size:1.4rem;filter:drop-shadow(0 1px 2px #0008)">${icon}</div>`,
+          iconAnchor: [12, 12]
+        })
+      }).bindPopup(
+        `<strong>${inc.district}</strong><br>` +
+        `🤖 ML Risk: <strong>${inc.risk}</strong><br>` +
+        `${inc.cause}<br>` +
+        `<small>Confidence: ${(inc.confidence * 100).toFixed(0)}%</small>`
+      ).addTo(rm)
+    })
+  }
+
+  // Store for showReroute
+  window._incidents = incidents
+
+  // Update stat counters
+  const blockedCount = incidents.filter(i => i.roadStatus === 'blocked').length
+  const el = id => document.getElementById(id)
+  if (el('rt-blocked'))   el('rt-blocked').textContent   = blockedCount
+  if (el('rt-incidents')) el('rt-incidents').textContent = incidents.length
+  if (el('rt-alts'))      el('rt-alts').textContent      = '—'
+
+  // Evacuation recommendations
+  renderEvacRecommendations(incidents)
 }
 
 // ── renderEvacRecommendations ─────────────────────────────────────────────────
-// For each incident with known coordinates, find the nearest safe district
-// from PRESETS and offer a route button.
+// For each high/critical ML incident, find the safest destination district
+// (lowest ML risk, then closest) and offer a route button.
 function renderEvacRecommendations(incidents) {
   const div = document.getElementById('evac-routes')
-  const items = incidents
-    .filter(r => r.latitude && r.longitude)
-    .slice(0, 4)  // show max 4
-    .map(r => {
-      // Find nearest district not matching the incident district
-      const origin = { lat: Number(r.latitude), lon: Number(r.longitude) }
-      let nearest = null, minDist = Infinity
-      ;(PRESETS || []).forEach(p => {
-        if (p.name === r.district) return
-        const d = Math.hypot(p.lat - origin.lat, p.lon - origin.lon)
-        if (d < minDist) { minDist = d; nearest = p }
-      })
-      if (!nearest) return ''
-      const districtLabel = r.district || `${Number(r.latitude).toFixed(2)},${Number(r.longitude).toFixed(2)}`
-      return `
-        <div class="evac-card">
-          <div style="font-size:1.5rem">🚐</div>
-          <div style="flex:1;min-width:160px">
-            <div style="font-weight:800;margin-bottom:.2rem;color:var(--text)">${districtLabel} → ${nearest.name}</div>
-            <div style="font-size:.72rem;color:var(--muted)">${r.report_type === 'blocked_road' ? 'Road blocked' : 'Landslide reported'} · ${r.severity} severity</div>
-          </div>
-          <button class="rbtn" style="padding:.4rem .9rem" onclick="calcEvacRoute(${origin.lat},${origin.lon},${nearest.lat},${nearest.lon},'${districtLabel}','${nearest.name}')">
-            📍 Show Route
-          </button>
-        </div>`
-    }).join('')
 
-  div.innerHTML = items || `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">No geolocated incidents for route recommendations.</div>`
+  const items = incidents.slice(0, 4).map(inc => {
+    const dest = findSafestDestination(inc.district, inc.latitude, inc.longitude)
+    if (!dest) return ''
+
+    // Find the ML risk of the destination for display
+    const destRegion = (REGIONS || []).find(r => r.name === dest.name)
+    const destRisk   = destRegion ? destRegion.risk : 'Low'
+
+    return `
+      <div class="evac-card">
+        <div style="font-size:1.5rem">🚐</div>
+        <div style="flex:1;min-width:160px">
+          <div style="font-weight:800;margin-bottom:.2rem;color:var(--text)">${inc.district} → ${dest.name}</div>
+          <div style="font-size:.72rem;color:var(--muted)">
+            ${inc.risk} risk zone → <span style="color:${RC[destRisk]};font-weight:700">${destRisk} risk</span> destination
+            · ${inc.cause}
+          </div>
+        </div>
+        <button class="rbtn" style="padding:.4rem .9rem"
+          onclick="calcEvacRoute(${inc.latitude},${inc.longitude},${dest.lat},${dest.lon},'${inc.district}','${dest.name}')">
+          📍 Show Route
+        </button>
+      </div>`
+  }).join('')
+
+  div.innerHTML = items || `<div style="padding:.75rem;color:var(--muted);font-size:.8rem">No route recommendations — all zones at acceptable risk.</div>`
 }
 
-// ── showReroute ──────────────────────────────────────────────────────────────
+// ── showReroute ───────────────────────────────────────────────────────────────
 // Called from the Reroute button in the incidents table.
-// Uses the incident location as "blocked point" origin and the origin district
-// selector as the start, routing to the nearest safe district.
+// Routes from the ML-identified risk district to the safest available destination.
 function showReroute(incidentIndex) {
-  const r = (window._incidents || [])[incidentIndex]
-  if (!r || !r.latitude || !r.longitude) return
+  const inc = (window._incidents || [])[incidentIndex]
+  if (!inc) return
 
-  // Find nearest safe district
-  const origin = { lat: Number(r.latitude), lon: Number(r.longitude) }
-  let nearest = null, minDist = Infinity
-  ;(PRESETS || []).forEach(p => {
-    if (p.name === r.district) return
-    const d = Math.hypot(p.lat - origin.lat, p.lon - origin.lon)
-    if (d < minDist) { minDist = d; nearest = p }
-  })
-  if (!nearest) return
+  const dest = findSafestDestination(inc.district, inc.latitude, inc.longitude)
+  if (!dest) return
 
-  calcEvacRoute(origin.lat, origin.lon, nearest.lat, nearest.lon,
-    r.district || 'Incident location', nearest.name)
+  calcEvacRoute(inc.latitude, inc.longitude, dest.lat, dest.lon, inc.district, dest.name)
 }
 
 // ── calcEvacRoute ─────────────────────────────────────────────────────────────
