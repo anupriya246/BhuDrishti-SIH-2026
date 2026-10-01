@@ -1,6 +1,6 @@
 # BhuDrishti 🏔️
 **AI-Based Landslide Early Warning & Risk Monitoring System — NER (North-East India)**  
-Smart India Hackathon 2026 | Team InnoVision
+Smart India Hackathon 2026 | Team Inno_Vision_
 
 ---
 

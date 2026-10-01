@@ -163,7 +163,7 @@ export default function App() {
 
       {/* ── Footer ─────────────────────────────────────────────────────── */}
       <footer className="footer" role="contentinfo">
-        <span>BhuDrishti — InnoVision | Smart India Hackathon 2026</span>
+        <span>BhuDrishti — Inno_Vision_ | Smart India Hackathon 2026</span>
         <span>Data: IMD · USGS · Open-Meteo · Mendeley Landslide Dataset</span>
       </footer>
     </div>
